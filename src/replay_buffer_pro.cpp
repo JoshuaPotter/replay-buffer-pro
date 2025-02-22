@@ -29,6 +29,12 @@ namespace {
 	constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
 	constexpr int MAX_BUFFER_LENGTH = 3600;    // 1 hour maximum
 	constexpr int DEFAULT_BUFFER_LENGTH = 300; // 5 minutes default
+	
+	// Configuration keys
+	constexpr const char* REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
+	constexpr const char* DOCK_AREA_KEY = "DockArea";
+	constexpr const char* DOCK_GEOMETRY_KEY = "DockGeometry";
+	constexpr const char* MODULE_NAME = "replay_buffer_pro";
 
 	/**
 	 * @brief Structure defining save button configurations
@@ -107,7 +113,7 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
  * @param mainWindow The OBS main window
  * 
  * Initializes a new ReplayBufferPro widget and docks it to the specified main window.
- * Automatically adds the widget to the right dock area.
+ * Automatically adds the widget to the left dock area.
  */
 ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	: QDockWidget(mainWindow)
@@ -127,8 +133,12 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	// Register for OBS events
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
 
-	// Add to main window's right dock area
-	mainWindow->addDockWidget(Qt::RightDockWidgetArea, this);
+	// Load saved dock state
+	loadDockState(mainWindow);
+
+	// Connect dock state changes to save function
+	connect(this, &QDockWidget::dockLocationChanged, this, &ReplayBufferPro::saveDockState);
+	connect(this, &QDockWidget::topLevelChanged, this, &ReplayBufferPro::saveDockState);
 }
 
 /**
@@ -151,6 +161,7 @@ void ReplayBufferPro::initializeUI() {
 
 	// Create slider control group
 	QHBoxLayout *sliderLayout = new QHBoxLayout();
+	sliderLayout->setAlignment(Qt::AlignTop); // Align contents to top
 	
 	// Initialize slider with range
 	slider = new QSlider(Qt::Horizontal, container);
@@ -165,10 +176,19 @@ void ReplayBufferPro::initializeUI() {
 	sliderLayout->addWidget(secondsLabel);
 	mainLayout->addLayout(sliderLayout);
 
+	// Add spacing between slider and save buttons
+	mainLayout->addSpacing(10);
+
+	// Add "Save Clip" header
+	mainLayout->addWidget(new QLabel(obs_module_text("SaveClip"), container));
+
 	// Create and add save buttons section
 	QHBoxLayout *buttonLayout = new QHBoxLayout();
 	initializeSaveButtons(buttonLayout);
 	mainLayout->addLayout(buttonLayout);
+
+	// Add stretch to push everything to the top
+	mainLayout->addStretch();
 
 	// Set the container as the dock widget's content
 	setWidget(container);
@@ -229,12 +249,11 @@ void ReplayBufferPro::loadCurrentBufferLength() {
 	const char* mode = config_get_string(config, "Output", "Mode");
 	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 	
-	// Get current replay time and convert from milliseconds to seconds
-	uint64_t replayTime = config_get_uint(config, section, "RecRBTime");
-	int currentLength = static_cast<int>(replayTime / 1000);
+	// Get current replay buffer length (stored in seconds)
+	uint64_t replayBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
 	
 	// Set length, defaulting if current value is invalid
-	setBufferLength(currentLength > 0 ? currentLength : DEFAULT_BUFFER_LENGTH);
+	setBufferLength(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : DEFAULT_BUFFER_LENGTH);
 }
 
 /**
@@ -306,45 +325,29 @@ void ReplayBufferPro::updateReplayBufferSettings(int seconds) {
 		// Determine output mode (Simple/Advanced) and corresponding section
 		const char* mode = config_get_string(config, "Output", "Mode");
 		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
-		
-		// Convert seconds to milliseconds for OBS config
 
 		// Skip update if value hasn't changed
-		if (config_get_uint(config, section, "RecRBTime") == seconds) {
+		if (config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY) == seconds) {
 			return;
 		}
 
-		// Handle active replay buffer
-		bool wasActive = obs_frontend_replay_buffer_active();
-		if (wasActive) {
-			// Must stop buffer before changing settings
-			obs_frontend_replay_buffer_stop();
-			QThread::msleep(500); // Give OBS time to fully stop the buffer
-		}
-
-		// Update OBS configuration
-		config_set_uint(config, section, "RecRBTime", seconds);
+		// Update OBS configuration (length is in seconds)
+		config_set_uint(config, section, REPLAY_BUFFER_LENGTH_KEY, seconds);
 		config_save(config);
 
-		// Update replay buffer output settings
-		// if (obs_output_t* replay_output = obs_frontend_get_replay_buffer_output()) {
-		// 	if (obs_data_t* settings = obs_output_get_settings(replay_output)) {
-		// 		// Set max time in seconds for the output
-		// 		obs_data_set_int(settings, "max_time_sec", seconds);
-		// 		obs_output_update(replay_output, settings);
-		// 		obs_data_release(settings);
-		// 	}
-		// 	obs_output_release(replay_output);
-		// }
+		// Update the active replay buffer output (runtime setting)
+		// This is needed because changing the config alone doesn't affect the running buffer
+		if (obs_output_t* replay_output = obs_frontend_get_replay_buffer_output()) {
+			OBSDataRAII settings(obs_output_get_settings(replay_output));
+			if (settings.isValid()) {
+				obs_data_set_int(settings.get(), "max_time_sec", seconds);
+				obs_output_update(replay_output, settings.get());
+			}
+			obs_output_release(replay_output);
+		}
 
 		// Save all OBS settings
 		obs_frontend_save();
-
-		// Restart buffer if it was active
-		if (wasActive) {
-			QThread::msleep(500); // Give OBS time before restarting
-			obs_frontend_replay_buffer_start();
-		}
 
 	} catch (const std::exception& e) {
 		// Log error and show user-friendly message
@@ -380,16 +383,16 @@ void ReplayBufferPro::saveReplaySegment(int duration) {
 	const char* mode = config_get_string(config, "Output", "Mode");
 	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 	
-	// Get current buffer length (stored in milliseconds, convert to seconds)
-	uint64_t currentBufferTime = config_get_uint(config, section, "ReplayTime") / 1000;
+	// Get current buffer length
+	uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
 
 	// Verify requested duration is valid
-	if (duration > static_cast<int>(currentBufferTime)) {
+	if (duration > static_cast<int>(currentBufferLength)) {
 		// Show warning if duration exceeds buffer length
 		QMessageBox::warning(this, obs_module_text("Warning"),
 			QString(obs_module_text("CannotSaveSegment"))
 				.arg(duration)
-				.arg(currentBufferTime));
+				.arg(currentBufferLength));
 		return;
 	}
 
@@ -468,4 +471,89 @@ void ReplayBufferPro::updateSliderState() {
 ReplayBufferPro::~ReplayBufferPro() {
 	// Clean up event callback to prevent dangling pointer
 	obs_frontend_remove_event_callback(OBSFrontendEvent, this);
+}
+
+void ReplayBufferPro::loadDockState(QMainWindow *mainWindow) {
+	// Get config file path
+	char* config_path = obs_module_config_path("dock_state.json");
+	if (!config_path) {
+		// Default to left dock area if can't get config path
+		mainWindow->addDockWidget(Qt::LeftDockWidgetArea, this);
+		return;
+	}
+
+	// Create data from JSON file with backup extension
+	OBSDataRAII data(obs_data_create_from_json_file(config_path));
+	bfree(config_path); // Free the allocated path
+
+	if (!data.isValid()) {
+		// Default to left dock area if no saved state
+		mainWindow->addDockWidget(Qt::LeftDockWidgetArea, this);
+		return;
+	}
+
+	// Load dock area
+	Qt::DockWidgetArea area = static_cast<Qt::DockWidgetArea>(
+		obs_data_get_int(data.get(), DOCK_AREA_KEY));
+	
+	// Default to left if invalid area
+	if (area != Qt::LeftDockWidgetArea && 
+		area != Qt::RightDockWidgetArea && 
+		area != Qt::TopDockWidgetArea && 
+		area != Qt::BottomDockWidgetArea) {
+		area = Qt::LeftDockWidgetArea;
+	}
+
+	// Add to saved area
+	mainWindow->addDockWidget(area, this);
+
+	// Restore geometry if floating
+	QByteArray geometry = QByteArray::fromBase64(
+		obs_data_get_string(data.get(), DOCK_GEOMETRY_KEY));
+	if (!geometry.isEmpty()) {
+		restoreGeometry(geometry);
+	}
+}
+
+void ReplayBufferPro::saveDockState() {
+	OBSDataRAII data(obs_data_create());
+	if (!data.isValid()) return;
+
+	// Save dock area
+	Qt::DockWidgetArea area = Qt::NoDockWidgetArea;
+	if (QMainWindow *mainWindow = qobject_cast<QMainWindow*>(parent())) {
+		area = mainWindow->dockWidgetArea(this);
+	}
+	obs_data_set_int(data.get(), DOCK_AREA_KEY, static_cast<int>(area));
+
+	// Save geometry if floating
+	if (isFloating()) {
+		QByteArray geometry = saveGeometry().toBase64();
+		obs_data_set_string(data.get(), DOCK_GEOMETRY_KEY, geometry.constData());
+	}
+
+	// Get config directory path
+	char* config_dir = obs_module_config_path("");
+	if (!config_dir) {
+		blog(LOG_WARNING, "Failed to get config directory path");
+		return;
+	}
+
+	// Ensure config directory exists
+	if (os_mkdirs(config_dir) < 0) {
+		blog(LOG_WARNING, "Failed to create config directory: %s", config_dir);
+		bfree(config_dir);
+		return;
+	}
+
+	// Build full config file path
+	std::string config_path = std::string(config_dir) + "/dock_state.json";
+	bfree(config_dir);
+
+	// Save to file with safe write
+	if (!obs_data_save_json_safe(data.get(), config_path.c_str(), "tmp", "bak")) {
+		blog(LOG_WARNING, "Failed to save dock state to: %s", config_path.c_str());
+	} else {
+		blog(LOG_INFO, "Saved dock state to: %s", config_path.c_str());
+	}
 }

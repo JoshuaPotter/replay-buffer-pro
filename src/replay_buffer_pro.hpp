@@ -18,10 +18,11 @@
 #pragma once
 
 // Core OBS includes
-#include <obs.h>              // Core OBS API
-#include <obs-module.h>       // Plugin module functions
-#include <obs-frontend-api.h> // Frontend API functions
-#include <util/config-file.h> // For config_* functions
+#include <libobs/obs.h>              // Core OBS API
+#include <libobs/obs-module.h>       // Plugin module functions
+#include <frontend/api/obs-frontend-api.h> // Frontend API functions
+#include <util/config-file.h>        // For config_* functions
+#include <util/platform.h>           // For os_mkdirs and other platform functions
 
 // Qt includes needed for class declaration
 #include <QDockWidget>
@@ -115,6 +116,23 @@ private:
      * labels, and save buttons.
      */
     void initializeUI();
+
+    /**
+     * @brief Loads the saved dock state
+     * @param mainWindow The main window to dock to
+     * 
+     * Restores the dock widget's position and geometry from saved settings.
+     * Defaults to left dock area if no saved state exists.
+     */
+    void loadDockState(QMainWindow *mainWindow);
+
+    /**
+     * @brief Saves the current dock state
+     * 
+     * Saves the current dock position and geometry to OBS settings.
+     * Called automatically when the dock location changes.
+     */
+    void saveDockState();
 
     /**
      * @brief Initializes the save buttons for different durations
