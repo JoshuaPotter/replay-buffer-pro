@@ -103,7 +103,9 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
 	, saveFullBufferBtn(nullptr)
-	, sliderDebounceTimer(new QTimer(this)) {
+	, sliderDebounceTimer(new QTimer(this))
+	, settingsMonitorTimer(new QTimer(this))
+	, lastKnownBufferLength(0) {
 	
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
 	setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -113,6 +115,25 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 	initSignals();
 	
 	obs_frontend_add_event_callback(handleOBSEvent, this);
+
+	// Setup settings monitoring
+	settingsMonitorTimer->setInterval(1000); // Check every second
+	connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
+		config_t* config = obs_frontend_get_profile_config();
+		if (!config) return;
+
+		const char* mode = config_get_string(config, "Output", "Mode");
+		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
+		
+		uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+		
+		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
+			lastKnownBufferLength = currentBufferLength;
+			updateBufferLengthUI(static_cast<int>(currentBufferLength));
+			blog(LOG_INFO, "Detected buffer length change in OBS settings: %llu seconds", currentBufferLength);
+		}
+	});
+	settingsMonitorTimer->start();
 }
 
 /**
@@ -127,7 +148,9 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
 	, saveFullBufferBtn(nullptr)
-	, sliderDebounceTimer(new QTimer(this)) {
+	, sliderDebounceTimer(new QTimer(this))
+	, settingsMonitorTimer(new QTimer(this))
+	, lastKnownBufferLength(0) {
 	
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
 	setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -141,6 +164,25 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 
 	connect(this, &QDockWidget::dockLocationChanged, this, &ReplayBufferPro::saveDockState);
 	connect(this, &QDockWidget::topLevelChanged, this, &ReplayBufferPro::saveDockState);
+
+	// Setup settings monitoring
+	settingsMonitorTimer->setInterval(1000); // Check every second
+	connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
+		config_t* config = obs_frontend_get_profile_config();
+		if (!config) return;
+
+		const char* mode = config_get_string(config, "Output", "Mode");
+		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
+		
+		uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+		
+		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
+			lastKnownBufferLength = currentBufferLength;
+			updateBufferLengthUI(static_cast<int>(currentBufferLength));
+			blog(LOG_INFO, "Detected buffer length change in OBS settings: %llu seconds", currentBufferLength);
+		}
+	});
+	settingsMonitorTimer->start();
 }
 
 /**
@@ -150,6 +192,7 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
  * Ensures no dangling callbacks remain after destruction.
  */
 ReplayBufferPro::~ReplayBufferPro() {
+	settingsMonitorTimer->stop();
 	obs_frontend_remove_event_callback(handleOBSEvent, this);
 }
 
@@ -166,10 +209,20 @@ void ReplayBufferPro::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
 	
 	switch (event) {
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
+			window->settingsMonitorTimer->stop(); // Stop monitoring when buffer starts
 			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			break;
+		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
+			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			break;
+		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
+			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			break;
+		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
+			window->settingsMonitorTimer->start(); // Resume monitoring when buffer stops
+			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			// Reload buffer length in case it was changed while buffer was active
+			QMetaObject::invokeMethod(window, "loadBufferLength", Qt::QueuedConnection);
 			break;
 		default:
 			break;
@@ -464,10 +517,6 @@ void ReplayBufferPro::updateUIState() {
 	
 	slider->setEnabled(!isActive);
 	secondsEdit->setEnabled(!isActive);
-	
-	if (isActive) {
-		loadBufferLength();
-	}
 }
 
 /**
@@ -509,6 +558,7 @@ void ReplayBufferPro::loadBufferLength() {
 	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 	
 	uint64_t replayBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+	lastKnownBufferLength = replayBufferLength; // Update the last known length
 	
 	updateBufferLengthUI(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : DEFAULT_BUFFER_LENGTH);
 }
