@@ -38,6 +38,59 @@
 #include <vector>
 #include <QTimer>
 
+class QSlider;
+class QLineEdit;
+class QPushButton;
+class QTimer;
+
+/**
+ * @brief Configuration constants for the plugin
+ */
+namespace Config {
+    // Buffer length configuration
+    constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
+    constexpr int MAX_BUFFER_LENGTH = 21600;   // 6 hours maximum
+    constexpr int DEFAULT_BUFFER_LENGTH = 300;  // 5 minutes default
+    
+    // Configuration keys
+    constexpr const char* REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
+    constexpr const char* DOCK_AREA_KEY = "DockArea";
+    constexpr const char* DOCK_GEOMETRY_KEY = "DockGeometry";
+    
+    // Timer intervals
+    constexpr int SETTINGS_MONITOR_INTERVAL = 1000;  // 1 second
+    constexpr int SLIDER_DEBOUNCE_INTERVAL = 500;    // 500 milliseconds
+    
+    // File paths
+    constexpr const char* DOCK_STATE_FILENAME = "dock_state.json";
+    constexpr const char* TEMP_FILE_SUFFIX = "tmp";
+    constexpr const char* BACKUP_FILE_SUFFIX = "bak";
+}
+
+/**
+ * @brief Utility class for standardized logging
+ */
+class Logger {
+public:
+    static void info(const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        char buf[4096];
+        vsnprintf(buf, sizeof(buf), format, args);
+        blog(LOG_INFO, "[ReplayBufferPro] %s", buf);
+        va_end(args);
+    }
+
+    static void error(const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        char buf[4096];
+        vsnprintf(buf, sizeof(buf), format, args);
+        blog(LOG_ERROR, "[ReplayBufferPro] %s", buf);
+        va_end(args);
+    }
+};
+
 /**
  * @class ReplayBufferPro
  * @brief Main widget class for the Replay Buffer Pro plugin

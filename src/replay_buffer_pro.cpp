@@ -117,7 +117,7 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 	obs_frontend_add_event_callback(handleOBSEvent, this);
 
 	// Setup settings monitoring
-	settingsMonitorTimer->setInterval(1000); // Check every second
+	settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
 	connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
 		config_t* config = obs_frontend_get_profile_config();
 		if (!config) return;
@@ -125,12 +125,12 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 		const char* mode = config_get_string(config, "Output", "Mode");
 		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 		
-		uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+		uint64_t currentBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
 		
 		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
 			lastKnownBufferLength = currentBufferLength;
 			updateBufferLengthUI(static_cast<int>(currentBufferLength));
-			blog(LOG_INFO, "Detected buffer length change in OBS settings: %llu seconds", currentBufferLength);
+			Logger::info("Buffer length changed in OBS settings: %llu seconds", currentBufferLength);
 		}
 	});
 	settingsMonitorTimer->start();
@@ -166,7 +166,7 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	connect(this, &QDockWidget::topLevelChanged, this, &ReplayBufferPro::saveDockState);
 
 	// Setup settings monitoring
-	settingsMonitorTimer->setInterval(1000); // Check every second
+	settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
 	connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
 		config_t* config = obs_frontend_get_profile_config();
 		if (!config) return;
@@ -174,12 +174,12 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 		const char* mode = config_get_string(config, "Output", "Mode");
 		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 		
-		uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+		uint64_t currentBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
 		
 		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
 			lastKnownBufferLength = currentBufferLength;
 			updateBufferLengthUI(static_cast<int>(currentBufferLength));
-			blog(LOG_INFO, "Detected buffer length change in OBS settings: %llu seconds", currentBufferLength);
+			Logger::info("Buffer length changed in OBS settings: %llu seconds", currentBufferLength);
 		}
 	});
 	settingsMonitorTimer->start();
@@ -269,7 +269,7 @@ void ReplayBufferPro::handleBufferLengthInput() {
 	bool ok;
 	int value = secondsEdit->text().toInt(&ok);
 	
-	if (!ok || value < MIN_BUFFER_LENGTH || value > MAX_BUFFER_LENGTH) {
+	if (!ok || value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH) {
 		updateBufferLengthUI(slider->value());
 		return;
 	}
@@ -316,7 +316,7 @@ void ReplayBufferPro::handleSaveSegment(int duration) {
 	const char* mode = config_get_string(config, "Output", "Mode");
 	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 	
-	uint64_t currentBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
+	uint64_t currentBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
 
 	if (duration > static_cast<int>(currentBufferLength)) {
 		QMessageBox::warning(this, obs_module_text("Warning"),
@@ -327,7 +327,7 @@ void ReplayBufferPro::handleSaveSegment(int duration) {
 	}
 
 	obs_frontend_replay_buffer_save();
-	blog(LOG_INFO, "Saving replay segment of %d seconds", duration);
+	Logger::info("Saving replay segment of %d seconds", duration);
 }
 
 //=============================================================================
@@ -354,7 +354,7 @@ void ReplayBufferPro::initUI() {
 	sliderLayout->setAlignment(Qt::AlignTop);
 	
 	slider = new QSlider(Qt::Horizontal, container);
-	slider->setRange(MIN_BUFFER_LENGTH, MAX_BUFFER_LENGTH);
+	slider->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
 	
 	secondsEdit = new QLineEdit(container);
 	secondsEdit->setFixedWidth(60);
@@ -432,7 +432,7 @@ void ReplayBufferPro::initSaveButtons(QHBoxLayout *layout) {
  */
 void ReplayBufferPro::initSignals() {
 	sliderDebounceTimer->setSingleShot(true);
-	sliderDebounceTimer->setInterval(500);
+	sliderDebounceTimer->setInterval(Config::SLIDER_DEBOUNCE_INTERVAL);
 
 	connect(slider, &QSlider::valueChanged, this, &ReplayBufferPro::handleSliderChanged);
 	connect(sliderDebounceTimer, &QTimer::timeout, this, &ReplayBufferPro::handleSliderFinished);
@@ -480,11 +480,11 @@ void ReplayBufferPro::updateOBSBufferLength(int seconds) {
 		const char* mode = config_get_string(config, "Output", "Mode");
 		const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 
-		if (config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY) == seconds) {
+		if (config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY) == seconds) {
 			return;
 		}
 
-		config_set_uint(config, section, REPLAY_BUFFER_LENGTH_KEY, seconds);
+		config_set_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY, seconds);
 		config_save(config);
 
 		if (obs_output_t* replay_output = obs_frontend_get_replay_buffer_output()) {
@@ -499,7 +499,7 @@ void ReplayBufferPro::updateOBSBufferLength(int seconds) {
 		obs_frontend_save();
 
 	} catch (const std::exception& e) {
-		blog(LOG_ERROR, "Failed to update buffer length: %s", e.what());
+		Logger::error("Failed to update buffer length: %s", e.what());
 		QMessageBox::warning(this, obs_module_text("Error"), 
 			QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
 	}
@@ -549,18 +549,18 @@ void ReplayBufferPro::toggleSaveButtons(int bufferLength) {
 void ReplayBufferPro::loadBufferLength() {
 	config_t* config = obs_frontend_get_profile_config();
 	if (!config) {
-		blog(LOG_ERROR, "Failed to get OBS profile config");
-		updateBufferLengthUI(DEFAULT_BUFFER_LENGTH);
+		Logger::error("Failed to get OBS profile config");
+		updateBufferLengthUI(Config::DEFAULT_BUFFER_LENGTH);
 		return;
 	}
 
 	const char* mode = config_get_string(config, "Output", "Mode");
 	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
 	
-	uint64_t replayBufferLength = config_get_uint(config, section, REPLAY_BUFFER_LENGTH_KEY);
-	lastKnownBufferLength = replayBufferLength; // Update the last known length
+	uint64_t replayBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
+	lastKnownBufferLength = replayBufferLength;
 	
-	updateBufferLengthUI(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : DEFAULT_BUFFER_LENGTH);
+	updateBufferLengthUI(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : Config::DEFAULT_BUFFER_LENGTH);
 }
 
 /**
@@ -588,7 +588,7 @@ void ReplayBufferPro::loadDockState(QMainWindow *mainWindow) {
 	}
 
 	Qt::DockWidgetArea area = static_cast<Qt::DockWidgetArea>(
-		obs_data_get_int(data.get(), DOCK_AREA_KEY));
+		obs_data_get_int(data.get(), Config::DOCK_AREA_KEY));
 	
 	if (area != Qt::LeftDockWidgetArea && 
 		area != Qt::RightDockWidgetArea && 
@@ -600,7 +600,7 @@ void ReplayBufferPro::loadDockState(QMainWindow *mainWindow) {
 	mainWindow->addDockWidget(area, this);
 
 	QByteArray geometry = QByteArray::fromBase64(
-		obs_data_get_string(data.get(), DOCK_GEOMETRY_KEY));
+		obs_data_get_string(data.get(), Config::DOCK_GEOMETRY_KEY));
 	if (!geometry.isEmpty()) {
 		restoreGeometry(geometry);
 	}
@@ -622,31 +622,32 @@ void ReplayBufferPro::saveDockState() {
 	if (QMainWindow *mainWindow = qobject_cast<QMainWindow*>(parent())) {
 		area = mainWindow->dockWidgetArea(this);
 	}
-	obs_data_set_int(data.get(), DOCK_AREA_KEY, static_cast<int>(area));
+	obs_data_set_int(data.get(), Config::DOCK_AREA_KEY, static_cast<int>(area));
 
 	if (isFloating()) {
 		QByteArray geometry = saveGeometry().toBase64();
-		obs_data_set_string(data.get(), DOCK_GEOMETRY_KEY, geometry.constData());
+		obs_data_set_string(data.get(), Config::DOCK_GEOMETRY_KEY, geometry.constData());
 	}
 
 	char* config_dir = obs_module_config_path("");
 	if (!config_dir) {
-		blog(LOG_WARNING, "Failed to get config directory path");
+		Logger::error("Failed to get config directory path");
 		return;
 	}
 
 	if (os_mkdirs(config_dir) < 0) {
-		blog(LOG_WARNING, "Failed to create config directory: %s", config_dir);
+		Logger::error("Failed to create config directory: %s", config_dir);
 		bfree(config_dir);
 		return;
 	}
 
-	std::string config_path = std::string(config_dir) + "/dock_state.json";
+	std::string config_path = std::string(config_dir) + "/" + Config::DOCK_STATE_FILENAME;
 	bfree(config_dir);
 
-	if (!obs_data_save_json_safe(data.get(), config_path.c_str(), "tmp", "bak")) {
-		blog(LOG_WARNING, "Failed to save dock state to: %s", config_path.c_str());
+	if (!obs_data_save_json_safe(data.get(), config_path.c_str(), 
+		Config::TEMP_FILE_SUFFIX, Config::BACKUP_FILE_SUFFIX)) {
+		Logger::error("Failed to save dock state to: %s", config_path.c_str());
 	} else {
-		blog(LOG_INFO, "Saved dock state to: %s", config_path.c_str());
+		Logger::info("Saved dock state to: %s", config_path.c_str());
 	}
 }

@@ -17,12 +17,12 @@ void obs_module_post_load(void) {
 }
 
 bool obs_module_load(void) {
-    blog(LOG_INFO, "Replay Buffer Pro Plugin Loaded.");
+    Logger::info("Plugin loaded");
     return true;
 }
 
 void obs_module_unload(void) {
     // The dock widget will be automatically deleted by OBS
     replayBufferProWindow = nullptr;
-    blog(LOG_INFO, "Replay Buffer Pro Plugin Unloaded.");
+    Logger::info("Plugin unloaded");
 }
