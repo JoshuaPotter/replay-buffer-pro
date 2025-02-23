@@ -4,7 +4,7 @@
  * @author Joshua Potter
  * @copyright GPL v2 or later
  *
- * This file defines the ReplayBufferPro class which provides enhanced replay buffer
+ * This file defines the Plugin class which provides enhanced replay buffer
  * functionality for OBS Studio. The plugin adds a dockable widget that allows users
  * to control the replay buffer length and save segments of varying durations.
  *
@@ -38,62 +38,25 @@
 #include <vector>
 #include <QTimer>
 
+// Forward declarations for Qt classes
+class QDockWidget;
+class QWidget;
+class QMainWindow;
 class QSlider;
 class QLineEdit;
 class QPushButton;
 class QTimer;
+class QHBoxLayout;
+class QLabel;
+
+#include "config.hpp"
+#include "logger.hpp"
+
+namespace ReplayBufferPro {
 
 /**
- * @brief Configuration constants for the plugin
- */
-namespace Config {
-    // Buffer length configuration
-    constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
-    constexpr int MAX_BUFFER_LENGTH = 21600;   // 6 hours maximum
-    constexpr int DEFAULT_BUFFER_LENGTH = 300;  // 5 minutes default
-    
-    // Configuration keys
-    constexpr const char* REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
-    constexpr const char* DOCK_AREA_KEY = "DockArea";
-    constexpr const char* DOCK_GEOMETRY_KEY = "DockGeometry";
-    
-    // Timer intervals
-    constexpr int SETTINGS_MONITOR_INTERVAL = 1000;  // 1 second
-    constexpr int SLIDER_DEBOUNCE_INTERVAL = 500;    // 500 milliseconds
-    
-    // File paths
-    constexpr const char* DOCK_STATE_FILENAME = "dock_state.json";
-    constexpr const char* TEMP_FILE_SUFFIX = "tmp";
-    constexpr const char* BACKUP_FILE_SUFFIX = "bak";
-}
-
-/**
- * @brief Utility class for standardized logging
- */
-class Logger {
-public:
-    static void info(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        char buf[4096];
-        vsnprintf(buf, sizeof(buf), format, args);
-        blog(LOG_INFO, "[ReplayBufferPro] %s", buf);
-        va_end(args);
-    }
-
-    static void error(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        char buf[4096];
-        vsnprintf(buf, sizeof(buf), format, args);
-        blog(LOG_ERROR, "[ReplayBufferPro] %s", buf);
-        va_end(args);
-    }
-};
-
-/**
- * @class ReplayBufferPro
- * @brief Main widget class for the Replay Buffer Pro plugin
+ * @class Plugin
+ * @brief Main plugin class for the Replay Buffer Pro plugin
  *
  * This class implements a dockable widget that provides an enhanced interface
  * for controlling OBS Studio's replay buffer functionality. It integrates with
@@ -106,7 +69,7 @@ public:
  * - Automatic UI state management based on buffer status
  * - Persistent dock position and settings
  */
-class ReplayBufferPro : public QDockWidget {
+class Plugin : public QDockWidget {
     Q_OBJECT
 
 public:
@@ -117,18 +80,18 @@ public:
      * @brief Creates a standalone dockable widget
      * @param parent Optional parent widget for memory management
      */
-    explicit ReplayBufferPro(QWidget *parent = nullptr);
+    explicit Plugin(QWidget *parent = nullptr);
 
     /**
      * @brief Creates and docks widget to OBS main window
      * @param mainWindow The OBS main window to dock to
      */
-    explicit ReplayBufferPro(QMainWindow *mainWindow);
+    explicit Plugin(QMainWindow *mainWindow);
 
     /**
      * @brief Cleans up resources and callbacks
      */
-    ~ReplayBufferPro();
+    ~Plugin();
 
     /**
      * @brief Handles OBS frontend events for buffer state changes
@@ -250,3 +213,5 @@ private:
      */
     void toggleSaveButtons(int bufferLength);
 };
+
+} // namespace ReplayBufferPro

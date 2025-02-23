@@ -71,8 +71,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add source files
 set(SOURCES
-    src/plugin-main.cpp
-    src/replay_buffer_pro.cpp
+    src/main.cpp
+    src/plugin.cpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${SOURCES})

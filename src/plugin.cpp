@@ -1,10 +1,10 @@
 /**
- * @file replay_buffer_pro.cpp
+ * @file plugin.cpp
  * @brief Implementation of the Replay Buffer Pro plugin for OBS Studio
  * @author Joshua Potter
  * @copyright GPL v2 or later
  *
- * This file implements the ReplayBufferPro class functionality, providing
+ * This file implements the Plugin class functionality, providing
  * enhanced replay buffer controls for OBS Studio. The implementation handles:
  * - UI initialization and management
  * - OBS configuration integration
@@ -12,34 +12,29 @@
  * - Segment saving functionality
  */
 
-#include "replay_buffer_pro.hpp"
+#include "plugin.hpp"
 
-// Qt includes for UI implementation
+// OBS includes
+#include <libobs/obs-module.h>
+#include <frontend/api/obs-frontend-api.h>
+#include <util/config-file.h>
+#include <util/platform.h>
+
+// Qt includes
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QThread>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSlider>
-#include <stdexcept>
 #include <QGridLayout>
 #include <QSizePolicy>
 #include <QLineEdit>
 #include <QTimer>
 
-namespace {
-	// Constants for buffer length configuration
-	constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
-	constexpr int MAX_BUFFER_LENGTH = 21600;    // 6 hours maximum
-	constexpr int DEFAULT_BUFFER_LENGTH = 300; // 5 minutes default
-	
-	// Configuration keys
-	constexpr const char* REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
-	constexpr const char* DOCK_AREA_KEY = "DockArea";
-	constexpr const char* DOCK_GEOMETRY_KEY = "DockGeometry";
-	constexpr const char* MODULE_NAME = "replay_buffer_pro";
+namespace ReplayBufferPro {
 
+namespace {
 	/**
 	 * @brief Structure defining save button configurations
 	 */
@@ -50,8 +45,6 @@ namespace {
 
 	/**
 	 * @brief Array of predefined save button configurations
-	 * 
-	 * Defines the durations and labels for the quick-save buttons
 	 */
 	const SaveButton SAVE_BUTTONS[] = {
 		{15, "Save15Sec"},   // 15 seconds
@@ -66,9 +59,6 @@ namespace {
 
 /**
  * @brief RAII wrapper for obs_data_t structures
- *
- * This class ensures that obs_data_t resources are properly released
- * when they go out of scope, preventing memory leaks.
  */
 class OBSDataRAII {
 private:
@@ -81,7 +71,6 @@ public:
 	obs_data_t* get() const { return data; }
 	bool isValid() const { return data != nullptr; }
 	
-	// Prevent copying to ensure single ownership
 	OBSDataRAII(const OBSDataRAII&) = delete;
 	OBSDataRAII& operator=(const OBSDataRAII&) = delete;
 };
@@ -98,7 +87,7 @@ public:
  * Creates a floating/dockable widget that can be added to any Qt window.
  * Initializes all UI components and sets up event handling.
  */
-ReplayBufferPro::ReplayBufferPro(QWidget *parent)
+Plugin::Plugin(QWidget *parent)
 	: QDockWidget(parent)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
@@ -143,7 +132,7 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
  * Creates a widget docked to the OBS main window.
  * Restores previous dock position and state if available.
  */
-ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
+Plugin::Plugin(QMainWindow *mainWindow)
 	: QDockWidget(mainWindow)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
@@ -162,8 +151,8 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	obs_frontend_add_event_callback(handleOBSEvent, this);
 	loadDockState(mainWindow);
 
-	connect(this, &QDockWidget::dockLocationChanged, this, &ReplayBufferPro::saveDockState);
-	connect(this, &QDockWidget::topLevelChanged, this, &ReplayBufferPro::saveDockState);
+	connect(this, &QDockWidget::dockLocationChanged, this, &Plugin::saveDockState);
+	connect(this, &QDockWidget::topLevelChanged, this, &Plugin::saveDockState);
 
 	// Setup settings monitoring
 	settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
@@ -191,7 +180,7 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
  * Cleans up resources and removes OBS event callbacks.
  * Ensures no dangling callbacks remain after destruction.
  */
-ReplayBufferPro::~ReplayBufferPro() {
+Plugin::~Plugin() {
 	settingsMonitorTimer->stop();
 	obs_frontend_remove_event_callback(handleOBSEvent, this);
 }
@@ -204,8 +193,8 @@ ReplayBufferPro::~ReplayBufferPro() {
  * Handles OBS events related to replay buffer state changes.
  * Uses Qt's event system to safely update UI from any thread.
  */
-void ReplayBufferPro::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
-	auto window = static_cast<ReplayBufferPro*>(ptr);
+void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
+	auto window = static_cast<Plugin*>(ptr);
 	
 	switch (event) {
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
@@ -241,7 +230,7 @@ void ReplayBufferPro::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
  * Updates UI immediately and starts debounce timer for OBS settings update.
  * Prevents rapid OBS settings updates during slider movement.
  */
-void ReplayBufferPro::handleSliderChanged(int value) {
+void Plugin::handleSliderChanged(int value) {
 	updateBufferLengthUI(value);
 	sliderDebounceTimer->start();
 }
@@ -252,7 +241,7 @@ void ReplayBufferPro::handleSliderChanged(int value) {
  * Called after slider movement stops and debounce period expires.
  * Updates OBS settings with the final slider value.
  */
-void ReplayBufferPro::handleSliderFinished() {
+void Plugin::handleSliderFinished() {
 	updateOBSBufferLength(slider->value());
 }
 
@@ -265,7 +254,7 @@ void ReplayBufferPro::handleSliderFinished() {
  * - Updates UI and settings if valid
  * - Reverts to previous value if invalid
  */
-void ReplayBufferPro::handleBufferLengthInput() {
+void Plugin::handleBufferLengthInput() {
 	bool ok;
 	int value = secondsEdit->text().toInt(&ok);
 	
@@ -284,7 +273,7 @@ void ReplayBufferPro::handleBufferLengthInput() {
  * Triggers saving of entire replay buffer content.
  * Shows error if buffer is not active.
  */
-void ReplayBufferPro::handleSaveFullBuffer() {
+void Plugin::handleSaveFullBuffer() {
 	if (obs_frontend_replay_buffer_active()) {
 		obs_frontend_replay_buffer_save();
 	} else {
@@ -303,7 +292,7 @@ void ReplayBufferPro::handleSaveFullBuffer() {
  * - Shows appropriate error messages
  * - Triggers save if all checks pass
  */
-void ReplayBufferPro::handleSaveSegment(int duration) {
+void Plugin::handleSaveSegment(int duration) {
 	if (!obs_frontend_replay_buffer_active()) {
 		QMessageBox::warning(this, obs_module_text("Warning"), 
 			obs_module_text("ReplayBufferNotActive"));
@@ -344,7 +333,7 @@ void ReplayBufferPro::handleSaveSegment(int duration) {
  * - Full buffer save button
  * Uses vertical layout with appropriate spacing and alignment.
  */
-void ReplayBufferPro::initUI() {
+void Plugin::initUI() {
 	QWidget *container = new QWidget(this);
 	QVBoxLayout *mainLayout = new QVBoxLayout(container);
 
@@ -386,7 +375,7 @@ void ReplayBufferPro::initUI() {
  * - Configures button appearance and behavior
  * - Arranges buttons in grid layout (4 per row)
  */
-void ReplayBufferPro::initSaveButtons(QHBoxLayout *layout) {
+void Plugin::initSaveButtons(QHBoxLayout *layout) {
 	saveButtons.clear();
 
 	QGridLayout* gridLayout = new QGridLayout();
@@ -416,7 +405,7 @@ void ReplayBufferPro::initSaveButtons(QHBoxLayout *layout) {
 	int lastRow = (saveButtons.size() - 1) / buttonsPerRow + 1;
 	gridLayout->addWidget(saveFullBufferBtn, lastRow, 0, 1, buttonsPerRow);
 	
-	connect(saveFullBufferBtn, &QPushButton::clicked, this, &ReplayBufferPro::handleSaveFullBuffer);
+	connect(saveFullBufferBtn, &QPushButton::clicked, this, &Plugin::handleSaveFullBuffer);
 
 	layout->addLayout(gridLayout);
 }
@@ -430,13 +419,13 @@ void ReplayBufferPro::initSaveButtons(QHBoxLayout *layout) {
  * - Save button clicks
  * Configures debounce timer for slider updates.
  */
-void ReplayBufferPro::initSignals() {
+void Plugin::initSignals() {
 	sliderDebounceTimer->setSingleShot(true);
 	sliderDebounceTimer->setInterval(Config::SLIDER_DEBOUNCE_INTERVAL);
 
-	connect(slider, &QSlider::valueChanged, this, &ReplayBufferPro::handleSliderChanged);
-	connect(sliderDebounceTimer, &QTimer::timeout, this, &ReplayBufferPro::handleSliderFinished);
-	connect(secondsEdit, &QLineEdit::editingFinished, this, &ReplayBufferPro::handleBufferLengthInput);
+	connect(slider, &QSlider::valueChanged, this, &Plugin::handleSliderChanged);
+	connect(sliderDebounceTimer, &QTimer::timeout, this, &Plugin::handleSliderFinished);
+	connect(secondsEdit, &QLineEdit::editingFinished, this, &Plugin::handleBufferLengthInput);
 }
 
 //=============================================================================
@@ -453,7 +442,7 @@ void ReplayBufferPro::initSignals() {
  * - Updates text input value
  * - Updates save button states
  */
-void ReplayBufferPro::updateBufferLengthUI(int seconds) {
+void Plugin::updateBufferLengthUI(int seconds) {
 	slider->setValue(seconds);
 	secondsEdit->setText(QString::number(seconds));
 	
@@ -470,7 +459,7 @@ void ReplayBufferPro::updateBufferLengthUI(int seconds) {
  * - Handles both Simple and Advanced output modes
  * - Shows error message if update fails
  */
-void ReplayBufferPro::updateOBSBufferLength(int seconds) {
+void Plugin::updateOBSBufferLength(int seconds) {
 	try {
 		config_t* config = obs_frontend_get_profile_config();
 		if (!config) {
@@ -512,7 +501,7 @@ void ReplayBufferPro::updateOBSBufferLength(int seconds) {
  * - Enables/disables controls based on buffer activity
  * - Updates buffer length display when active
  */
-void ReplayBufferPro::updateUIState() {
+void Plugin::updateUIState() {
 	bool isActive = obs_frontend_replay_buffer_active();
 	
 	slider->setEnabled(!isActive);
@@ -527,7 +516,7 @@ void ReplayBufferPro::updateUIState() {
  * - Enables buttons for durations <= buffer length
  * - Disables buttons for durations > buffer length
  */
-void ReplayBufferPro::toggleSaveButtons(int bufferLength) {
+void Plugin::toggleSaveButtons(int bufferLength) {
 	for (size_t i = 0; i < saveButtons.size(); i++) {
 		saveButtons[i]->setEnabled(bufferLength >= SAVE_BUTTONS[i].duration);
 	}
@@ -546,7 +535,7 @@ void ReplayBufferPro::toggleSaveButtons(int bufferLength) {
  * - Falls back to default length (5m) if not set
  * - Updates UI with loaded value
  */
-void ReplayBufferPro::loadBufferLength() {
+void Plugin::loadBufferLength() {
 	config_t* config = obs_frontend_get_profile_config();
 	if (!config) {
 		Logger::error("Failed to get OBS profile config");
@@ -572,7 +561,7 @@ void ReplayBufferPro::loadBufferLength() {
  * - Restores floating state and geometry
  * - Falls back to left dock area if no saved state
  */
-void ReplayBufferPro::loadDockState(QMainWindow *mainWindow) {
+void Plugin::loadDockState(QMainWindow *mainWindow) {
 	char* config_path = obs_module_config_path("dock_state.json");
 	if (!config_path) {
 		mainWindow->addDockWidget(Qt::LeftDockWidgetArea, this);
@@ -614,7 +603,7 @@ void ReplayBufferPro::loadDockState(QMainWindow *mainWindow) {
  * - Saves floating state and geometry
  * - Uses safe file writing with backup
  */
-void ReplayBufferPro::saveDockState() {
+void Plugin::saveDockState() {
 	OBSDataRAII data(obs_data_create());
 	if (!data.isValid()) return;
 
@@ -650,4 +639,5 @@ void ReplayBufferPro::saveDockState() {
 	} else {
 		Logger::info("Saved dock state to: %s", config_path.c_str());
 	}
+}
 }
