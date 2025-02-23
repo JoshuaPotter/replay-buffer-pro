@@ -42,153 +42,126 @@
  * @brief Main widget class for the Replay Buffer Pro plugin
  *
  * This class implements a dockable widget that provides an enhanced interface
- * for controlling OBS Studio's replay buffer functionality. It allows users to:
- * - Adjust the replay buffer length using a slider
- * - Save specific segments of the replay buffe
- *
- * The widget integrates with OBS Studio's main window.
+ * for controlling OBS Studio's replay buffer functionality. It integrates with
+ * OBS Studio's main window and provides real-time buffer control and monitoring.
+ * 
+ * Features:
+ * - Adjustable buffer length (10 seconds to 6 hours)
+ * - Quick-save buttons for predefined durations
+ * - Full buffer save capability
+ * - Automatic UI state management based on buffer status
+ * - Persistent dock position and settings
  */
 class ReplayBufferPro : public QDockWidget {
     Q_OBJECT
 
 public:
-    /**
-     * @brief Constructs the ReplayBufferPro widget with a generic parent
-     * @param parent The parent widget (optional)
-     */
+    // Constructors & Destructor
     explicit ReplayBufferPro(QWidget *parent = nullptr);
-
-    /**
-     * @brief Constructs the ReplayBufferPro widget and adds it to a main window
-     * @param mainWindow The main window to dock this widget to
-     * 
-     * This constructor automatically adds the widget to the right dock area
-     * of the specified main window.
-     */
     explicit ReplayBufferPro(QMainWindow *mainWindow);
-
-    /**
-     * @brief Destructor - Cleans up resources and removes event callbacks
-     */
     ~ReplayBufferPro();
 
     /**
      * @brief Static callback for OBS frontend events
-     * @param event The OBS frontend event type
+     * @param event The type of event that occurred
      * @param ptr Pointer to the ReplayBufferPro instance
      */
-    static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
+    static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
 
 private slots:
+    // Event Handlers
     /**
-     * @brief Updates the slider state based on replay buffer activity
-     * 
-     * Disables the slider when replay buffer is active and updates
-     * the current buffer length.
+     * @brief Handles changes to the buffer length slider
+     * @param value New slider value in seconds
      */
-    void updateSliderState();
+    void handleSliderChanged(int value);
 
     /**
-     * @brief Saves the entire contents of the replay buffer
-     * 
-     * Shows a warning if the replay buffer is not active.
+     * @brief Handles when slider movement has stopped
+     * Updates OBS settings after debounce period
      */
-    void saveFullBuffer();
+    void handleSliderFinished();
 
     /**
-     * @brief Saves a specific duration segment from the replay buffer
-     * @param duration The duration in seconds to save
-     * 
-     * Shows a warning if the requested duration exceeds the current
-     * buffer length or if the buffer is not active.
+     * @brief Handles manual text input for buffer length
      */
-    void saveReplaySegment(int duration);
+    void handleBufferLengthInput();
 
     /**
-     * @brief Handles text input from the seconds edit box
+     * @brief Handles saving full replay buffer
      */
-    void handleTextInput();
+    void handleSaveFullBuffer();
 
     /**
-     * @brief Handles debounced slider value changes
-     * 
-     * Called after the slider stops moving for the debounce period.
-     * Updates the OBS settings with the new buffer length.
+     * @brief Handles saving a segment of the replay buffer
+     * @param duration Number of seconds to save
      */
-    void handleDebouncedSliderChange();
+    void handleSaveSegment(int duration);
 
 private:
-    // UI Elements
-    QSlider *slider;              ///< Slider for adjusting buffer length
-    QLineEdit *secondsEdit;       ///< Text box for buffer length
-    QLabel *secondsLabel;         ///< Label showing "s" suffix
-    QPushButton *saveFullBufferBtn; ///< Button to save entire buffer
-    std::vector<QPushButton*> saveButtons; ///< Buttons for saving segments
-    QTimer *sliderDebounceTimer; ///< Timer for debouncing slider updates
+    // UI Components
+    QSlider *slider;              ///< Slider for adjusting buffer length (10s to 6h)
+    QLineEdit *secondsEdit;       ///< Text input for precise buffer length
+    QLabel *secondsLabel;         ///< "s" suffix label for seconds
+    QPushButton *saveFullBufferBtn; ///< Triggers full buffer save
+    std::vector<QPushButton*> saveButtons; ///< Quick-save duration buttons
+    QTimer *sliderDebounceTimer; ///< Prevents rapid settings updates
 
+    // Initialization
     /**
-     * @brief Initializes the UI components
-     * 
-     * Creates and arranges all UI elements including the slider,
-     * labels, and save buttons.
+     * @brief Initializes all UI components and layouts
      */
-    void initializeUI();
+    void initUI();
 
     /**
-     * @brief Loads the saved dock state
+     * @brief Initializes save duration buttons
+     * @param layout The layout to add buttons to
+     */
+    void initSaveButtons(QHBoxLayout *layout);
+
+    /**
+     * @brief Initializes all signal/slot connections
+     */
+    void initSignals();
+
+    // State Management
+    /**
+     * @brief Updates UI components with new buffer length
+     * @param seconds New buffer length in seconds
+     */
+    void updateBufferLengthUI(int seconds);
+
+    /**
+     * @brief Updates OBS settings with new buffer length
+     * @param seconds New buffer length in seconds
+     */
+    void updateOBSBufferLength(int seconds);
+
+    /**
+     * @brief Updates UI state based on buffer activity
+     */
+    void updateUIState();
+
+    /**
+     * @brief Enables/disables save buttons based on buffer length
+     * @param bufferLength Current buffer length in seconds
+     */
+    void toggleSaveButtons(int bufferLength);
+
+    // Persistence
+    /**
+     * @brief Loads buffer length from OBS settings
+     */
+    void loadBufferLength();
+
+    /**
+     * @brief Loads dock position and state
      * @param mainWindow The main window to dock to
-     * 
-     * Restores the dock widget's position and geometry from saved settings.
-     * Defaults to left dock area if no saved state exists.
      */
     void loadDockState(QMainWindow *mainWindow);
 
     /**
-     * @brief Saves the current dock state
-     * 
-     * Saves the current dock position and geometry to OBS settings.
-     * Called automatically when the dock location changes.
+     * @brief Saves current dock position and state
      */
     void saveDockState();
-
-    /**
-     * @brief Initializes the save buttons for different durations
-     * @param layout The layout to add the buttons to
-     */
-    void initializeSaveButtons(QHBoxLayout *layout);
-
-    /**
-     * @brief Connects all signals to their corresponding slots
-     */
-    void connectSignalsAndSlots();
-
-    /**
-     * @brief Loads the current buffer length from OBS settings
-     * 
-     * Falls back to default length if settings cannot be loaded.
-     */
-    void loadCurrentBufferLength();
-
-    /**
-     * @brief Sets the buffer length and updates UI
-     * @param seconds The new buffer length in seconds
-     */
-    void setBufferLength(int seconds);
-
-    /**
-     * @brief Updates the enabled state of save buttons
-     * @param bufferLength Current buffer length in seconds
-     * 
-     * Disables buttons for durations longer than the current buffer length.
-     */
-    void updateButtonStates(int bufferLength);
-
-    /**
-     * @brief Updates the replay buffer settings in OBS
-     * @param seconds The new buffer length in seconds
-     * 
-     * Handles stopping and restarting the buffer if it's active,
-     * and updates both OBS config and output settings.
-     */
-    void updateReplayBufferSettings(int seconds);
 };
