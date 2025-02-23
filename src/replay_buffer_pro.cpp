@@ -26,6 +26,7 @@
 #include <QGridLayout>
 #include <QSizePolicy>
 #include <QLineEdit>
+#include <QTimer>
 
 namespace {
 	// Constants for buffer length configuration
@@ -96,7 +97,8 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 	: QDockWidget(parent)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
-	, saveFullBufferBtn(nullptr) {
+	, saveFullBufferBtn(nullptr)
+	, sliderDebounceTimer(new QTimer(this)) {
 	
 	// Set window properties
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
@@ -122,7 +124,8 @@ ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	: QDockWidget(mainWindow)
 	, slider(nullptr)
 	, secondsEdit(nullptr)
-	, saveFullBufferBtn(nullptr) {
+	, saveFullBufferBtn(nullptr)
+	, sliderDebounceTimer(new QTimer(this)) {
 	
 	// Set window properties
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
@@ -322,11 +325,19 @@ void ReplayBufferPro::updateButtonStates(int bufferLength) {
  * - Text edit changes -> Buffer length updates
  */
 void ReplayBufferPro::connectSignalsAndSlots() {
-	// Connect slider value changes to update handlers
+	// Configure debounce timer
+	sliderDebounceTimer->setSingleShot(true);
+	sliderDebounceTimer->setInterval(500); // 500ms debounce
+
+	// Connect slider value changes to immediate UI updates
 	connect(slider, &QSlider::valueChanged, this, [this](int value) {
 		setBufferLength(value);
-		updateReplayBufferSettings(value);
+		sliderDebounceTimer->start(); // Restart debounce timer
 	});
+
+	// Connect debounce timer timeout to settings update
+	connect(sliderDebounceTimer, &QTimer::timeout, 
+			this, &ReplayBufferPro::handleDebouncedSliderChange);
 
 	// Connect text edit changes
 	connect(secondsEdit, &QLineEdit::editingFinished, this, &ReplayBufferPro::handleTextInput);
@@ -512,6 +523,17 @@ void ReplayBufferPro::handleTextInput() {
 	// Valid input - update slider and settings
 	slider->setValue(value);
 	updateReplayBufferSettings(value);
+}
+
+/**
+ * @brief Handles debounced slider value changes
+ * 
+ * Called after the slider stops moving for the debounce period.
+ * Updates the OBS settings with the new buffer length.
+ */
+void ReplayBufferPro::handleDebouncedSliderChange() {
+	// Update OBS settings with current slider value
+	updateReplayBufferSettings(slider->value());
 }
 
 /**

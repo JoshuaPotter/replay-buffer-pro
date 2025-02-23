@@ -35,6 +35,7 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <vector>
+#include <QTimer>
 
 /**
  * @class ReplayBufferPro
@@ -108,6 +109,14 @@ private slots:
      */
     void handleTextInput();
 
+    /**
+     * @brief Handles debounced slider value changes
+     * 
+     * Called after the slider stops moving for the debounce period.
+     * Updates the OBS settings with the new buffer length.
+     */
+    void handleDebouncedSliderChange();
+
 private:
     // UI Elements
     QSlider *slider;              ///< Slider for adjusting buffer length
@@ -115,6 +124,7 @@ private:
     QLabel *secondsLabel;         ///< Label showing "s" suffix
     QPushButton *saveFullBufferBtn; ///< Button to save entire buffer
     std::vector<QPushButton*> saveButtons; ///< Buttons for saving segments
+    QTimer *sliderDebounceTimer; ///< Timer for debouncing slider updates
 
     /**
      * @brief Initializes the UI components
