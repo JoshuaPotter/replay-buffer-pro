@@ -118,7 +118,7 @@ Plugin::Plugin(QWidget *parent)
 		
 		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
 			lastKnownBufferLength = currentBufferLength;
-			updateBufferLengthUI(static_cast<int>(currentBufferLength));
+			updateBufferLengthUIValue(static_cast<int>(currentBufferLength));
 			Logger::info("Buffer length changed in OBS settings: %llu seconds", currentBufferLength);
 		}
 	});
@@ -167,7 +167,7 @@ Plugin::Plugin(QMainWindow *mainWindow)
 		
 		if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
 			lastKnownBufferLength = currentBufferLength;
-			updateBufferLengthUI(static_cast<int>(currentBufferLength));
+			updateBufferLengthUIValue(static_cast<int>(currentBufferLength));
 			Logger::info("Buffer length changed in OBS settings: %llu seconds", currentBufferLength);
 		}
 	});
@@ -199,17 +199,17 @@ void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
 	switch (event) {
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
 			window->settingsMonitorTimer->stop(); // Stop monitoring when buffer starts
-			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
-			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
-			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
 			window->settingsMonitorTimer->start(); // Resume monitoring when buffer stops
-			QMetaObject::invokeMethod(window, "updateUIState", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
 			// Reload buffer length in case it was changed while buffer was active
 			QMetaObject::invokeMethod(window, "loadBufferLength", Qt::QueuedConnection);
 			break;
@@ -231,7 +231,7 @@ void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
  * Prevents rapid OBS settings updates during slider movement.
  */
 void Plugin::handleSliderChanged(int value) {
-	updateBufferLengthUI(value);
+	updateBufferLengthUIValue(value);
 	sliderDebounceTimer->start();
 }
 
@@ -242,7 +242,7 @@ void Plugin::handleSliderChanged(int value) {
  * Updates OBS settings with the final slider value.
  */
 void Plugin::handleSliderFinished() {
-	updateOBSBufferLength(slider->value());
+	updateBufferLengthSettings(slider->value());
 }
 
 /**
@@ -259,12 +259,12 @@ void Plugin::handleBufferLengthInput() {
 	int value = secondsEdit->text().toInt(&ok);
 	
 	if (!ok || value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH) {
-		updateBufferLengthUI(slider->value());
+		updateBufferLengthUIValue(slider->value());
 		return;
 	}
 
 	slider->setValue(value);
-	updateOBSBufferLength(value);
+	updateBufferLengthSettings(value);
 }
 
 /**
@@ -442,7 +442,7 @@ void Plugin::initSignals() {
  * - Updates text input value
  * - Updates save button states
  */
-void Plugin::updateBufferLengthUI(int seconds) {
+void Plugin::updateBufferLengthUIValue(int seconds) {
 	slider->setValue(seconds);
 	secondsEdit->setText(QString::number(seconds));
 	
@@ -459,7 +459,7 @@ void Plugin::updateBufferLengthUI(int seconds) {
  * - Handles both Simple and Advanced output modes
  * - Shows error message if update fails
  */
-void Plugin::updateOBSBufferLength(int seconds) {
+void Plugin::updateBufferLengthSettings(int seconds) {
 	try {
 		config_t* config = obs_frontend_get_profile_config();
 		if (!config) {
@@ -501,7 +501,7 @@ void Plugin::updateOBSBufferLength(int seconds) {
  * - Enables/disables controls based on buffer activity
  * - Updates buffer length display when active
  */
-void Plugin::updateUIState() {
+void Plugin::updateBufferLengthUIState() {
 	bool isActive = obs_frontend_replay_buffer_active();
 	
 	slider->setEnabled(!isActive);
@@ -539,7 +539,7 @@ void Plugin::loadBufferLength() {
 	config_t* config = obs_frontend_get_profile_config();
 	if (!config) {
 		Logger::error("Failed to get OBS profile config");
-		updateBufferLengthUI(Config::DEFAULT_BUFFER_LENGTH);
+		updateBufferLengthUIValue(Config::DEFAULT_BUFFER_LENGTH);
 		return;
 	}
 
@@ -549,7 +549,7 @@ void Plugin::loadBufferLength() {
 	uint64_t replayBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
 	lastKnownBufferLength = replayBufferLength;
 	
-	updateBufferLengthUI(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : Config::DEFAULT_BUFFER_LENGTH);
+	updateBufferLengthUIValue(replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : Config::DEFAULT_BUFFER_LENGTH);
 }
 
 /**

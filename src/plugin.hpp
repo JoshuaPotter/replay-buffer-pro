@@ -158,7 +158,7 @@ private slots:
     /**
      * @brief Updates UI based on buffer activity
      */
-    void updateUIState();
+    void updateBufferLengthUIState();
 
 private:
     //=========================================================================
@@ -199,13 +199,13 @@ private:
      * @brief Updates UI to reflect new buffer length
      * @param seconds New buffer length
      */
-    void updateBufferLengthUI(int seconds);
+    void updateBufferLengthUIValue(int seconds);
 
     /**
      * @brief Updates OBS configuration with new length
      * @param seconds New buffer length
      */
-    void updateOBSBufferLength(int seconds);
+    void updateBufferLengthSettings(int seconds);
 
     /**
      * @brief Updates save button enabled states
