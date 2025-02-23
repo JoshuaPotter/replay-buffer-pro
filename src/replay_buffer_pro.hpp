@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QLineEdit>
 #include <vector>
 
 /**
@@ -102,10 +103,16 @@ private slots:
      */
     void saveReplaySegment(int duration);
 
+    /**
+     * @brief Handles text input from the seconds edit box
+     */
+    void handleTextInput();
+
 private:
     // UI Elements
     QSlider *slider;              ///< Slider for adjusting buffer length
-    QLabel *secondsLabel;         ///< Label showing current buffer length
+    QLineEdit *secondsEdit;       ///< Text box for buffer length
+    QLabel *secondsLabel;         ///< Label showing "s" suffix
     QPushButton *saveFullBufferBtn; ///< Button to save entire buffer
     std::vector<QPushButton*> saveButtons; ///< Buttons for saving segments
 

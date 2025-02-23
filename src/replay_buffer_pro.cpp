@@ -23,11 +23,14 @@
 #include <QPushButton>
 #include <QSlider>
 #include <stdexcept>
+#include <QGridLayout>
+#include <QSizePolicy>
+#include <QLineEdit>
 
 namespace {
 	// Constants for buffer length configuration
 	constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
-	constexpr int MAX_BUFFER_LENGTH = 3600;    // 1 hour maximum
+	constexpr int MAX_BUFFER_LENGTH = 21600;    // 6 hours maximum
 	constexpr int DEFAULT_BUFFER_LENGTH = 300; // 5 minutes default
 	
 	// Configuration keys
@@ -92,7 +95,7 @@ public:
 ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 	: QDockWidget(parent)
 	, slider(nullptr)
-	, secondsLabel(nullptr)
+	, secondsEdit(nullptr)
 	, saveFullBufferBtn(nullptr) {
 	
 	// Set window properties
@@ -118,7 +121,7 @@ ReplayBufferPro::ReplayBufferPro(QWidget *parent)
 ReplayBufferPro::ReplayBufferPro(QMainWindow *mainWindow)
 	: QDockWidget(mainWindow)
 	, slider(nullptr)
-	, secondsLabel(nullptr)
+	, secondsEdit(nullptr)
 	, saveFullBufferBtn(nullptr) {
 	
 	// Set window properties
@@ -167,13 +170,15 @@ void ReplayBufferPro::initializeUI() {
 	slider = new QSlider(Qt::Horizontal, container);
 	slider->setRange(MIN_BUFFER_LENGTH, MAX_BUFFER_LENGTH);
 	
-	// Initialize seconds display label
-	secondsLabel = new QLabel(container);
-	secondsLabel->setMinimumWidth(50); // Ensure enough space for text
+	// Initialize seconds edit box
+	secondsEdit = new QLineEdit(container);
+	secondsEdit->setFixedWidth(60);  // Set a reasonable width
+	secondsEdit->setAlignment(Qt::AlignRight);  // Right-align the text
+	secondsEdit->setPlaceholderText("s");  // Show "s" as placeholder when empty
 	
 	// Add slider components to layout
 	sliderLayout->addWidget(slider);
-	sliderLayout->addWidget(secondsLabel);
+	sliderLayout->addWidget(secondsEdit);
 	mainLayout->addLayout(sliderLayout);
 
 	// Add spacing between slider and save buttons
@@ -206,25 +211,46 @@ void ReplayBufferPro::initializeSaveButtons(QHBoxLayout *layout) {
 	// Clear any existing buttons
 	saveButtons.clear();
 
+	// Create a grid layout for the buttons
+	QGridLayout* gridLayout = new QGridLayout();
+	gridLayout->setSpacing(5);  // Space between buttons
+	
+	// Calculate a reasonable number of columns (4 buttons per row)
+	const int buttonsPerRow = 4;
+	
 	// Create buttons for each predefined duration
-	for (const auto& btn : SAVE_BUTTONS) {
+	for (size_t i = 0; i < sizeof(SAVE_BUTTONS)/sizeof(SAVE_BUTTONS[0]); i++) {
+		const auto& btn = SAVE_BUTTONS[i];
 		// Create button with translated text
 		auto button = new QPushButton(obs_module_text(btn.text), this);
+		button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		
 		// Connect button click to save function with specific duration
 		connect(button, &QPushButton::clicked, this, [this, duration = btn.duration]() {
 			saveReplaySegment(duration);
 		});
 		
-		// Add to layout and tracking vector
-		layout->addWidget(button);
+		// Add to grid layout
+		int row = i / buttonsPerRow;
+		int col = i % buttonsPerRow;
+		gridLayout->addWidget(button, row, col);
+		
+		// Add to tracking vector
 		saveButtons.push_back(button);
 	}
 
 	// Create and add the full buffer save button
 	saveFullBufferBtn = new QPushButton(obs_module_text("SaveFull"), this);
+	saveFullBufferBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	
+	// Add the full buffer button on its own row
+	int lastRow = (saveButtons.size() - 1) / buttonsPerRow + 1;
+	gridLayout->addWidget(saveFullBufferBtn, lastRow, 0, 1, buttonsPerRow);
+	
 	connect(saveFullBufferBtn, &QPushButton::clicked, this, &ReplayBufferPro::saveFullBuffer);
-	layout->addWidget(saveFullBufferBtn);
+
+	// Add the grid layout to the main layout
+	layout->addLayout(gridLayout);
 }
 
 /**
@@ -262,13 +288,13 @@ void ReplayBufferPro::loadCurrentBufferLength() {
  * 
  * Updates:
  * - Slider position
- * - Seconds label text
+ * - Seconds edit box text
  * - Save button states based on new length
  */
 void ReplayBufferPro::setBufferLength(int seconds) {
 	// Update UI components
 	slider->setValue(seconds);
-	secondsLabel->setText(QString::number(seconds) + "s");
+	secondsEdit->setText(QString::number(seconds));
 	
 	// Update button states based on new length
 	updateButtonStates(seconds);
@@ -293,6 +319,7 @@ void ReplayBufferPro::updateButtonStates(int bufferLength) {
  * Sets up the following connections:
  * - Slider value changes -> Buffer length updates
  * - Buffer length updates -> OBS settings updates
+ * - Text edit changes -> Buffer length updates
  */
 void ReplayBufferPro::connectSignalsAndSlots() {
 	// Connect slider value changes to update handlers
@@ -300,6 +327,9 @@ void ReplayBufferPro::connectSignalsAndSlots() {
 		setBufferLength(value);
 		updateReplayBufferSettings(value);
 	});
+
+	// Connect text edit changes
+	connect(secondsEdit, &QLineEdit::editingFinished, this, &ReplayBufferPro::handleTextInput);
 }
 
 /**
@@ -446,20 +476,42 @@ void ReplayBufferPro::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)
 /**
  * @brief Updates the UI state based on replay buffer activity
  * 
- * - Disables slider when buffer is active
+ * - Disables slider and text edit when buffer is active
  * - Updates current buffer length when active
  */
 void ReplayBufferPro::updateSliderState() {
 	// Check current buffer state
 	bool isActive = obs_frontend_replay_buffer_active();
 	
-	// Disable slider while buffer is active to prevent changes
+	// Disable slider and text edit while buffer is active to prevent changes
 	slider->setEnabled(!isActive);
+	secondsEdit->setEnabled(!isActive);
 	
 	// Update current length if buffer is active
 	if (isActive) {
 		loadCurrentBufferLength();
 	}
+}
+
+/**
+ * @brief Handles text input from the seconds edit box
+ * 
+ * Validates the input and updates the buffer length accordingly.
+ */
+void ReplayBufferPro::handleTextInput() {
+	bool ok;
+	int value = secondsEdit->text().toInt(&ok);
+	
+	// Validate input
+	if (!ok || value < MIN_BUFFER_LENGTH || value > MAX_BUFFER_LENGTH) {
+		// Invalid input - reset to current slider value
+		setBufferLength(slider->value());
+		return;
+	}
+
+	// Valid input - update slider and settings
+	slider->setValue(value);
+	updateReplayBufferSettings(value);
 }
 
 /**
