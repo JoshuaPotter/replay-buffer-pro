@@ -1,6 +1,6 @@
 // OBS includes
-#include <libobs/obs-module.h>
-#include <frontend/api/obs-frontend-api.h>
+#include <obs-module.h>
+#include <obs-frontend-api.h>
 
 // Plugin includes
 #include "plugin.hpp"

@@ -19,15 +19,14 @@
 #pragma once
 
 // Core OBS includes
-#include <libobs/obs.h>              // Core OBS API
-#include <libobs/obs-module.h>       // Plugin module functions
-#include <frontend/api/obs-frontend-api.h> // Frontend API functions
+#include <obs.h>              // Core OBS API
+#include <obs-module.h>       // Plugin module functions
+#include <obs-frontend-api.h> // Frontend API functions
 #include <util/config-file.h>        // For config_* functions
 #include <util/platform.h>           // For os_mkdirs and other platform functions
 
-// Qt includes needed for class declaration
+// Qt includes
 #include <QDockWidget>
-#include <QWidget>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QSlider>
@@ -35,20 +34,12 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QLineEdit>
-#include <vector>
 #include <QTimer>
 
-// Forward declarations for Qt classes
-class QDockWidget;
-class QWidget;
-class QMainWindow;
-class QSlider;
-class QLineEdit;
-class QPushButton;
-class QTimer;
-class QHBoxLayout;
-class QLabel;
+// STL includes
+#include <vector>
 
+// Local includes
 #include "config.hpp"
 #include "logger.hpp"
 

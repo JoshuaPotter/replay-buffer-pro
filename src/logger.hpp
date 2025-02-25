@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libobs/obs.h>
+#include <obs.h>
 #include <cstdarg>
 
 namespace ReplayBufferPro {
