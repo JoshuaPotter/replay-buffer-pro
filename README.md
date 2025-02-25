@@ -81,6 +81,17 @@ replay-buffer-pro/
 ### From Source
 - Plugin installs automatically to OBS directory when using `cmake --install . --config Release`
 
+#### Manual Installation After Building
+After building, you can manually copy the files from your build directory:
+1. Copy from `build/Release/` or `build/RelWithDebInfo/`:
+   - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
+2. Copy from source `data` directory:
+   - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+3. Copy from source `deps/ffmpeg`:
+   - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+
+Note: You may need administrator privileges to copy files to Program Files.
+
 ## Usage
 
 ### Saving Segments
