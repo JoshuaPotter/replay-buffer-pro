@@ -217,12 +217,14 @@ void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
 			if (window->pendingSaveDuration > 0) {
-				Logger::info("Replay buffer save completed - ready for trimming to %d seconds", 
-					window->pendingSaveDuration);
-				// TODO: Implement trimming logic here in future
-				window->pendingSaveDuration = 0;  // Reset after handling
-			} else {
-				Logger::info("Full replay buffer save completed");
+				const char* savedPath = obs_frontend_get_last_replay();
+				if (savedPath) {
+					Logger::info("Trimming replay buffer save to %d seconds", 
+						window->pendingSaveDuration);
+					window->trimReplayBuffer(savedPath, window->pendingSaveDuration);
+					bfree((void*)savedPath);
+				}
+				window->pendingSaveDuration = 0;
 			}
 			break;
 		default:
@@ -653,5 +655,85 @@ void Plugin::handleSaveSegment(int duration) {
 	pendingSaveDuration = duration;  // Store the duration for the save completion handler
 	obs_frontend_replay_buffer_save();
 	Logger::info("Saving replay segment of %d seconds", duration);
+}
+
+std::string Plugin::getTrimmedOutputPath(const char* sourcePath) {
+	std::string path(sourcePath);
+	size_t dot = path.find_last_of('.');
+	if (dot != std::string::npos) {
+		path.insert(dot, "_trimmed");
+	} else {
+		path += "_trimmed";
+	}
+	return path;
+}
+
+bool Plugin::executeFFmpegCommand(const std::string& command) {
+	#ifdef _WIN32
+	STARTUPINFOA si = {sizeof(si)};
+	PROCESS_INFORMATION pi;
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+
+	// Create process
+	if (!CreateProcessA(nullptr, (LPSTR)command.c_str(), 
+		nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+		return false;
+	}
+
+	// Wait for completion
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Get exit code
+	DWORD exitCode;
+	GetExitCodeProcess(pi.hProcess, &exitCode);
+
+	// Clean up
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	return exitCode == 0;
+	#else
+	return system(command.c_str()) == 0;
+	#endif
+}
+
+void Plugin::trimReplayBuffer(const char* sourcePath, int duration) {
+	try {
+		// Get path to bundled FFmpeg
+		char* ffmpegPath = obs_module_file("ffmpeg.exe");
+		if (!ffmpegPath) {
+			throw std::runtime_error("Could not locate bundled FFmpeg");
+		}
+
+		std::string outputPath = getTrimmedOutputPath(sourcePath);
+		
+		// Build FFmpeg command to get last N seconds
+		// -sseof -N seeks to N seconds before the end of the file
+		std::stringstream cmd;
+		cmd << "\"" << ffmpegPath << "\" -y " // -y to overwrite output file
+			<< "-sseof -" << duration << " " // Seek to duration seconds from end
+			<< "-i \"" << sourcePath << "\" "
+			<< "-c copy " // Copy streams without re-encoding
+			<< "\"" << outputPath << "\"";
+
+		bfree(ffmpegPath);
+
+		// Execute FFmpeg
+		if (!executeFFmpegCommand(cmd.str())) {
+			throw std::runtime_error("FFmpeg command failed");
+		}
+
+		// Replace original file
+		os_unlink(sourcePath);
+		os_rename(outputPath.c_str(), sourcePath);
+
+		Logger::info("Successfully trimmed replay to last %d seconds", duration);
+
+	} catch (const std::exception& e) {
+		Logger::error("Failed to trim replay: %s", e.what());
+		QMessageBox::warning(this, obs_module_text("Error"),
+			QString(obs_module_text("FailedToTrimReplay")).arg(e.what()));
+	}
 }
 }

@@ -50,11 +50,20 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
 )
 
+# Define paths for FFmpeg
+set(FFMPEG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/deps/ffmpeg")
+
 # Installation
 if(WIN32)
     set(PLUGIN_DEST "C:/Program Files/obs-studio/obs-plugins/64bit")
     set(DATA_DEST "C:/Program Files/obs-studio/data/obs-plugins/${PROJECT_NAME}")
+    
+    # Install FFmpeg
+    install(FILES "${FFMPEG_PATH}/ffmpeg.exe"
+        DESTINATION ${DATA_DEST}
+    )
 else()
+    # Linux/Mac paths
     set(PLUGIN_DEST "${CMAKE_INSTALL_PREFIX}/lib/obs-plugins")
     set(DATA_DEST "${CMAKE_INSTALL_PREFIX}/share/obs/obs-plugins/${PROJECT_NAME}")
 endif()

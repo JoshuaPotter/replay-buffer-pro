@@ -38,6 +38,11 @@
 
 // STL includes
 #include <vector>
+#include <string>
+#include <sstream>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 // Local includes
 #include "config.hpp"
@@ -163,6 +168,7 @@ private:
     QTimer *sliderDebounceTimer; ///< Prevents rapid setting updates
     QTimer *settingsMonitorTimer; ///< Timer for monitoring OBS settings changes
     uint64_t lastKnownBufferLength; ///< Last known buffer length from OBS settings
+    int pendingSaveDuration;      ///< Duration to save when buffer save completes
 
     //=========================================================================
     // INITIALIZATION
@@ -203,6 +209,30 @@ private:
      * @param bufferLength Current buffer length
      */
     void toggleSaveButtons(int bufferLength);
+
+    //=========================================================================
+    // REPLAY BUFFER TRIMMING
+    //=========================================================================
+    /**
+     * @brief Gets the output path for a trimmed replay buffer file
+     * @param sourcePath Original replay buffer file path
+     * @return Path for the trimmed file
+     */
+    std::string getTrimmedOutputPath(const char* sourcePath);
+
+    /**
+     * @brief Executes an FFmpeg command
+     * @param command FFmpeg command to execute
+     * @return true if command succeeded, false otherwise
+     */
+    bool executeFFmpegCommand(const std::string& command);
+
+    /**
+     * @brief Trims a replay buffer file to specified duration
+     * @param sourcePath Path to the replay buffer file
+     * @param duration Duration in seconds to trim to
+     */
+    void trimReplayBuffer(const char* sourcePath, int duration);
 };
 
 } // namespace ReplayBufferPro
