@@ -42,17 +42,17 @@ cmake --build . --config RelWithDebInfo
 git clone https://github.com/yourusername/replay-buffer-pro.git
 cd replay-buffer-pro
 mkdir build && cd build
-cmake -G "Visual Studio 17 2022" -A x64 ^
-    -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64" ^
-    -DOBS_SOURCE_DIR="path/to/obs-studio" ..
+cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64" ..
 cmake --build . --config Release
 cmake --install . --config Release
 ```
-**Note:** Replace `C:/Qt/6.x.x/msvc2022_64` with your actual Qt installation path, example: `cmake -G "Visual Studio 17 2022" -A x64 ^ -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ^ -DOBS_SOURCE_DIR="../obs-studio" ..`, where `../obs-studio` is the path to the OBS Studio source code (relative to the `replay-buffer-pro` root directory).
+**Note:** Replace `C:/Qt/6.x.x/msvc2022_64` with your actual Qt installation path, example: `cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..`. OBS Studio should be in the same parent directory as the plugin.
+**Note:** You may need to run the install command in a terminal with elevated permissions (Run as administrator) to install the plugin to the OBS Studio directory.
 
 ### Project Structure
 
 ```
+obs-studio/              # OBS Studio source code (from step 2)
 replay-buffer-pro/
 ├── CMakeLists.txt       # Build configuration
 ├── data/               
