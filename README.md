@@ -6,7 +6,7 @@ An OBS Studio plugin that enhances the replay buffer functionality by allowing q
 
 ## Features
 
-- Adjust replay buffer length via slider (10s to 1h)
+- Adjust replay buffer length via slider (10s to 6h)
 - Save segments of the replay buffer (15s to 30m)
 - Dockable interface
 
@@ -19,12 +19,17 @@ An OBS Studio plugin that enhances the replay buffer functionality by allowing q
 - Qt6 (64-bit)
 - Visual Studio 2022+ with C++
 - CMake 3.16+
+- FFmpeg (bundled with plugin)
 
 ### 1. Prerequisites
 
 1. Install Visual Studio 2019+ with "Desktop development with C++"
 2. Install Qt6 (MSVC 2019/2022 64-bit) from https://www.qt.io/download-qt-installer
 3. Install CMake 3.16+ from https://cmake.org/download/
+4. Download FFmpeg:
+   - Get latest build from https://github.com/BtbN/FFmpeg-Builds/releases
+   - Download "ffmpeg-master-latest-win64-gpl"
+   - Extract ffmpeg.exe to `deps/ffmpeg/` in the plugin directory
 
 ### 2. Build OBS Studio
 
@@ -57,6 +62,8 @@ replay-buffer-pro/
 ├── CMakeLists.txt       # Build configuration
 ├── data/               
 │   └── locale/          # Translations
+├── deps/
+│   └── ffmpeg/          # FFmpeg executable
 ├── src/                 # Source files
 └── README.md
 ```
@@ -69,9 +76,24 @@ replay-buffer-pro/
    - Windows:
      - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
      - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+     - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
 
 ### From Source
 - Plugin installs automatically to OBS directory when using `cmake --install . --config Release`
+
+## Usage
+
+### Saving Segments
+1. Start the Replay Buffer in OBS
+2. Click any segment button (15s, 30s, 1m, etc.)
+3. The plugin will:
+   - Save the full replay buffer
+   - Automatically trim to the selected duration
+   - Replace the original file with the trimmed version
+
+### Buffer Length
+- Use the slider to adjust buffer length (10s to 6h)
+- Changes take effect after restarting the replay buffer
 
 ## Troubleshooting
 
@@ -79,6 +101,15 @@ replay-buffer-pro/
 - Check OBS logs for errors
 - Ensure Qt6 and OBS paths are correct in CMake
 - Run install with admin privileges
+- For trimming issues:
+  - Check disk space
+  - Verify FFmpeg.exe is in the correct location
+  - Check write permissions in output directory
+
+## Third-Party Software
+
+This plugin includes FFmpeg (https://ffmpeg.org/) for video trimming functionality.
+FFmpeg is licensed under the LGPL v2.1+ license. See FFmpeg documentation for details.
 
 ## License
 
