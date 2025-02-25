@@ -94,7 +94,8 @@ Plugin::Plugin(QWidget *parent)
 	, saveFullBufferBtn(nullptr)
 	, sliderDebounceTimer(new QTimer(this))
 	, settingsMonitorTimer(new QTimer(this))
-	, lastKnownBufferLength(0) {
+	, lastKnownBufferLength(0)
+	, pendingSaveDuration(0) {
 	
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
 	setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -139,7 +140,8 @@ Plugin::Plugin(QMainWindow *mainWindow)
 	, saveFullBufferBtn(nullptr)
 	, sliderDebounceTimer(new QTimer(this))
 	, settingsMonitorTimer(new QTimer(this))
-	, lastKnownBufferLength(0) {
+	, lastKnownBufferLength(0)
+	, pendingSaveDuration(0) {
 	
 	setWindowTitle(obs_module_text("ReplayBufferPro"));
 	setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -213,6 +215,16 @@ void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr) {
 			// Reload buffer length in case it was changed while buffer was active
 			QMetaObject::invokeMethod(window, "loadBufferLength", Qt::QueuedConnection);
 			break;
+		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
+			if (window->pendingSaveDuration > 0) {
+				Logger::info("Replay buffer save completed - ready for trimming to %d seconds", 
+					window->pendingSaveDuration);
+				// TODO: Implement trimming logic here in future
+				window->pendingSaveDuration = 0;  // Reset after handling
+			} else {
+				Logger::info("Full replay buffer save completed");
+			}
+			break;
 		default:
 			break;
 	}
@@ -282,42 +294,6 @@ void Plugin::handleSaveFullBuffer() {
 	}
 }
 
-/**
- * @brief Segment save handler
- * @param duration Number of seconds to save
- * 
- * Saves a specific duration from the replay buffer:
- * - Verifies buffer is active
- * - Checks if duration exceeds buffer length
- * - Shows appropriate error messages
- * - Triggers save if all checks pass
- */
-void Plugin::handleSaveSegment(int duration) {
-	if (!obs_frontend_replay_buffer_active()) {
-		QMessageBox::warning(this, obs_module_text("Warning"), 
-			obs_module_text("ReplayBufferNotActive"));
-		return;
-	}
-
-	config_t* config = obs_frontend_get_profile_config();
-	if (!config) return;
-
-	const char* mode = config_get_string(config, "Output", "Mode");
-	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
-	
-	uint64_t currentBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
-
-	if (duration > static_cast<int>(currentBufferLength)) {
-		QMessageBox::warning(this, obs_module_text("Warning"),
-			QString(obs_module_text("CannotSaveSegment"))
-				.arg(duration)
-				.arg(currentBufferLength));
-		return;
-	}
-
-	obs_frontend_replay_buffer_save();
-	Logger::info("Saving replay segment of %d seconds", duration);
-}
 
 //=============================================================================
 // INITIALIZATION
@@ -639,5 +615,43 @@ void Plugin::saveDockState() {
 	} else {
 		Logger::info("Saved dock state to: %s", config_path.c_str());
 	}
+}
+
+/**
+ * @brief Segment save handler
+ * @param duration Number of seconds to save
+ * 
+ * Saves a specific duration from the replay buffer:
+ * - Verifies buffer is active
+ * - Checks if duration exceeds buffer length
+ * - Shows appropriate error messages
+ * - Triggers save if all checks pass
+ */
+void Plugin::handleSaveSegment(int duration) {
+	if (!obs_frontend_replay_buffer_active()) {
+		QMessageBox::warning(this, obs_module_text("Warning"), 
+			obs_module_text("ReplayBufferNotActive"));
+		return;
+	}
+
+	config_t* config = obs_frontend_get_profile_config();
+	if (!config) return;
+
+	const char* mode = config_get_string(config, "Output", "Mode");
+	const char* section = (mode && strcmp(mode, "Advanced") == 0) ? "AdvOut" : "SimpleOutput";
+	
+	uint64_t currentBufferLength = config_get_uint(config, section, Config::REPLAY_BUFFER_LENGTH_KEY);
+
+	if (duration > static_cast<int>(currentBufferLength)) {
+		QMessageBox::warning(this, obs_module_text("Warning"),
+			QString(obs_module_text("CannotSaveSegment"))
+				.arg(duration)
+				.arg(currentBufferLength));
+		return;
+	}
+
+	pendingSaveDuration = duration;  // Store the duration for the save completion handler
+	obs_frontend_replay_buffer_save();
+	Logger::info("Saving replay segment of %d seconds", duration);
 }
 }
