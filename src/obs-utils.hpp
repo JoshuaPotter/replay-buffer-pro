@@ -1,5 +1,5 @@
 /**
- * @file obs_utils.hpp
+ * @file obs-utils.hpp
  * @brief Utility classes and functions for OBS Studio integration
  * @author Joshua Potter
  * @copyright GPL v2 or later
