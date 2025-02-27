@@ -34,6 +34,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCES
     src/main.cpp
     src/plugin.cpp
+    src/obs-utils.cpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${SOURCES})
