@@ -78,6 +78,20 @@ replay-buffer-pro/
      - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
      - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
 
+Final file structure should look like this:
+```
+obs-studio/
+├── obs-plugins/
+│   └── 64bit/
+│       └── replay-buffer-pro.dll
+├── data/
+│   └── obs-plugins/
+│       └── replay-buffer-pro/
+│           └── locale/
+│               └── en-US.ini
+│           └── ffmpeg.exe
+```
+
 ### From Source
 - Plugin installs automatically to OBS directory when using `cmake --install . --config Release`
 
