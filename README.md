@@ -1,6 +1,6 @@
 # Replay Buffer Pro
 
-An OBS Studio plugin that enhances the replay buffer functionality by allowing quick segment saves and easy buffer length adjustments. Inspired by the background recording features of Playstation/Xbox and PC applications like Shadowplay.
+An OBS Studio plugin that extends the replay buffer functionality by adding the ability to quickly save segments of the replay buffer. This plugin is inspired by the background recording features of Playstation/Xbox and PC applications like Nvidia Shadowplay.
 
 **Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support. The plugin uses Qt6 which also only provides 64-bit builds for Windows.
 
@@ -15,7 +15,7 @@ An OBS Studio plugin that enhances the replay buffer functionality by allowing q
 ### Requirements
 
 - OBS Studio 29.0.0+ (64-bit)
-- Windows 10/11 64-bit
+- Windows 10/11 64-bit (Linux and MacOS are not supported at this time, PRs welcome!)
 - Qt6 (64-bit)
 - Visual Studio 2022+ with C++
 - CMake 3.16+
@@ -130,7 +130,7 @@ Note: You may need administrator privileges to copy files to Program Files.
   - Check write permissions in output directory
 - When building from source
   - Ensure Qt6 and OBS paths are correct in CMake
-  - Run install command in a terminalwith admin privileges
+  - Run install command in a terminal with admin privileges
 
 ## Third-Party Software
 
