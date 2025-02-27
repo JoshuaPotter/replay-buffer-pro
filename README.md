@@ -10,6 +10,8 @@ An OBS Studio plugin that extends the replay buffer functionality by adding the 
 - Save segments of the replay buffer (15s to 30m)
 - Dockable interface
 
+![Screenshot](./screenshot.png)
+
 ## Building from Source
 
 ### Requirements
