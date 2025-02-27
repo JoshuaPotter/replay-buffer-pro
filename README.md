@@ -124,12 +124,13 @@ Note: You may need administrator privileges to copy files to Program Files.
 
 - Verify plugin DLL location
 - Check OBS logs for errors
-- Ensure Qt6 and OBS paths are correct in CMake
-- Run install with admin privileges
 - For trimming issues:
   - Check disk space
   - Verify FFmpeg.exe is in the correct location
   - Check write permissions in output directory
+- When building from source
+  - Ensure Qt6 and OBS paths are correct in CMake
+  - Run install command in a terminalwith admin privileges
 
 ## Third-Party Software
 
