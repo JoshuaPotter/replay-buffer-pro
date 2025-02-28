@@ -1,14 +1,13 @@
 # Replay Buffer Pro
 
-An OBS Studio plugin that extends the replay buffer functionality by adding the ability to quickly save segments of the replay buffer. This plugin is inspired by the background recording features of Playstation/Xbox and PC applications like Nvidia Shadowplay.
+This OBS Studio plugin builds upon the built-in Replay Buffer by allowing users to save recent footage at different lengths, similar to how PlayStation/Xbox let you "Save Recent Gameplay".
 
 **Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support. The plugin uses Qt6 which also only provides 64-bit builds for Windows.
 
-## Features
+## How It Works
+OBS keeps a rolling buffer of the last few seconds or minutes (length defined in settings) of footage in memory using the built-in replay buffer. If not manually saved, old footage is overwritten as new footage is recorded.
 
-- Adjust replay buffer length via slider (10s to 6h)
-- Save segments of the replay buffer (15s to 30m)
-- Dockable interface
+Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio plugin allows users to save different lengths on demand. Example: Save the last 30 seconds, 2 minutes, or 5 minutes instantly with UI buttons (hotkeys coming soon).
 
 ![Screenshot](./screenshot.png)
 
