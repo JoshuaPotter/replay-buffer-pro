@@ -11,6 +11,60 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 ![Screenshot](./screenshot.png)
 
+
+## Installation
+
+### From Release
+1. Download latest release
+2. Extract to OBS Studio installation:
+   - Windows:
+     - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
+     - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+     - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+
+Final file structure should look like this:
+```
+obs-studio/
+├── obs-plugins/
+│   └── 64bit/
+│       └── replay-buffer-pro.dll
+├── data/
+│   └── obs-plugins/
+│       └── replay-buffer-pro/
+│           └── locale/
+│               └── en-US.ini
+│           └── ffmpeg.exe
+```
+
+### From Source
+- Plugin installs automatically to OBS directory when using `cmake --install . --config Release`
+
+#### Manual Installation After Building
+After building, you can manually copy the files from your build directory:
+1. Copy from `build/Release/` or `build/RelWithDebInfo/`:
+   - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
+2. Copy from source `data` directory:
+   - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+3. Copy from source `deps/ffmpeg`:
+   - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+
+Note: You may need administrator privileges to copy files to Program Files.
+
+## Usage
+
+### Saving Clips
+1. Start the Replay Buffer in OBS
+2. Click any save clip button (15s, 30s, 1m, etc.)
+3. The plugin will:
+   - Save the full replay buffer
+   - Automatically trim to the selected duration (Without re-encoding)
+   - Replace the original file with the trimmed version
+
+### Buffer Length
+- Use the handy slider to adjust built-in replay buffer length (10s to 6h) without digging through the settings
+- Changes take effect after restarting the replay buffer
+
+
 ## Building from Source
 
 ### Requirements
@@ -68,58 +122,6 @@ replay-buffer-pro/
 ├── src/                 # Source files
 └── README.md
 ```
-
-## Installation
-
-### From Release
-1. Download latest release
-2. Extract to OBS Studio installation:
-   - Windows:
-     - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
-     - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-     - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-
-Final file structure should look like this:
-```
-obs-studio/
-├── obs-plugins/
-│   └── 64bit/
-│       └── replay-buffer-pro.dll
-├── data/
-│   └── obs-plugins/
-│       └── replay-buffer-pro/
-│           └── locale/
-│               └── en-US.ini
-│           └── ffmpeg.exe
-```
-
-### From Source
-- Plugin installs automatically to OBS directory when using `cmake --install . --config Release`
-
-#### Manual Installation After Building
-After building, you can manually copy the files from your build directory:
-1. Copy from `build/Release/` or `build/RelWithDebInfo/`:
-   - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
-2. Copy from source `data` directory:
-   - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-3. Copy from source `deps/ffmpeg`:
-   - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-
-Note: You may need administrator privileges to copy files to Program Files.
-
-## Usage
-
-### Saving Clips
-1. Start the Replay Buffer in OBS
-2. Click any save clip button (15s, 30s, 1m, etc.)
-3. The plugin will:
-   - Save the full replay buffer
-   - Automatically trim to the selected duration (Without re-encoding)
-   - Replace the original file with the trimmed version
-
-### Buffer Length
-- Use the handy slider to adjust built-in replay buffer length (10s to 6h) without digging through the settings
-- Changes take effect after restarting the replay buffer
 
 ## Troubleshooting
 
