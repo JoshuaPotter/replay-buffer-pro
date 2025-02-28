@@ -11,6 +11,19 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 ![Screenshot](./screenshot.png)
 
+## Usage
+
+### Saving Clips
+1. Start the Replay Buffer in OBS
+2. Click any save clip button (15s, 30s, 1m, etc.)
+3. The plugin will:
+   - Save the full replay buffer
+   - Automatically trim to the selected duration (Without re-encoding)
+   - Replace the original file with the trimmed version
+
+### Buffer Length
+- Use the handy slider to adjust built-in replay buffer length (10s to 6h) without digging through the settings
+- Changes take effect after restarting the replay buffer
 
 ## Installation
 
@@ -49,20 +62,6 @@ After building, you can manually copy the files from your build directory:
    - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
 
 Note: You may need administrator privileges to copy files to Program Files.
-
-## Usage
-
-### Saving Clips
-1. Start the Replay Buffer in OBS
-2. Click any save clip button (15s, 30s, 1m, etc.)
-3. The plugin will:
-   - Save the full replay buffer
-   - Automatically trim to the selected duration (Without re-encoding)
-   - Replace the original file with the trimmed version
-
-### Buffer Length
-- Use the handy slider to adjust built-in replay buffer length (10s to 6h) without digging through the settings
-- Changes take effect after restarting the replay buffer
 
 
 ## Building from Source
