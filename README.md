@@ -109,16 +109,16 @@ Note: You may need administrator privileges to copy files to Program Files.
 
 ## Usage
 
-### Saving Segments
+### Saving Clips
 1. Start the Replay Buffer in OBS
-2. Click any segment button (15s, 30s, 1m, etc.)
+2. Click any save clip button (15s, 30s, 1m, etc.)
 3. The plugin will:
    - Save the full replay buffer
-   - Automatically trim to the selected duration
+   - Automatically trim to the selected duration (Without re-encoding)
    - Replace the original file with the trimmed version
 
 ### Buffer Length
-- Use the slider to adjust buffer length (10s to 6h)
+- Use the handy slider to adjust built-in replay buffer length (10s to 6h) without digging through the settings
 - Changes take effect after restarting the replay buffer
 
 ## Troubleshooting
