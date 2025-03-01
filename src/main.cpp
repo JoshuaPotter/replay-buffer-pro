@@ -3,8 +3,8 @@
 #include <obs-frontend-api.h>
 
 // Plugin includes
-#include "plugin.hpp"
-#include "logger.hpp"
+#include "plugin/plugin.hpp"
+#include "utils/logger.hpp"
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("replay-buffer-pro", "en-US")

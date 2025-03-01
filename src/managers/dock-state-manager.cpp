@@ -3,10 +3,10 @@
  * @brief Implementation of dock state management for the Replay Buffer Pro plugin
  */
 
-#include "dock-state-manager.hpp"
-#include "config.hpp"
-#include "logger.hpp"
-#include "obs-utils.hpp"
+#include "managers/dock-state-manager.hpp"
+#include "config/config.hpp"
+#include "utils/logger.hpp"
+#include "utils/obs-utils.hpp"
 
 // OBS includes
 #include <util/platform.h>

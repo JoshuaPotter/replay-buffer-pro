@@ -3,10 +3,10 @@
  * @brief Implementation of settings management for the Replay Buffer Pro plugin
  */
 
-#include "settings-manager.hpp"
-#include "config.hpp"
-#include "logger.hpp"
-#include "obs-utils.hpp"
+#include "managers/settings-manager.hpp"
+#include "config/config.hpp"
+#include "utils/logger.hpp"
+#include "utils/obs-utils.hpp"
 
 // Qt includes
 #include <QMessageBox>

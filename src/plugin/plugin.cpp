@@ -19,10 +19,10 @@
 #include <QTimer>
 
 // Local includes
-#include "obs-utils.hpp"
-#include "plugin.hpp"
-#include "logger.hpp"
-#include "config.hpp"	
+#include "utils/obs-utils.hpp"
+#include "plugin/plugin.hpp"
+#include "utils/logger.hpp"
+#include "config/config.hpp"	
 
 namespace ReplayBufferPro
 {

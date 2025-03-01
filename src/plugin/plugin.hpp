@@ -29,10 +29,10 @@
 #include <QTimer>
 
 // Local includes
-#include "ui-components.hpp"
-#include "settings-manager.hpp"
-#include "dock-state-manager.hpp"
-#include "replay-buffer-manager.hpp"
+#include "ui/ui-components.hpp"
+#include "managers/settings-manager.hpp"
+#include "managers/dock-state-manager.hpp"
+#include "managers/replay-buffer-manager.hpp"
 
 namespace ReplayBufferPro
 {

@@ -3,9 +3,9 @@
  * @brief Implementation of replay buffer management for the Replay Buffer Pro plugin
  */
 
-#include "replay-buffer-manager.hpp"
-#include "settings-manager.hpp"
-#include "logger.hpp"
+#include "managers/replay-buffer-manager.hpp"
+#include "managers/settings-manager.hpp"
+#include "utils/logger.hpp"
 
 // OBS includes
 #include <util/platform.h>

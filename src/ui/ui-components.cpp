@@ -3,8 +3,8 @@
  * @brief Implementation of UI components for the Replay Buffer Pro plugin
  */
 
-#include "ui-components.hpp"
-#include "config.hpp"
+#include "ui/ui-components.hpp"
+#include "config/config.hpp"
 
 // OBS includes
 #include <obs-module.h>
