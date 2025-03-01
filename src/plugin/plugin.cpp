@@ -26,18 +26,10 @@
 
 namespace ReplayBufferPro
 {
-
 	//=============================================================================
 	// CONSTRUCTORS & DESTRUCTOR
 	//=============================================================================
 
-	/**
-	 * @brief Creates a standalone widget instance
-	 * @param parent Parent widget
-	 *
-	 * Creates a floating/dockable widget that can be added to any Qt window.
-	 * Initializes all UI components and sets up event handling.
-	 */
 	Plugin::Plugin(QWidget *parent)
 			: QDockWidget(parent), 
 			  lastKnownBufferLength(0)
@@ -80,13 +72,6 @@ namespace ReplayBufferPro
 		settingsMonitorTimer->start();
 	}
 
-	/**
-	 * @brief Creates a docked widget instance
-	 * @param mainWindow OBS main window
-	 *
-	 * Creates a widget docked to the OBS main window.
-	 * Restores previous dock position and state if available.
-	 */
 	Plugin::Plugin(QMainWindow *mainWindow)
 			: QDockWidget(mainWindow), 
 			  lastKnownBufferLength(0)
@@ -141,12 +126,6 @@ namespace ReplayBufferPro
 		settingsMonitorTimer->start();
 	}
 
-	/**
-	 * @brief Cleans up resources and removes callbacks
-	 *
-	 * Cleans up resources and removes OBS event callbacks.
-	 * Ensures no dangling callbacks remain after destruction.
-	 */
 	Plugin::~Plugin()
 	{
 		settingsMonitorTimer->stop();
@@ -159,15 +138,6 @@ namespace ReplayBufferPro
 	// INITIALIZATION
 	//=============================================================================
 
-	/**
-	 * @brief Initializes signal/slot connections
-	 *
-	 * Sets up all event handling connections:
-	 * - Slider value changes (with debouncing)
-	 * - Text input validation
-	 * - Save button clicks
-	 * Configures debounce timer for slider updates.
-	 */
 	void Plugin::initSignals()
 	{
 		connect(ui->getSlider(), &QSlider::valueChanged, this, &Plugin::handleSliderChanged);
@@ -179,14 +149,6 @@ namespace ReplayBufferPro
 	// EVENT HANDLERS
 	//=============================================================================
 
-	/**
-	 * @brief Handles OBS frontend events
-	 * @param event The OBS event type
-	 * @param ptr Pointer to the plugin instance
-	 *
-	 * Handles OBS events related to replay buffer state changes.
-	 * Uses Qt's event system to safely update UI from any thread.
-	 */
 	void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr)
 	{
 		auto window = static_cast<Plugin *>(ptr);
@@ -228,25 +190,12 @@ namespace ReplayBufferPro
 		}
 	}
 
-	/**
-	 * @brief Updates UI and starts debounce timer when slider value changes
-	 * @param value New buffer length in seconds
-	 *
-	 * Updates UI immediately and starts debounce timer for OBS settings update.
-	 * Prevents rapid OBS settings updates during slider movement.
-	 */
 	void Plugin::handleSliderChanged(int value)
 	{
 		ui->updateBufferLengthValue(value);
 		ui->getSliderDebounceTimer()->start();
 	}
 
-	/**
-	 * @brief Updates OBS settings after slider movement ends
-	 *
-	 * Called after slider movement stops and debounce period expires.
-	 * Updates OBS settings with the final slider value.
-	 */
 	void Plugin::handleSliderFinished()
 	{
 		try {
@@ -257,11 +206,6 @@ namespace ReplayBufferPro
 		}
 	}
 
-	/**
-	 * @brief Validates and applies manual buffer length input
-	 *
-	 * Ensures input is within valid range (10s to 6h) and updates settings
-	 */
 	void Plugin::handleBufferLengthInput()
 	{
 		bool ok;
@@ -282,27 +226,11 @@ namespace ReplayBufferPro
 		}
 	}
 
-	/**
-	 * @brief Triggers full buffer save if replay buffer is active
-	 *
-	 * Triggers saving of entire replay buffer content.
-	 * Shows error if buffer is not active.
-	 */
 	void Plugin::handleSaveFullBuffer()
 	{
 		replayManager->saveFullBuffer(this);
 	}
 
-	/**
-	 * @brief Saves a specific duration from the replay buffer
-	 * @param duration Number of seconds to save
-	 *
-	 * Saves a specific duration from the replay buffer:
-	 * - Verifies buffer is active
-	 * - Checks if duration exceeds buffer length
-	 * - Shows appropriate error messages
-	 * - Triggers save if all checks pass
-	 */
 	void Plugin::handleSaveSegment(int duration)
 	{
 		replayManager->saveSegment(duration, this);
@@ -312,13 +240,6 @@ namespace ReplayBufferPro
 	// UI STATE MANAGEMENT
 	//=============================================================================
 
-	/**
-	 * @brief Updates UI state based on replay buffer activity
-	 *
-	 * Synchronizes UI with replay buffer state:
-	 * - Enables/disables controls based on buffer activity
-	 * - Updates buffer length display when active
-	 */
 	void Plugin::updateBufferLengthUIState()
 	{
 		bool isActive = obs_frontend_replay_buffer_active();
@@ -329,14 +250,6 @@ namespace ReplayBufferPro
 	// SETTINGS MANAGEMENT
 	//=============================================================================
 
-	/**
-	 * @brief Loads and applies saved buffer length from OBS settings
-	 *
-	 * Retrieves and applies saved buffer length:
-	 * - Handles both Simple and Advanced output modes
-	 * - Falls back to default length (5m) if not set
-	 * - Updates UI with loaded value
-	 */
 	void Plugin::loadBufferLength()
 	{
 		int bufferLength = settingsManager->loadBufferLength();
