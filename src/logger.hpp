@@ -7,15 +7,15 @@ namespace ReplayBufferPro
 {
 
   /**
-   * @brief Utility class for standardized logging
+   * @brief Logger for standardized OBS logging
    */
   class Logger
   {
   public:
     /**
-     * @brief Log an informational message
-     * @param format Printf-style format string
-     * @param ... Variable arguments for format string
+     * @brief Log info message
+     * @param format Format string
+     * @param ... Format arguments
      */
     static void info(const char *format, ...)
     {
@@ -28,9 +28,9 @@ namespace ReplayBufferPro
     }
 
     /**
-     * @brief Log an error message
-     * @param format Printf-style format string
-     * @param ... Variable arguments for format string
+     * @brief Log error message
+     * @param format Format string
+     * @param ... Format arguments
      */
     static void error(const char *format, ...)
     {

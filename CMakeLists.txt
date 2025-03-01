@@ -35,6 +35,10 @@ set(SOURCES
     src/main.cpp
     src/plugin.cpp
     src/obs-utils.cpp
+    src/ui-components.cpp
+    src/settings-manager.cpp
+    src/dock-state-manager.cpp
+    src/replay-buffer-manager.cpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${SOURCES})
