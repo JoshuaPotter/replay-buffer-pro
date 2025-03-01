@@ -36,110 +36,110 @@
 
 namespace ReplayBufferPro
 {
+  /**
+   * @brief Main plugin class providing enhanced replay buffer controls
+   *
+   * Features:
+   * - Adjustable buffer length (10 seconds to 6 hours)
+   * - Quick-save buttons for predefined durations
+   * - Full buffer save capability
+   * - Automatic UI state management based on buffer status
+   * - Persistent dock position and settings
+   */
+  class Plugin : public QDockWidget
+  {
+    Q_OBJECT
+
+  public:
+    //=========================================================================
+    // CONSTRUCTORS & DESTRUCTOR
+    //=========================================================================
     /**
-     * @brief Main plugin class providing enhanced replay buffer controls
-     *
-     * Features:
-     * - Adjustable buffer length (10 seconds to 6 hours)
-     * - Quick-save buttons for predefined durations
-     * - Full buffer save capability
-     * - Automatic UI state management based on buffer status
-     * - Persistent dock position and settings
+     * @brief Creates a standalone dockable widget
+     * @param parent Optional parent widget for memory management
      */
-    class Plugin : public QDockWidget
-    {
-        Q_OBJECT
+    explicit Plugin(QWidget *parent = nullptr);
 
-    public:
-        //=========================================================================
-        // CONSTRUCTORS & DESTRUCTOR
-        //=========================================================================
-        /**
-         * @brief Creates a standalone dockable widget
-         * @param parent Optional parent widget for memory management
-         */
-        explicit Plugin(QWidget *parent = nullptr);
+    /**
+     * @brief Creates and docks widget to OBS main window
+     * @param mainWindow The OBS main window to dock to
+     */
+    explicit Plugin(QMainWindow *mainWindow);
 
-        /**
-         * @brief Creates and docks widget to OBS main window
-         * @param mainWindow The OBS main window to dock to
-         */
-        explicit Plugin(QMainWindow *mainWindow);
+    /**
+     * @brief Cleans up resources and removes OBS event callbacks
+     */
+    ~Plugin();
 
-        /**
-         * @brief Cleans up resources and removes OBS event callbacks
-         */
-        ~Plugin();
+    /**
+     * @brief Handles OBS frontend events for buffer state changes
+     * @param event Event type from OBS
+     * @param ptr Instance pointer for callback routing
+     */
+    static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
 
-        /**
-         * @brief Handles OBS frontend events for buffer state changes
-         * @param event Event type from OBS
-         * @param ptr Instance pointer for callback routing
-         */
-        static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
+  private slots:
+    //=========================================================================
+    // EVENT HANDLERS
+    //=========================================================================
+    /**
+     * @brief Updates UI and starts debounce timer when slider value changes
+     * @param value New buffer length in seconds
+     */
+    void handleSliderChanged(int value);
 
-    private slots:
-        //=========================================================================
-        // EVENT HANDLERS
-        //=========================================================================
-        /**
-         * @brief Updates UI and starts debounce timer when slider value changes
-         * @param value New buffer length in seconds
-         */
-        void handleSliderChanged(int value);
+    /**
+     * @brief Updates OBS settings after slider movement ends
+     */
+    void handleSliderFinished();
 
-        /**
-         * @brief Updates OBS settings after slider movement ends
-         */
-        void handleSliderFinished();
+    /**
+     * @brief Validates and applies manual buffer length input
+     */
+    void handleBufferLengthInput();
 
-        /**
-         * @brief Validates and applies manual buffer length input
-         */
-        void handleBufferLengthInput();
+    /**
+     * @brief Updates UI state based on replay buffer activity
+     */
+    void updateBufferLengthUIState();
 
-        /**
-         * @brief Updates UI state based on replay buffer activity
-         */
-        void updateBufferLengthUIState();
+    /**
+     * @brief Loads and applies saved buffer length from OBS settings
+     */
+    void loadBufferLength();
 
-        /**
-         * @brief Loads and applies saved buffer length from OBS settings
-         */
-        void loadBufferLength();
+  private:
+    //=========================================================================
+    // COMPONENT INSTANCES
+    //=========================================================================
+    UIComponents *ui;                   ///< UI components
+    SettingsManager *settingsManager;   ///< Settings manager
+    DockStateManager *dockStateManager; ///< Dock state manager
+    ReplayBufferManager *replayManager; ///< Replay buffer manager
+    QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes
+    uint64_t lastKnownBufferLength;     ///< Last known buffer length from OBS settings
 
-    private:
-        //=========================================================================
-        // COMPONENT INSTANCES
-        //=========================================================================
-        UIComponents *ui;                     ///< UI components
-        SettingsManager *settingsManager;     ///< Settings manager
-        DockStateManager *dockStateManager;   ///< Dock state manager
-        ReplayBufferManager *replayManager;   ///< Replay buffer manager
-        QTimer *settingsMonitorTimer;         ///< Timer for monitoring OBS settings changes
-        uint64_t lastKnownBufferLength;       ///< Last known buffer length from OBS settings
+    //=========================================================================
+    // INITIALIZATION
+    //=========================================================================
+    /**
+     * @brief Sets up signal/slot connections
+     */
+    void initSignals();
 
-        //=========================================================================
-        // INITIALIZATION
-        //=========================================================================
-        /**
-         * @brief Sets up signal/slot connections
-         */
-        void initSignals();
+    //=========================================================================
+    // EVENT HANDLERS
+    //=========================================================================
+    /**
+     * @brief Saves a specific duration from the replay buffer
+     * @param duration Duration in seconds to save
+     */
+    void handleSaveSegment(int duration);
 
-        //=========================================================================
-        // EVENT HANDLERS
-        //=========================================================================
-        /**
-         * @brief Saves a specific duration from the replay buffer
-         * @param duration Duration in seconds to save
-         */
-        void handleSaveSegment(int duration);
-
-        /**
-         * @brief Triggers full buffer save if replay buffer is active
-         */
-        void handleSaveFullBuffer();
-    };
+    /**
+     * @brief Triggers full buffer save if replay buffer is active
+     */
+    void handleSaveFullBuffer();
+  };
 
 } // namespace ReplayBufferPro

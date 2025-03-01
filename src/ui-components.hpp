@@ -26,140 +26,140 @@
 
 namespace ReplayBufferPro
 {
+  /**
+   * @brief Defines a save button configuration
+   */
+  struct SaveButton
+  {
+    int duration;     ///< Duration in seconds to save
+    const char *text; ///< Translation key for button text
+  };
+
+  /**
+   * @brief Predefined save durations and their labels
+   */
+  extern const SaveButton SAVE_BUTTONS[];
+
+  /**
+   * @brief Number of predefined save buttons
+   */
+  extern const size_t SAVE_BUTTON_COUNT;
+
+  /**
+   * @class UIComponents
+   * @brief Manages UI components for the Replay Buffer Pro plugin
+   *
+   * This class creates and manages the UI components used by the plugin,
+   * including the buffer length slider, text input, and save buttons.
+   */
+  class UIComponents
+  {
+  public:
+    //=========================================================================
+    // CONSTRUCTORS & DESTRUCTOR
+    //=========================================================================
     /**
-     * @brief Defines a save button configuration
+     * @brief Creates UI components
+     * @param parent Parent widget for UI components
+     * @param saveSegmentCallback Callback for save segment button clicks
+     * @param saveFullBufferCallback Callback for save full buffer button clicks
      */
-    struct SaveButton
-    {
-        int duration;       ///< Duration in seconds to save
-        const char *text;   ///< Translation key for button text
-    };
+    UIComponents(QWidget *parent,
+                 std::function<void(int)> saveSegmentCallback,
+                 std::function<void()> saveFullBufferCallback);
 
     /**
-     * @brief Predefined save durations and their labels
+     * @brief Destructor
      */
-    extern const SaveButton SAVE_BUTTONS[];
-    
+    ~UIComponents() = default;
+
+    //=========================================================================
+    // GETTERS
+    //=========================================================================
     /**
-     * @brief Number of predefined save buttons
+     * @brief Gets the buffer length slider
+     * @return Pointer to the buffer length slider
      */
-    extern const size_t SAVE_BUTTON_COUNT;
+    QSlider *getSlider() const { return slider; }
 
     /**
-     * @class UIComponents
-     * @brief Manages UI components for the Replay Buffer Pro plugin
-     *
-     * This class creates and manages the UI components used by the plugin,
-     * including the buffer length slider, text input, and save buttons.
+     * @brief Gets the buffer length text input
+     * @return Pointer to the buffer length text input
      */
-    class UIComponents
-    {
-    public:
-        //=========================================================================
-        // CONSTRUCTORS & DESTRUCTOR
-        //=========================================================================
-        /**
-         * @brief Creates UI components
-         * @param parent Parent widget for UI components
-         * @param saveSegmentCallback Callback for save segment button clicks
-         * @param saveFullBufferCallback Callback for save full buffer button clicks
-         */
-        UIComponents(QWidget *parent,
-                    std::function<void(int)> saveSegmentCallback,
-                    std::function<void()> saveFullBufferCallback);
+    QLineEdit *getSecondsEdit() const { return secondsEdit; }
 
-        /**
-         * @brief Destructor
-         */
-        ~UIComponents() = default;
+    /**
+     * @brief Gets the save buttons
+     * @return Vector of save button pointers
+     */
+    const std::vector<QPushButton *> &getSaveButtons() const { return saveButtons; }
 
-        //=========================================================================
-        // GETTERS
-        //=========================================================================
-        /**
-         * @brief Gets the buffer length slider
-         * @return Pointer to the buffer length slider
-         */
-        QSlider* getSlider() const { return slider; }
+    /**
+     * @brief Gets the save full buffer button
+     * @return Pointer to the save full buffer button
+     */
+    QPushButton *getSaveFullBufferBtn() const { return saveFullBufferBtn; }
 
-        /**
-         * @brief Gets the buffer length text input
-         * @return Pointer to the buffer length text input
-         */
-        QLineEdit* getSecondsEdit() const { return secondsEdit; }
+    /**
+     * @brief Gets the slider debounce timer
+     * @return Pointer to the slider debounce timer
+     */
+    QTimer *getSliderDebounceTimer() const { return sliderDebounceTimer; }
 
-        /**
-         * @brief Gets the save buttons
-         * @return Vector of save button pointers
-         */
-        const std::vector<QPushButton*>& getSaveButtons() const { return saveButtons; }
+    //=========================================================================
+    // UI CREATION
+    //=========================================================================
+    /**
+     * @brief Creates the main UI layout
+     * @return The main UI layout
+     */
+    QWidget *createUI();
 
-        /**
-         * @brief Gets the save full buffer button
-         * @return Pointer to the save full buffer button
-         */
-        QPushButton* getSaveFullBufferBtn() const { return saveFullBufferBtn; }
+    //=========================================================================
+    // UI STATE MANAGEMENT
+    //=========================================================================
+    /**
+     * @brief Updates UI components with new buffer length
+     * @param seconds New buffer length in seconds
+     */
+    void updateBufferLengthValue(int seconds);
 
-        /**
-         * @brief Gets the slider debounce timer
-         * @return Pointer to the slider debounce timer
-         */
-        QTimer* getSliderDebounceTimer() const { return sliderDebounceTimer; }
+    /**
+     * @brief Updates UI state based on replay buffer activity
+     * @param isActive Whether the replay buffer is active
+     */
+    void updateBufferLengthState(bool isActive);
 
-        //=========================================================================
-        // UI CREATION
-        //=========================================================================
-        /**
-         * @brief Creates the main UI layout
-         * @return The main UI layout
-         */
-        QWidget* createUI();
+    /**
+     * @brief Enables/disables save buttons based on buffer length
+     * @param bufferLength Current buffer length in seconds
+     */
+    void toggleSaveButtons(int bufferLength);
 
-        //=========================================================================
-        // UI STATE MANAGEMENT
-        //=========================================================================
-        /**
-         * @brief Updates UI components with new buffer length
-         * @param seconds New buffer length in seconds
-         */
-        void updateBufferLengthValue(int seconds);
+  private:
+    //=========================================================================
+    // UI COMPONENTS
+    //=========================================================================
+    QSlider *slider;                        ///< Buffer length control (10s to 6h)
+    QLineEdit *secondsEdit;                 ///< Manual buffer length input
+    QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
+    std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
+    QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
 
-        /**
-         * @brief Updates UI state based on replay buffer activity
-         * @param isActive Whether the replay buffer is active
-         */
-        void updateBufferLengthState(bool isActive);
+    //=========================================================================
+    // CALLBACKS
+    //=========================================================================
+    std::function<void(int)> onSaveSegment; ///< Callback for save segment button clicks
+    std::function<void()> onSaveFullBuffer; ///< Callback for save full buffer button clicks
 
-        /**
-         * @brief Enables/disables save buttons based on buffer length
-         * @param bufferLength Current buffer length in seconds
-         */
-        void toggleSaveButtons(int bufferLength);
+    //=========================================================================
+    // INITIALIZATION
+    //=========================================================================
+    /**
+     * @brief Creates save duration buttons in a grid layout
+     * @param layout Parent layout for the buttons
+     */
+    void initSaveButtons(QHBoxLayout *layout);
+  };
 
-    private:
-        //=========================================================================
-        // UI COMPONENTS
-        //=========================================================================
-        QSlider *slider;                        ///< Buffer length control (10s to 6h)
-        QLineEdit *secondsEdit;                 ///< Manual buffer length input
-        QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
-        std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
-        QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
-
-        //=========================================================================
-        // CALLBACKS
-        //=========================================================================
-        std::function<void(int)> onSaveSegment;     ///< Callback for save segment button clicks
-        std::function<void()> onSaveFullBuffer;     ///< Callback for save full buffer button clicks
-
-        //=========================================================================
-        // INITIALIZATION
-        //=========================================================================
-        /**
-         * @brief Creates save duration buttons in a grid layout
-         * @param layout Parent layout for the buttons
-         */
-        void initSaveButtons(QHBoxLayout *layout);
-    };
-
-} // namespace ReplayBufferPro 
+} // namespace ReplayBufferPro
