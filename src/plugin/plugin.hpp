@@ -33,6 +33,7 @@
 #include "managers/settings-manager.hpp"
 #include "managers/dock-state-manager.hpp"
 #include "managers/replay-buffer-manager.hpp"
+#include "managers/hotkey-manager.hpp"
 
 namespace ReplayBufferPro
 {
@@ -158,6 +159,7 @@ namespace ReplayBufferPro
     SettingsManager *settingsManager;   ///< Settings manager
     DockStateManager *dockStateManager; ///< Dock state manager
     ReplayBufferManager *replayManager; ///< Replay buffer manager
+    HotkeyManager *hotkeyManager;       ///< Hotkey manager
     QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes
     uint64_t lastKnownBufferLength;     ///< Last known buffer length from OBS settings
 

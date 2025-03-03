@@ -39,6 +39,7 @@ set(SOURCES
   src/managers/settings-manager.cpp
   src/managers/dock-state-manager.cpp
   src/managers/replay-buffer-manager.cpp
+  src/managers/hotkey-manager.cpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${SOURCES})

@@ -7,7 +7,7 @@ This OBS Studio plugin builds upon the built-in Replay Buffer by allowing users 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes (length defined in settings) of footage in memory using the built-in replay buffer. If not manually saved, old footage is overwritten as new footage is recorded.
 
-Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio plugin allows users to save different lengths on demand. Example: Save the last 30 seconds, 2 minutes, or 5 minutes instantly with UI buttons (hotkeys coming soon).
+Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio plugin allows users to save different lengths on demand. Example: Save the last 30 seconds, 2 minutes, or 5 minutes instantly with UI buttons or hotkeys.
 
 ![Screenshot](./screenshot.png)
 
@@ -15,7 +15,7 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 ### Saving Clips
 1. Start the Replay Buffer in OBS
-2. Click any save clip button (15s, 30s, 1m, etc.)
+2. Click any save clip button (15s, 30s, 1m, etc.) or use the assigned hotkey
 3. The plugin will:
    - Save the full replay buffer
    - Automatically trim to the selected duration (Without re-encoding)
@@ -24,6 +24,10 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 ### Buffer Length
 - Adjust built-in replay buffer length (10s to 6h) without digging through the settings
 - Cannot adjust the replay buffer length when the replay buffer is turned on
+
+### Hotkeys
+- Assign hotkeys to each save duration button in OBS Settings > Hotkeys
+- Look for "ReplayBufferPro" section to find all available hotkeys
 
 ## Installation
 

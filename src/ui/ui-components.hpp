@@ -38,12 +38,20 @@ namespace ReplayBufferPro
   /**
    * @brief Predefined save durations and their labels
    */
-  extern const SaveButton SAVE_BUTTONS[];
+  constexpr SaveButton SAVE_BUTTONS[] = {
+      {15, "Save15Sec"},  // 15 seconds
+      {30, "Save30Sec"},  // 30 seconds
+      {60, "Save1Min"},   // 1 minute
+      {300, "Save5Min"},  // 5 minutes
+      {600, "Save10Min"}, // 10 minutes
+      {900, "Save15Min"}, // 15 minutes
+      {1800, "Save30Min"} // 30 minutes
+  };
 
   /**
    * @brief Number of predefined save buttons
    */
-  extern const size_t SAVE_BUTTON_COUNT;
+  constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]);
 
   /**
    * @class UIComponents

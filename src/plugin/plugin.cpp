@@ -57,6 +57,12 @@ namespace ReplayBufferPro
 		// Register OBS event callback
 		obs_frontend_add_event_callback(handleOBSEvent, this);
 
+		// Create and register hotkeys
+		hotkeyManager = new HotkeyManager(
+			[this](int duration) { handleSaveSegment(duration); }
+		);
+		hotkeyManager->registerHotkeys();
+
 		// Setup settings monitoring
 		settingsMonitorTimer = new QTimer(this);
 		settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
@@ -100,6 +106,12 @@ namespace ReplayBufferPro
 		// Register OBS event callback
 		obs_frontend_add_event_callback(handleOBSEvent, this);
 		
+		// Create and register hotkeys
+		hotkeyManager = new HotkeyManager(
+			[this](int duration) { handleSaveSegment(duration); }
+		);
+		hotkeyManager->registerHotkeys();
+		
 		// Load dock state
 		dockStateManager->loadDockState(mainWindow);
 
@@ -131,6 +143,9 @@ namespace ReplayBufferPro
 		settingsMonitorTimer->stop();
 		obs_frontend_remove_event_callback(handleOBSEvent, this);
 		
+		// Delete the hotkey manager (will save settings and unregister hotkeys)
+		delete hotkeyManager;
+		
 		// Component cleanup happens automatically through Qt parent-child relationship
 	}
 
@@ -155,14 +170,14 @@ namespace ReplayBufferPro
 
 		switch (event)
 		{
+		case OBS_FRONTEND_EVENT_EXIT:
+			// Save hotkey settings when OBS is exiting
+			if (window->hotkeyManager) {
+				window->hotkeyManager->saveHotkeySettings();
+			}
+			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
 			window->settingsMonitorTimer->stop(); // Stop monitoring when buffer starts
-			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
-			break;
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
-			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
-			break;
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
 			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
@@ -252,9 +267,12 @@ namespace ReplayBufferPro
 
 	void Plugin::loadBufferLength()
 	{
-		int bufferLength = settingsManager->loadBufferLength();
-		lastKnownBufferLength = bufferLength;
-		ui->updateBufferLengthValue(bufferLength);
+		int bufferLength = settingsManager->getCurrentBufferLength();
+		if (bufferLength > 0)
+		{
+			lastKnownBufferLength = bufferLength;
+			ui->updateBufferLengthValue(bufferLength);
+		}
 	}
 
 } // namespace ReplayBufferPro
