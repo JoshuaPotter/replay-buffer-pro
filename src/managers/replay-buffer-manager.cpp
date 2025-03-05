@@ -66,7 +66,6 @@ namespace ReplayBufferPro
 
     pendingSaveDuration = duration; // Store the duration for the save completion handler
     obs_frontend_replay_buffer_save();
-    Logger::info("Saving replay segment of %d seconds", duration);
     return true;
   }
 
