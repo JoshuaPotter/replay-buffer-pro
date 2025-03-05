@@ -21,7 +21,7 @@
 namespace ReplayBufferPro
 {
   /**
-   * @brief Manages hotkey registration, saving, and loading for the plugin
+   * @brief Manages hotkey registration for the Replay Buffer Pro plugin
    */
   class HotkeyManager
   {
@@ -40,7 +40,7 @@ namespace ReplayBufferPro
     /**
      * @brief Destructor
      * 
-     * Unregisters all hotkeys and saves settings
+     * Unregisters all hotkeys
      */
     ~HotkeyManager();
 
@@ -52,22 +52,9 @@ namespace ReplayBufferPro
      * 
      * Creates hotkeys for each save duration button.
      * Users can assign key combinations to these hotkeys in OBS settings.
+     * OBS automatically handles saving and loading of hotkey bindings.
      */
     void registerHotkeys();
-
-    /**
-     * @brief Saves hotkey settings to OBS config
-     * 
-     * Saves the current hotkey assignments to the OBS configuration.
-     */
-    void saveHotkeySettings();
-
-    /**
-     * @brief Loads hotkey settings from OBS config
-     * 
-     * Loads previously saved hotkey assignments from the OBS configuration.
-     */
-    void loadHotkeySettings();
 
   private:
     //=========================================================================

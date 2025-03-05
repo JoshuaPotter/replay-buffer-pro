@@ -27,9 +27,6 @@ namespace ReplayBufferPro
 
   HotkeyManager::~HotkeyManager()
   {
-    // Save settings before unregistering
-    saveHotkeySettings();
-    
     // Unregister all hotkeys
     for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
       if (saveHotkeys[i] != OBS_INVALID_HOTKEY_ID) {
@@ -79,59 +76,6 @@ namespace ReplayBufferPro
       
       Logger::info("Registered hotkey for saving %d seconds", btn.duration);
     }
-    
-    // Load any saved hotkey settings
-    loadHotkeySettings();
-  }
-
-  void HotkeyManager::saveHotkeySettings()
-  {
-    obs_data_t *hotkeyData = obs_data_create();
-    
-    // Save hotkey data for each save duration
-    for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
-      if (saveHotkeys[i] != OBS_INVALID_HOTKEY_ID) {
-        obs_data_array_t *hotkeyArray = obs_hotkey_save(saveHotkeys[i]);
-        std::string key = std::string("save_") + std::to_string(SAVE_BUTTONS[i].duration) + "_hotkey";
-        obs_data_set_array(hotkeyData, key.c_str(), hotkeyArray);
-        obs_data_array_release(hotkeyArray);
-      }
-    }
-    
-    // Save to config file
-    const char *configPath = obs_module_config_path("hotkeys.json");
-    obs_data_save_json(hotkeyData, configPath);
-    bfree((void *)configPath);
-    
-    obs_data_release(hotkeyData);
-    Logger::info("Hotkey settings saved");
-  }
-
-  void HotkeyManager::loadHotkeySettings()
-  {
-    const char *configPath = obs_module_config_path("hotkeys.json");
-    obs_data_t *hotkeyData = obs_data_create_from_json_file(configPath);
-    bfree((void *)configPath);
-    
-    if (!hotkeyData) {
-      Logger::info("No saved hotkey settings found");
-      return;
-    }
-    
-    // Load hotkey data for each save duration
-    for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
-      if (saveHotkeys[i] != OBS_INVALID_HOTKEY_ID) {
-        std::string key = std::string("save_") + std::to_string(SAVE_BUTTONS[i].duration) + "_hotkey";
-        obs_data_array_t *hotkeyArray = obs_data_get_array(hotkeyData, key.c_str());
-        if (hotkeyArray) {
-          obs_hotkey_load(saveHotkeys[i], hotkeyArray);
-          obs_data_array_release(hotkeyArray);
-        }
-      }
-    }
-    
-    obs_data_release(hotkeyData);
-    Logger::info("Hotkey settings loaded");
   }
 
 } // namespace ReplayBufferPro 
