@@ -153,35 +153,24 @@ namespace ReplayBufferPro
 
 	void Plugin::handleOBSEvent(enum obs_frontend_event event, void *ptr)
 	{
-		auto window = static_cast<Plugin *>(ptr);
+		auto plugin = static_cast<Plugin *>(ptr);
 
 		switch (event)
 		{
 		case OBS_FRONTEND_EVENT_EXIT:
-			window->settingsMonitorTimer->stop();
+			plugin->settingsMonitorTimer->stop();
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
-			window->settingsMonitorTimer->stop(); // Stop monitoring when buffer starts
-			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
+			plugin->settingsMonitorTimer->stop();
+			QMetaObject::invokeMethod(plugin, "updateBufferLengthUIState", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
-			window->settingsMonitorTimer->start(); // Resume monitoring when buffer stops
-			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
-			// Reload buffer length in case it was changed while buffer was active
-			QMetaObject::invokeMethod(window, "loadBufferLength", Qt::QueuedConnection);
+			plugin->settingsMonitorTimer->start();
+			QMetaObject::invokeMethod(plugin, "updateBufferLengthUIState", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(plugin, "loadBufferLength", Qt::QueuedConnection);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
-			if (window->replayManager->getPendingSaveDuration() > 0)
-			{
-				const char *savedPath = obs_frontend_get_last_replay();
-				if (savedPath)
-				{
-					int duration = window->replayManager->getPendingSaveDuration();
-					window->replayManager->trimReplayBuffer(savedPath, duration);
-					bfree((void *)savedPath);
-				}
-				window->replayManager->clearPendingSaveDuration();
-			}
+			plugin->handleReplayBufferSaved();
 			break;
 		default:
 			break;
@@ -243,6 +232,19 @@ namespace ReplayBufferPro
 	void Plugin::handleSaveSegment(int duration)
 	{
 		replayManager->saveSegment(duration, this);
+	}
+
+	void Plugin::handleReplayBufferSaved() 
+	{
+		int duration = replayManager->getPendingSaveDuration();
+		if (duration > 0) {
+			const char* savedPath = obs_frontend_get_last_replay();
+			if (savedPath) {
+				replayManager->trimReplayBuffer(savedPath, duration);
+				bfree((void*)savedPath);
+			}
+			replayManager->clearPendingSaveDuration();
+		}
 	}
 
 	//=============================================================================

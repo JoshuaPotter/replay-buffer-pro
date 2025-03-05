@@ -47,7 +47,7 @@ namespace ReplayBufferPro
     // REPLAY BUFFER OPERATIONS
     //=========================================================================
     /**
-     * @brief Saves a specific duration from the replay buffer
+     * @brief Saves the replay buffer and set the duration for the pending trimming operation after save completes
      * @param duration Seconds to save
      * @param parent Parent widget for error messages
      * @return Success status
@@ -79,7 +79,7 @@ namespace ReplayBufferPro
     void clearPendingSaveDuration();
 
     /**
-     * @brief Trims a replay buffer file
+     * @brief Trims a replay buffer file, called after save completes
      * @param sourcePath Source file path
      * @param duration Duration in seconds
      */
