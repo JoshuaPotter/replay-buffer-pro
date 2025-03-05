@@ -19,7 +19,7 @@ namespace ReplayBufferPro
 
     // Timer intervals
     constexpr int SETTINGS_MONITOR_INTERVAL = 1000; // 1 second
-    constexpr int SLIDER_DEBOUNCE_INTERVAL = 500;   // 500 milliseconds
+    constexpr int SLIDER_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
 
     // File paths
     constexpr const char *DOCK_STATE_FILENAME = "dock_state.json";

@@ -189,17 +189,28 @@ namespace ReplayBufferPro
 
 	void Plugin::handleSliderChanged(int value)
 	{
+		// Only update the UI components, don't trigger settings update yet
 		ui->updateBufferLengthValue(value);
+		
+		// Restart the debounce timer
 		ui->getSliderDebounceTimer()->start();
 	}
 
 	void Plugin::handleSliderFinished()
 	{
-		try {
-			settingsManager->updateBufferLengthSettings(ui->getSlider()->value());
-		} catch (const std::exception &e) {
-			QMessageBox::warning(this, obs_module_text("Error"),
-								QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
+		// Get the final slider value
+		int value = ui->getSlider()->value();
+		
+		// Only update settings if the value has actually changed
+		if (value != lastKnownBufferLength)
+		{
+			try {
+				settingsManager->updateBufferLengthSettings(value);
+				lastKnownBufferLength = value;
+			} catch (const std::exception &e) {
+				QMessageBox::warning(this, obs_module_text("Error"),
+									QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
+			}
 		}
 	}
 
@@ -250,7 +261,7 @@ namespace ReplayBufferPro
 	void Plugin::loadBufferLength()
 	{
 		int bufferLength = settingsManager->getCurrentBufferLength();
-		if (bufferLength > 0)
+		if (bufferLength > 0 && bufferLength != lastKnownBufferLength)
 		{
 			lastKnownBufferLength = bufferLength;
 			ui->updateBufferLengthValue(bufferLength);
