@@ -24,35 +24,11 @@
 #include <vector>
 #include <functional>
 
+// Project includes
+#include "config/config.hpp"
+
 namespace ReplayBufferPro
 {
-  /**
-   * @brief Defines a save button configuration
-   */
-  struct SaveButton
-  {
-    int duration;     ///< Duration in seconds to save
-    const char *text; ///< Translation key for button text
-  };
-
-  /**
-   * @brief Predefined save durations and their labels
-   */
-  constexpr SaveButton SAVE_BUTTONS[] = {
-      {15, "Save15Sec"},  // 15 seconds
-      {30, "Save30Sec"},  // 30 seconds
-      {60, "Save1Min"},   // 1 minute
-      {300, "Save5Min"},  // 5 minutes
-      {600, "Save10Min"}, // 10 minutes
-      {900, "Save15Min"}, // 15 minutes
-      {1800, "Save30Min"} // 30 minutes
-  };
-
-  /**
-   * @brief Number of predefined save buttons
-   */
-  constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]);
-
   /**
    * @class UIComponents
    * @brief Manages UI components for the Replay Buffer Pro plugin

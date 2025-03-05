@@ -17,6 +17,7 @@
 
 // Local includes
 #include "ui/ui-components.hpp"
+#include "config/config.hpp"
 
 namespace ReplayBufferPro
 {
@@ -50,7 +51,6 @@ namespace ReplayBufferPro
      * 
      * Creates hotkeys for each save duration button.
      * Users can assign key combinations to these hotkeys in OBS settings.
-     * OBS automatically handles saving, loading, and cleanup of hotkey bindings.
      */
     void registerHotkeys();
 
@@ -58,8 +58,36 @@ namespace ReplayBufferPro
     //=========================================================================
     // MEMBER VARIABLES
     //=========================================================================
-    obs_hotkey_id saveHotkeys[SAVE_BUTTON_COUNT]; ///< Array of hotkey IDs for each save duration
+    obs_hotkey_id saveHotkeys[Config::SAVE_BUTTON_COUNT]; ///< Array of hotkey IDs for each save duration
     std::function<void(int)> onSaveSegment;       ///< Callback for save segment hotkeys
+
+    //=========================================================================
+    // PRIVATE METHODS
+    //=========================================================================
+
+    /**
+     * @brief Saves current hotkey bindings to disk
+     * 
+     * Persists all hotkey bindings to the plugin's config file
+     * so they can be restored in future sessions.
+     */
+    void saveHotkeySettings();
+
+    /**
+     * @brief Loads saved hotkey bindings from disk
+     * 
+     * Restores previously saved hotkey bindings from the plugin's config file.
+     */
+    void loadHotkeySettings();
+
+    /**
+     * @brief Handles hotkey press events
+     * @param id The ID of the pressed hotkey
+     * 
+     * Called when a registered hotkey is pressed. Finds the corresponding
+     * duration and triggers the save segment callback.
+     */
+    void handleHotkeyPress(obs_hotkey_id id);
   };
 
 } // namespace ReplayBufferPro 

@@ -88,10 +88,11 @@ namespace ReplayBufferPro
 
     const int buttonsPerRow = 4;
 
-    for (size_t i = 0; i < sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]); i++)
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
-      const auto &btn = SAVE_BUTTONS[i];
-      auto button = new QPushButton(obs_module_text(btn.text));
+      auto *button = new QPushButton();
+      const auto &btn = Config::SAVE_BUTTONS[i];
+      button->setText(obs_module_text(btn.text));
       button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
       QObject::connect(button, &QPushButton::clicked, [this, duration = btn.duration]()
@@ -135,9 +136,9 @@ namespace ReplayBufferPro
 
   void UIComponents::toggleSaveButtons(int bufferLength)
   {
-    for (size_t i = 0; i < saveButtons.size(); i++)
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
-      saveButtons[i]->setEnabled(bufferLength >= SAVE_BUTTONS[i].duration);
+      saveButtons[i]->setEnabled(bufferLength >= Config::SAVE_BUTTONS[i].duration);
     }
   }
 

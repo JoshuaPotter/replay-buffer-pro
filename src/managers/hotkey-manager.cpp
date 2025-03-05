@@ -20,7 +20,7 @@ namespace ReplayBufferPro
   ) : onSaveSegment(saveSegmentCallback)
   {
     // Initialize hotkey IDs to invalid
-    for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
       saveHotkeys[i] = OBS_INVALID_HOTKEY_ID;
     }
   }
@@ -32,8 +32,8 @@ namespace ReplayBufferPro
   void HotkeyManager::registerHotkeys()
   {
     // Register hotkeys for each save duration
-    for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
-      const auto &btn = SAVE_BUTTONS[i];
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
+      const auto &btn = Config::SAVE_BUTTONS[i];
       std::string name = std::string("ReplayBufferPro.Save") + std::to_string(btn.duration) + "Sec";
       std::string description = std::string("Save Last ") + obs_module_text(btn.text);
       
@@ -47,9 +47,9 @@ namespace ReplayBufferPro
             int duration = 0;
             
             // Find which hotkey was pressed by matching the ID
-            for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
+            for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
               if (self->saveHotkeys[i] == id) {
-                duration = SAVE_BUTTONS[i].duration;
+                duration = Config::SAVE_BUTTONS[i].duration;
                 break;
               }
             }
