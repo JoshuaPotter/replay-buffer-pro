@@ -70,12 +70,6 @@ namespace ReplayBufferPro
     void updateBufferLengthSettings(int seconds);
 
     /**
-     * @brief Loads buffer length from OBS settings
-     * @return Current buffer length in seconds
-     */
-    int loadBufferLength();
-
-    /**
      * @brief Gets the current buffer length from OBS settings
      * @return Current buffer length in seconds
      */

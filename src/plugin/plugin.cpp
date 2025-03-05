@@ -66,15 +66,7 @@ namespace ReplayBufferPro
 		// Setup settings monitoring
 		settingsMonitorTimer = new QTimer(this);
 		settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
-		connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
-			int currentBufferLength = settingsManager->getCurrentBufferLength();
-			
-			if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
-				lastKnownBufferLength = currentBufferLength;
-				ui->updateBufferLengthValue(currentBufferLength);
-				Logger::info("Buffer length changed in OBS settings: %d seconds", currentBufferLength);
-			}
-		});
+		connect(settingsMonitorTimer, &QTimer::timeout, this, &Plugin::loadBufferLength);
 		settingsMonitorTimer->start();
 	}
 
@@ -126,15 +118,7 @@ namespace ReplayBufferPro
 		// Setup settings monitoring
 		settingsMonitorTimer = new QTimer(this);
 		settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
-		connect(settingsMonitorTimer, &QTimer::timeout, this, [this]() {
-			int currentBufferLength = settingsManager->getCurrentBufferLength();
-			
-			if (currentBufferLength != lastKnownBufferLength && currentBufferLength > 0) {
-				lastKnownBufferLength = currentBufferLength;
-				ui->updateBufferLengthValue(currentBufferLength);
-				Logger::info("Buffer length changed in OBS settings: %d seconds", currentBufferLength);
-			}
-		});
+		connect(settingsMonitorTimer, &QTimer::timeout, this, &Plugin::loadBufferLength);
 		settingsMonitorTimer->start();
 	}
 

@@ -66,14 +66,6 @@ namespace ReplayBufferPro
     }
   }
 
-  int SettingsManager::loadBufferLength()
-  {
-    ConfigContext ctx = getConfigContext();
-    uint64_t replayBufferLength = config_get_uint(ctx.config, ctx.section, Config::REPLAY_BUFFER_LENGTH_KEY);
-
-    return replayBufferLength > 0 ? static_cast<int>(replayBufferLength) : Config::DEFAULT_BUFFER_LENGTH;
-  }
-
   int SettingsManager::getCurrentBufferLength()
   {
     ConfigContext ctx = getConfigContext();
