@@ -25,18 +25,6 @@ namespace ReplayBufferPro
     }
   }
 
-  HotkeyManager::~HotkeyManager()
-  {
-    // Unregister all hotkeys
-    for (size_t i = 0; i < SAVE_BUTTON_COUNT; i++) {
-      if (saveHotkeys[i] != OBS_INVALID_HOTKEY_ID) {
-        obs_hotkey_unregister(saveHotkeys[i]);
-      }
-    }
-    
-    Logger::info("Hotkeys unregistered");
-  }
-
   //=============================================================================
   // HOTKEY MANAGEMENT
   //=============================================================================

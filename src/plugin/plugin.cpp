@@ -131,14 +131,9 @@ namespace ReplayBufferPro
 		// Remove OBS callbacks before destroying components
 		obs_frontend_remove_event_callback(handleOBSEvent, this);
 		
-		// Delete components in reverse order of dependency
-		delete hotkeyManager;
-		delete replayManager;
-		delete dockStateManager;
-		delete settingsManager;
-		delete ui;
+		// No need for explicit manager deletion since destructors are defaulted
 		
-		// Qt will handle cleanup of other components through parent-child relationship
+		// Qt parent-child relationship will handle cleanup
 	}
 
 	//=============================================================================
@@ -162,6 +157,9 @@ namespace ReplayBufferPro
 
 		switch (event)
 		{
+		case OBS_FRONTEND_EVENT_EXIT:
+			window->settingsMonitorTimer->stop();
+			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
 			window->settingsMonitorTimer->stop(); // Stop monitoring when buffer starts
 			QMetaObject::invokeMethod(window, "updateBufferLengthUIState", Qt::QueuedConnection);
