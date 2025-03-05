@@ -21,7 +21,6 @@
 // Local includes
 #include "utils/obs-utils.hpp"
 #include "plugin/plugin.hpp"
-#include "utils/logger.hpp"
 #include "config/config.hpp"	
 
 namespace ReplayBufferPro
@@ -177,7 +176,6 @@ namespace ReplayBufferPro
 				if (savedPath)
 				{
 					int duration = window->replayManager->getPendingSaveDuration();
-					Logger::info("Trimming replay buffer save to %d seconds", duration);
 					window->replayManager->trimReplayBuffer(savedPath, duration);
 					bfree((void *)savedPath);
 				}

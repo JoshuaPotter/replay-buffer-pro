@@ -156,6 +156,8 @@ namespace ReplayBufferPro
   {
     try
     {
+      Logger::info("Trimming replay buffer save to %d seconds", duration);
+
       // Get path to bundled FFmpeg
       char *ffmpegPath = obs_module_file("ffmpeg.exe");
       if (!ffmpegPath)
