@@ -88,19 +88,6 @@ namespace ReplayBufferPro
      */
     ~Plugin();
 
-    /**
-     * @brief Handles OBS frontend events for buffer state changes
-     * @param event Event type from OBS
-     * @param ptr Instance pointer for callback routing
-     * 
-     * Handles OBS events related to replay buffer state changes:
-     * - Buffer starting/stopping: Updates UI state
-     * - Buffer started/stopped: Updates UI and settings monitoring
-     * - Buffer saved: Handles segment trimming if needed
-     * Uses Qt's event system to safely update UI from any thread.
-     */
-    static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
-
   private slots:
     //=========================================================================
     // EVENT HANDLERS
@@ -206,6 +193,19 @@ namespace ReplayBufferPro
      * Shows error if buffer is not active.
      */
     void handleSaveFullBuffer();
+
+    /**
+     * @brief Handles OBS frontend events for buffer state changes
+     * @param event Event type from OBS
+     * @param ptr Instance pointer for callback routing
+     * 
+     * Handles OBS events related to replay buffer state changes:
+     * - Buffer starting/stopping: Updates UI state
+     * - Buffer started/stopped: Updates UI and settings monitoring
+     * - Buffer saved: Handles segment trimming if needed
+     * Uses Qt's event system to safely update UI from any thread.
+     */
+    static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
   };
 
 } // namespace ReplayBufferPro
