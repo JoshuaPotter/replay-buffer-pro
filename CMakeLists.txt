@@ -59,7 +59,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Define paths for FFmpeg
 set(FFMPEG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/deps/ffmpeg")
 
-# Installation
+# Regular installation (for development)
 if(WIN32)
   set(PLUGIN_DEST "C:/Program Files/obs-studio/obs-plugins/64bit")
   set(DATA_DEST "C:/Program Files/obs-studio/data/obs-plugins/${PROJECT_NAME}")
@@ -68,19 +68,60 @@ if(WIN32)
   install(FILES "${FFMPEG_PATH}/ffmpeg.exe"
     DESTINATION ${DATA_DEST}
   )
+
+  # Install plugin binary
+  install(TARGETS ${PROJECT_NAME}
+    LIBRARY DESTINATION ${PLUGIN_DEST}
+    RUNTIME DESTINATION ${PLUGIN_DEST}
+  )
+
+  # Install data files
+  install(DIRECTORY data/
+    DESTINATION ${DATA_DEST}
+  )
 else()
   # Linux/Mac paths
   set(PLUGIN_DEST "${CMAKE_INSTALL_PREFIX}/lib/obs-plugins")
   set(DATA_DEST "${CMAKE_INSTALL_PREFIX}/share/obs/obs-plugins/${PROJECT_NAME}")
 endif()
 
-# Install plugin binary
-install(TARGETS ${PROJECT_NAME}
-  LIBRARY DESTINATION ${PLUGIN_DEST}
-  RUNTIME DESTINATION ${PLUGIN_DEST}
+# Release package configuration
+set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package")
+set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
+set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
+set(RELEASE_ZIP "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}-windows-x64.zip")
+
+# Custom target that depends on the main target
+add_custom_target(prepare_release
+    DEPENDS ${PROJECT_NAME}
+    # Create directory structure
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
+
+    # Copy plugin DLL
+    COMMAND ${CMAKE_COMMAND} -E copy 
+        "$<TARGET_FILE:${PROJECT_NAME}>"
+        "${RELEASE_PLUGIN_DIR}/"
+
+    # Copy data files (locale)
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/data"
+        "${RELEASE_DATA_DIR}"
+
+    # Copy FFmpeg
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${FFMPEG_PATH}/ffmpeg.exe"
+        "${RELEASE_DATA_DIR}/"
+
+    # Create ZIP file
+    COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
+        "${RELEASE_DIR}/"
+
+    COMMENT "Creating release package..."
 )
 
-# Install data files
-install(DIRECTORY data/
-  DESTINATION ${DATA_DEST}
+# Create release target (no install)
+add_custom_target(create_release
+    COMMAND ${CMAKE_COMMAND} --build . --target prepare_release
+    COMMENT "Creating release package..."
 )

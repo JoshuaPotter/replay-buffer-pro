@@ -112,6 +112,12 @@ cmake --install . --config Release
 **Note:** Replace `C:/Qt/6.x.x/msvc2022_64` with your actual Qt installation path, example: `cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..`. OBS Studio should be in the same parent directory as the plugin.
 **Note:** You may need to run the install command in a terminal with elevated permissions (Run as administrator) to install the plugin to the OBS Studio directory.
 
+### 4. Release Plugin
+After building the plugin, run:
+```bash
+cmake --build . --target create_release
+```
+
 ### Project Structure
 
 ```
