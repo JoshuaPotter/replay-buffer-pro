@@ -54,6 +54,14 @@ namespace ReplayBufferPro
      */
     void registerHotkeys();
 
+    /**
+     * @brief Saves current hotkey bindings to disk
+     * 
+     * Persists all hotkey bindings to the plugin's config file
+     * so they can be restored in future sessions.
+     */
+    void saveHotkeySettings();
+
   private:
     //=========================================================================
     // MEMBER VARIABLES
@@ -64,14 +72,6 @@ namespace ReplayBufferPro
     //=========================================================================
     // PRIVATE METHODS
     //=========================================================================
-
-    /**
-     * @brief Saves current hotkey bindings to disk
-     * 
-     * Persists all hotkey bindings to the plugin's config file
-     * so they can be restored in future sessions.
-     */
-    void saveHotkeySettings();
 
     /**
      * @brief Loads saved hotkey bindings from disk

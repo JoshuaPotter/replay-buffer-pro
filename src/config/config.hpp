@@ -43,6 +43,7 @@ namespace ReplayBufferPro
     constexpr const char *REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
     constexpr const char *DOCK_AREA_KEY = "DockArea";
     constexpr const char *DOCK_GEOMETRY_KEY = "DockGeometry";
+    constexpr const char *HOTKEY_BINDINGS_KEY = "HotkeyBindings";
 
     // Timer intervals
     constexpr int SETTINGS_MONITOR_INTERVAL = 1000; // 1 second

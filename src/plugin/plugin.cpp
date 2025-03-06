@@ -158,7 +158,12 @@ namespace ReplayBufferPro
 		switch (event)
 		{
 		case OBS_FRONTEND_EVENT_EXIT:
-			plugin->settingsMonitorTimer->stop();
+			if (plugin->settingsMonitorTimer) {
+				plugin->settingsMonitorTimer->stop();
+			}
+			if (plugin->hotkeyManager) {
+				plugin->hotkeyManager->saveHotkeySettings();
+			}
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
 			plugin->settingsMonitorTimer->stop();
