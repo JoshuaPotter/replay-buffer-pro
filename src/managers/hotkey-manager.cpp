@@ -39,7 +39,7 @@ namespace ReplayBufferPro
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
       const auto &btn = Config::SAVE_BUTTONS[i];
       std::string name = std::string("ReplayBufferPro.Save") + std::to_string(btn.duration) + "Sec";
-      std::string description = std::string("Save Last ") + obs_module_text(btn.text);
+      std::string description = std::string("Save ") + obs_module_text(btn.text);
       
       // Capture 'this' and button index for the callback
       saveHotkeys[i] = obs_hotkey_register_frontend(
