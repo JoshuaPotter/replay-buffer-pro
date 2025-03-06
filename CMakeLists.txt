@@ -86,7 +86,7 @@ else()
 endif()
 
 # Release package configuration
-set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package")
+set(RELEASE_DIR "${CMAKE_BINARY_DIR}/obs-studio")
 set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
 set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
 set(RELEASE_ZIP "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}-windows-x64.zip")
