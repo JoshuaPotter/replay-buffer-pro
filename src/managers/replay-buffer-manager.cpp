@@ -186,7 +186,7 @@ namespace ReplayBufferPro
       // Delete the original source file
       os_unlink(sourcePath);
 
-      Logger::info("Successfully trimmed replay to last %d seconds", duration);
+      Logger::info("Successfully trimmed replay buffer to last %d seconds", duration);
     }
     catch (const std::exception &e)
     {
