@@ -34,6 +34,27 @@
 
 namespace ReplayBufferPro
 {
+  // Add this before the UIComponents class
+  class TickLabelWidget : public QWidget {
+  public:
+    explicit TickLabelWidget(QWidget* parent = nullptr, bool* isBufferActive = nullptr);
+    void setValueCallback(std::function<void(int)> callback);
+
+  protected:
+    bool eventFilter(QObject* obj, QEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+
+  private:
+    void updateVisibleTicks();
+    void updateTickPositions();
+    double getTickPosition(QLabel* label);
+
+    std::vector<std::pair<int, QString>> allTicks;
+    std::vector<QLabel*> labels;
+    bool* isBufferActive;
+    std::function<void(int)> onValueChanged;
+  };
+
   /**
    * @class UIComponents
    * @brief Manages UI components for the Replay Buffer Pro plugin
@@ -134,6 +155,7 @@ namespace ReplayBufferPro
     QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
     std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
     QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
+    TickLabelWidget* tickWidget;  // Now this will work
 
     //=========================================================================
     // CALLBACKS
