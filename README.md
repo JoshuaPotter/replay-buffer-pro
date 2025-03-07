@@ -33,11 +33,7 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 ### From Release
 1. Download latest release
-2. Extract to OBS Studio installation:
-   - Windows:
-     - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
-     - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-     - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
+2. Extract and merge the folder `obs-studio` with your OBS Studio installation
 
 Final file structure should look like this:
 ```
