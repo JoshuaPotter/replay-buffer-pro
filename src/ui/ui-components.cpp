@@ -122,7 +122,7 @@ namespace ReplayBufferPro
     mainLayout->setSpacing(0);  // Reduce spacing between slider & ticks
     mainLayout->addWidget(tickWidget);
 
-    mainLayout->addSpacing(12);  // Space before divider
+    mainLayout->addSpacing(18);  // Space before divider
 
     // Add horizontal line divider
     QFrame* line = new QFrame(container);
@@ -130,7 +130,7 @@ namespace ReplayBufferPro
     line->setFrameShadow(QFrame::Sunken);
     mainLayout->addWidget(line);
     
-    mainLayout->addSpacing(16); // Space after divider
+    mainLayout->addSpacing(24); // Space after divider
 
     // Save clip label
     QLabel* saveClipLabel = new QLabel(obs_module_text("SaveClipLabel"), container);  
