@@ -22,12 +22,10 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
    - Replace the original file with the trimmed version
 
 ### Buffer Length
-- Adjust built-in replay buffer length (10s to 6h) without digging through the settings
-- Cannot adjust the replay buffer length when the replay buffer is turned on
+- Quickly adjust built-in replay buffer length (1s to 6h) without digging through the settings
 
 ### Hotkeys
 - Assign hotkeys to each save duration button in OBS Settings > Hotkeys
-- Look for "ReplayBufferPro" section to find all available hotkeys
 
 ## Installation
 
