@@ -93,15 +93,15 @@ namespace ReplayBufferPro
     
     // Buffer length seconds input box
     secondsEdit = new QSpinBox(container);
-    secondsEdit->setFixedWidth(70);
+    secondsEdit->setFixedWidth(80);
     secondsEdit->setAlignment(Qt::AlignRight);
     secondsEdit->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
     secondsEdit->setSuffix(" sec");
     secondsEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
     secondsEdit->setCursor(Qt::PointingHandCursor);
     secondsEdit->installEventFilter(new BufferLengthEventFilter());
+    secondsEdit->setContentsMargins(2, 2, 2, 2);
     headerLayout->addWidget(secondsEdit);
-    
     mainLayout->addLayout(headerLayout);
     mainLayout->addSpacing(-4);  // Reduce space between header and slider
 
