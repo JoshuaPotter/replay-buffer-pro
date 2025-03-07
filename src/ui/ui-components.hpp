@@ -149,5 +149,7 @@ namespace ReplayBufferPro
      * @param layout Parent layout for the buttons
      */
     void initSaveButtons(QHBoxLayout *layout);
+
+    bool isBufferActive = false;  // Track buffer active state
   };
 } // namespace ReplayBufferPro

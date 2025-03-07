@@ -23,9 +23,28 @@
 #include <QTimer>
 #include <QFrame>
 #include <QResizeEvent>
+#include <QMessageBox>
 
 namespace ReplayBufferPro
 {
+  class BufferLengthEventFilter : public QObject {
+  protected:
+      bool eventFilter(QObject* obj, QEvent* event) override {
+          if ((event->type() == QEvent::MouseButtonPress || 
+               event->type() == QEvent::KeyPress) && 
+              !static_cast<QWidget*>(obj)->isEnabled()) {
+              QMessageBox::warning(
+                  static_cast<QWidget*>(obj),
+                  obs_module_text("Warning"),
+                  obs_module_text("ReplayBufferActive"),
+                  QMessageBox::Ok
+              );
+              return true;
+          }
+          return QObject::eventFilter(obj, event);
+      }
+  };
+
   //=============================================================================
   // CONSTRUCTORS & DESTRUCTOR
   //=============================================================================
@@ -80,6 +99,7 @@ namespace ReplayBufferPro
     secondsEdit->setSuffix(" sec");
     secondsEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
     secondsEdit->setCursor(Qt::PointingHandCursor);
+    secondsEdit->installEventFilter(new BufferLengthEventFilter());
     headerLayout->addWidget(secondsEdit);
     
     mainLayout->addLayout(headerLayout);
@@ -88,24 +108,38 @@ namespace ReplayBufferPro
     // Buffer length slider
     slider = new QSlider(Qt::Horizontal, container);
     slider->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
+    slider->installEventFilter(new BufferLengthEventFilter());
     
     // Create custom tick label widget
     class TickLabelWidget : public QWidget {
     public:
-        TickLabelWidget(QWidget* parent = nullptr) : QWidget(parent) {
+        explicit TickLabelWidget(QWidget* parent = nullptr, bool* isBufferActive = nullptr) 
+            : QWidget(parent), isBufferActive(isBufferActive) {
             // Define all possible tick marks (in seconds) in order of priority
             allTicks = {
-                {21600, "6h"},   // Highest priority - always show if possible
-                {300, "5m"},     // Highest priority - always show if possible
-                {3600, "1h"},    // Secondary priority
-                {7200, "2h"},    // Secondary priority
-                {10800, "3h"},   // Lower priority
-                {14400, "4h"},   // Lower priority
-                {18000, "5h"},   // Lower priority
-                {2700, "45m"},   // Lowest priority
-                {1800, "30m"},   // Lowest priority
-                {900, "15m"},    // Lowest priority
-                {600, "10m"}     // Lowest priority
+                // Primary tick marks - always shown when space permits
+                {21600, "6h"},   // 6 hours - maximum buffer length
+                {300, "5m"},     // 5 minutes - minimum meaningful segment
+                
+                // Hour markers - shown second if space allows
+                {3600, "1h"},    // 1 hour
+                {7200, "2h"},    // 2 hours  
+                {10800, "3h"},   // 3 hours
+                {14400, "4h"},   // 4 hours
+                {18000, "5h"},   // 5 hours
+                
+                // Half-hour markers - lowest priority, shown last
+                {1800, "30m"},   // 30 minutes
+                {5400, "1.5h"},  // 1.5 hours
+                {9000, "2.5h"},  // 2.5 hours
+                {12600, "3.5h"}, // 3.5 hours
+                {16200, "4.5h"}, // 4.5 hours
+                {19800, "5.5h"}, // 5.5 hours
+
+                // Minute markers - shown third if space allows
+                {2700, "45m"},   // 45 minutes
+                {900, "15m"},    // 15 minutes
+                {600, "10m"},    // 10 minutes
             };
 
             // Create all labels (initially hidden)
@@ -131,14 +165,21 @@ namespace ReplayBufferPro
     protected:
         bool eventFilter(QObject* obj, QEvent* event) override {
             if (event->type() == QEvent::MouseButtonRelease) {
-                QLabel* label = qobject_cast<QLabel*>(obj);
-                if (label) {
-                    // Find the corresponding tick value
+                // Show error dialog if buffer is active
+                if (isBufferActive && *isBufferActive) {
+                    QMessageBox::warning(
+                        this,
+                        obs_module_text("Warning"),
+                        obs_module_text("ReplayBufferActive"),
+                        QMessageBox::Ok
+                    );
+                    return QWidget::eventFilter(obj, event);
+                }
+
+                if (auto* label = qobject_cast<QLabel*>(obj)) {
                     for (size_t i = 0; i < labels.size(); i++) {
-                        if (labels[i] == label) {
-                            if (onValueChanged) {
-                                onValueChanged(allTicks[i].first);
-                            }
+                        if (labels[i] == label && onValueChanged) {
+                            onValueChanged(allTicks[i].first);
                             break;
                         }
                     }
@@ -164,45 +205,92 @@ namespace ReplayBufferPro
                 label->hide();
             }
 
-            // Always try to show highest priority ticks (5m and 6h) first
+            // Always try to show highest priority ticks (6h and 5m) first
             if (totalWidth >= minSpaceBetweenLabels * 2) {
                 labels[0]->show(); // 6h
                 labels[1]->show(); // 5m
-            }
 
-            // Try to add more labels in priority order
-            for (size_t i = 2; i < allTicks.size(); i++) {
-                labels[i]->show();
-                
-                // Check if we have enough space between all visible labels
-                bool hasEnoughSpace = true;
-                std::vector<QLabel*> visibleLabels;
-                for (auto* label : labels) {
-                    if (label->isVisible()) {
-                        visibleLabels.push_back(label);
+                // Create a list of visible labels to check spacing
+                std::vector<QLabel*> visibleLabels = {labels[0], labels[1]};
+
+                // Try to add hour markers (indices 2-6)
+                for (size_t i = 2; i <= 6; i++) {
+                    labels[i]->show();
+                    visibleLabels.push_back(labels[i]);
+                    
+                    // Sort by position
+                    std::sort(visibleLabels.begin(), visibleLabels.end(),
+                        [this](QLabel* a, QLabel* b) {
+                            return getTickPosition(a) < getTickPosition(b);
+                        });
+
+                    // Check spacing
+                    bool hasEnoughSpace = true;
+                    for (size_t j = 1; j < visibleLabels.size(); j++) {
+                        double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
+                        double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
+                        if (pos2 - pos1 < minSpaceBetweenLabels) {
+                            hasEnoughSpace = false;
+                            break;
+                        }
+                    }
+
+                    if (!hasEnoughSpace) {
+                        labels[i]->hide();
+                        visibleLabels.pop_back();
                     }
                 }
 
-                // Sort visible labels by their x position
-                std::sort(visibleLabels.begin(), visibleLabels.end(),
-                    [this](QLabel* a, QLabel* b) {
-                        double posA = getTickPosition(a);
-                        double posB = getTickPosition(b);
-                        return posA < posB;
-                    });
+                // Try to add minute markers (indices 7-9)
+                for (size_t i = 7; i <= 9; i++) {
+                    labels[i]->show();
+                    visibleLabels.push_back(labels[i]);
+                    
+                    std::sort(visibleLabels.begin(), visibleLabels.end(),
+                        [this](QLabel* a, QLabel* b) {
+                            return getTickPosition(a) < getTickPosition(b);
+                        });
 
-                // Check spacing between adjacent labels
-                for (size_t j = 1; j < visibleLabels.size(); j++) {
-                    double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
-                    double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
-                    if (pos2 - pos1 < minSpaceBetweenLabels) {
-                        hasEnoughSpace = false;
-                        break;
+                    bool hasEnoughSpace = true;
+                    for (size_t j = 1; j < visibleLabels.size(); j++) {
+                        double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
+                        double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
+                        if (pos2 - pos1 < minSpaceBetweenLabels) {
+                            hasEnoughSpace = false;
+                            break;
+                        }
+                    }
+
+                    if (!hasEnoughSpace) {
+                        labels[i]->hide();
+                        visibleLabels.pop_back();
                     }
                 }
 
-                if (!hasEnoughSpace) {
-                    labels[i]->hide();
+                // Try to add half-hour markers (indices 10-15) last
+                for (size_t i = 10; i < labels.size(); i++) {
+                    labels[i]->show();
+                    visibleLabels.push_back(labels[i]);
+                    
+                    std::sort(visibleLabels.begin(), visibleLabels.end(),
+                        [this](QLabel* a, QLabel* b) {
+                            return getTickPosition(a) < getTickPosition(b);
+                        });
+
+                    bool hasEnoughSpace = true;
+                    for (size_t j = 1; j < visibleLabels.size(); j++) {
+                        double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
+                        double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
+                        if (pos2 - pos1 < minSpaceBetweenLabels) {
+                            hasEnoughSpace = false;
+                            break;
+                        }
+                    }
+
+                    if (!hasEnoughSpace) {
+                        labels[i]->hide();
+                        visibleLabels.pop_back();
+                    }
                 }
             }
         }
@@ -246,10 +334,11 @@ namespace ReplayBufferPro
 
         std::vector<std::pair<int, QString>> allTicks;
         std::vector<QLabel*> labels;
+        bool* isBufferActive;  // Pointer to track buffer active state
     };
 
     // Create and add tick widget
-    auto* tickWidget = new TickLabelWidget(container);
+    auto* tickWidget = new TickLabelWidget(container, &isBufferActive);
     tickWidget->setFixedHeight(20);
     tickWidget->setValueCallback([this](int seconds) {
         updateBufferLengthValue(seconds);
@@ -333,6 +422,7 @@ namespace ReplayBufferPro
 
   void UIComponents::updateBufferLengthState(bool isActive)
   {
+    isBufferActive = isActive;  // Store the active state
     slider->setEnabled(!isActive);
     secondsEdit->setEnabled(!isActive);
   }
