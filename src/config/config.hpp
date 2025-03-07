@@ -12,8 +12,8 @@ namespace ReplayBufferPro
      */
     struct SaveButton
     {
-      int duration;     ///< Duration in seconds to save
-      const char *text; ///< Translation key for button text
+      int duration;     // Duration in seconds to save
+      const char *text; // Translation key for button text
     };
 
     /**
@@ -34,8 +34,8 @@ namespace ReplayBufferPro
     constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]);
 
     // Buffer length configuration
-    constexpr int MIN_BUFFER_LENGTH = 10;      // 10 seconds minimum
-    constexpr int MAX_BUFFER_LENGTH = 21600;   // 6 hours maximum
+    constexpr int MIN_BUFFER_LENGTH = 1;      // 1 seconds minimum
+    constexpr int MAX_BUFFER_LENGTH = 21600;   // 6 hours maximum (OBS built-in limit)
     constexpr int DEFAULT_BUFFER_LENGTH = 300; // 5 minutes default
 
     // Configuration keys
