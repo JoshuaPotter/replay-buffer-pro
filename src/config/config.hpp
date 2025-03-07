@@ -24,7 +24,6 @@ namespace ReplayBufferPro
         {30, "Save30Sec"},  // 30 seconds
         {60, "Save1Min"},   // 1 minute
         {300, "Save5Min"},  // 5 minutes
-        {600, "Save10Min"}, // 10 minutes
         {900, "Save15Min"}, // 15 minutes
         {1800, "Save30Min"} // 30 minutes
     };

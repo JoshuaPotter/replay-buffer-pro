@@ -16,11 +16,12 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSlider>
-#include <QLineEdit>
+#include <QSpinBox>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QSizePolicy>
 #include <QTimer>
+#include <QFrame>
 
 namespace ReplayBufferPro
 {
@@ -38,6 +39,11 @@ namespace ReplayBufferPro
         onSaveSegment(saveSegmentCallback),
         onSaveFullBuffer(saveFullBufferCallback)
   {
+    if (!parent) {
+        qWarning("UIComponents: parent widget cannot be null");
+        return;
+    }
+    
     sliderDebounceTimer->setSingleShot(true);
     sliderDebounceTimer->setInterval(Config::SLIDER_DEBOUNCE_INTERVAL);
   }
@@ -51,25 +57,48 @@ namespace ReplayBufferPro
     QWidget *container = new QWidget();
     QVBoxLayout *mainLayout = new QVBoxLayout(container);
 
-    mainLayout->addWidget(new QLabel(obs_module_text("BufferLength"), container));
+    // Add the configuration title as a subtitle
+    QLabel* subtitle = new QLabel(obs_module_text("WidgetTitle"), container);
+    subtitle->setStyleSheet("opacity: .75; font-size: 14px; font-weight: bold;");
+    mainLayout->addWidget(subtitle);
+    mainLayout->addSpacing(4);
 
-    QHBoxLayout *sliderLayout = new QHBoxLayout();
-    sliderLayout->setAlignment(Qt::AlignTop);
+    // Create horizontal layout for label and seconds input
+    QHBoxLayout *headerLayout = new QHBoxLayout();
+    QLabel* label = new QLabel(obs_module_text("BufferLengthLabel"), container);
+    headerLayout->addWidget(label);
+    headerLayout->addStretch();
+    
+    secondsEdit = new QSpinBox(container);
+    secondsEdit->setFixedWidth(70);
+    secondsEdit->setAlignment(Qt::AlignRight);
+    secondsEdit->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
+    secondsEdit->setSuffix(" sec");
+    secondsEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    secondsEdit->setCursor(Qt::PointingHandCursor);
+    headerLayout->addWidget(secondsEdit);
+    
+    mainLayout->addLayout(headerLayout);
+    mainLayout->addSpacing(-4);  // Reduce space between header and slider
 
+    // Style the slider directly
     slider = new QSlider(Qt::Horizontal, container);
     slider->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
+    mainLayout->addWidget(slider);
 
-    secondsEdit = new QLineEdit(container);
-    secondsEdit->setFixedWidth(60);
-    secondsEdit->setAlignment(Qt::AlignRight);
-    secondsEdit->setPlaceholderText("s");
+    mainLayout->addSpacing(12);  // Space before divider
 
-    sliderLayout->addWidget(slider);
-    sliderLayout->addWidget(secondsEdit);
-    mainLayout->addLayout(sliderLayout);
+    // Add horizontal line divider
+    QFrame* line = new QFrame(container);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    mainLayout->addWidget(line);
+    
+    mainLayout->addSpacing(12);  // Make spacing exactly equal to pre-divider spacing
 
-    mainLayout->addSpacing(10);
-    mainLayout->addWidget(new QLabel(obs_module_text("SaveClip"), container));
+    QLabel* saveClipLabel = new QLabel(obs_module_text("SaveClipLabel"), container);  
+    saveClipLabel->setStyleSheet("opacity: .75; font-size: 14px; font-weight: bold;");
+    mainLayout->addWidget(saveClipLabel);
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     initSaveButtons(buttonLayout);
@@ -86,7 +115,7 @@ namespace ReplayBufferPro
     QGridLayout *gridLayout = new QGridLayout();
     gridLayout->setSpacing(5);
 
-    const int buttonsPerRow = 4;
+    const int buttonsPerRow = 3;
 
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
@@ -123,7 +152,7 @@ namespace ReplayBufferPro
   void UIComponents::updateBufferLengthValue(int seconds)
   {
     slider->setValue(seconds);
-    secondsEdit->setText(QString::number(seconds));
+    secondsEdit->setValue(seconds);
 
     toggleSaveButtons(seconds);
   }
@@ -141,5 +170,4 @@ namespace ReplayBufferPro
       saveButtons[i]->setEnabled(bufferLength >= Config::SAVE_BUTTONS[i].duration);
     }
   }
-
 } // namespace ReplayBufferPro

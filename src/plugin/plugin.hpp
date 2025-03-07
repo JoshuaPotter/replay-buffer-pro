@@ -117,7 +117,7 @@ namespace ReplayBufferPro
      * Reverts to previous value if input is invalid.
      * Shows error message if update fails.
      */
-    void handleBufferLengthInput();
+    void handleBufferLengthInput(int value);
 
     /**
      * @brief Updates UI state based on replay buffer activity

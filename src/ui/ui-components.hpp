@@ -12,13 +12,18 @@
 // Qt includes
 #include <QWidget>
 #include <QSlider>
-#include <QLineEdit>
+#include <QSpinBox>
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QTimer>
+#include <QPaintEvent>
+#include <QResizeEvent>
+#include <QShowEvent>
+#include <QStyle>
+#include <QStyleOptionSlider>
 
 // STL includes
 #include <vector>
@@ -70,7 +75,7 @@ namespace ReplayBufferPro
      * @brief Gets the buffer length text input
      * @return Pointer to the buffer length text input
      */
-    QLineEdit *getSecondsEdit() const { return secondsEdit; }
+    QSpinBox *getSecondsEdit() const { return secondsEdit; }
 
     /**
      * @brief Gets the save buttons
@@ -125,7 +130,7 @@ namespace ReplayBufferPro
     // UI COMPONENTS
     //=========================================================================
     QSlider *slider;                        ///< Buffer length control (10s to 6h)
-    QLineEdit *secondsEdit;                 ///< Manual buffer length input
+    QSpinBox *secondsEdit;                 ///< Manual buffer length input
     QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
     std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
     QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
@@ -145,5 +150,4 @@ namespace ReplayBufferPro
      */
     void initSaveButtons(QHBoxLayout *layout);
   };
-
 } // namespace ReplayBufferPro

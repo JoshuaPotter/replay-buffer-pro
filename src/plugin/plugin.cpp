@@ -142,9 +142,13 @@ namespace ReplayBufferPro
 
 	void Plugin::initSignals()
 	{
+		// Both slider and spinbox changes will trigger handleSliderChanged
 		connect(ui->getSlider(), &QSlider::valueChanged, this, &Plugin::handleSliderChanged);
+		connect(ui->getSecondsEdit(), QOverload<int>::of(&QSpinBox::valueChanged), 
+				this, &Plugin::handleSliderChanged);  // Use same handler
+		
+		// Single debounce timer for both controls
 		connect(ui->getSliderDebounceTimer(), &QTimer::timeout, this, &Plugin::handleSliderFinished);
-		connect(ui->getSecondsEdit(), &QLineEdit::editingFinished, this, &Plugin::handleBufferLengthInput);
 	}
 
 	//=============================================================================
@@ -209,12 +213,9 @@ namespace ReplayBufferPro
 		}
 	}
 
-	void Plugin::handleBufferLengthInput()
+	void Plugin::handleBufferLengthInput(int value)
 	{
-		bool ok;
-		int value = ui->getSecondsEdit()->text().toInt(&ok);
-
-		if (!ok || value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH)
+		if (value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH)
 		{
 			ui->updateBufferLengthValue(ui->getSlider()->value());
 			return;
