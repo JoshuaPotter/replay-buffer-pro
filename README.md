@@ -107,9 +107,14 @@ cmake --install . --config Release
 **Note:** You may need to run the install command in a terminal with elevated permissions (Run as administrator) to install the plugin to the OBS Studio directory.
 
 ### 4. Release Plugin
-After building the plugin, run:
+Iterate the version in `CMakeLists.txt`. Run:
 ```bash
-cmake --build . --target create_release
+cmake -S .. -B .
+```
+
+Then prepare the release:
+```bash
+cmake --build . --config Release --target create_release
 ```
 
 ### Project Structure
