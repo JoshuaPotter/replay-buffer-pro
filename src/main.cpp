@@ -16,10 +16,9 @@ namespace
 
 void obs_module_post_load(void)
 {
-  auto mainWindow = static_cast<QMainWindow *>(obs_frontend_get_main_window());
-  pluginInstance = new ReplayBufferPro::Plugin(mainWindow);
+  pluginInstance = new ReplayBufferPro::Plugin();
 
-  obs_frontend_add_dock(pluginInstance);
+  obs_frontend_add_dock_by_id("replay-buffer-pro", "Replay Buffer Pro", pluginInstance);
 }
 
 bool obs_module_load(void)

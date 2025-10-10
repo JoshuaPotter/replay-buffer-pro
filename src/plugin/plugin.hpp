@@ -24,14 +24,12 @@
 #include <obs-frontend-api.h> // Frontend API functions
 
 // Qt includes
-#include <QDockWidget>
-#include <QMainWindow>
+#include <QWidget>
 #include <QTimer>
 
 // Local includes
 #include "ui/ui-components.hpp"
 #include "managers/settings-manager.hpp"
-#include "managers/dock-state-manager.hpp"
 #include "managers/replay-buffer-manager.hpp"
 #include "managers/hotkey-manager.hpp"
 
@@ -47,7 +45,7 @@ namespace ReplayBufferPro
    * - Automatic UI state management based on buffer status
    * - Persistent dock position and settings
    */
-  class Plugin : public QDockWidget
+  class Plugin : public QWidget
   {
     Q_OBJECT
 
@@ -67,18 +65,6 @@ namespace ReplayBufferPro
      * - Sets up settings monitoring timer
      */
     explicit Plugin(QWidget *parent = nullptr);
-
-    /**
-     * @brief Creates and docks widget to OBS main window
-     * @param mainWindow The OBS main window to dock to
-     * 
-     * Creates a widget docked to the OBS main window.
-     * In addition to standalone widget initialization:
-     * - Creates dock state manager
-     * - Restores previous dock position and state
-     * - Sets up dock state persistence
-     */
-    explicit Plugin(QMainWindow *mainWindow);
 
     /**
      * @brief Cleans up resources and removes OBS event callbacks
@@ -152,7 +138,6 @@ namespace ReplayBufferPro
     //=========================================================================
     UIComponents *ui;                   ///< UI components
     SettingsManager *settingsManager;   ///< Settings manager
-    DockStateManager *dockStateManager; ///< Dock state manager
     ReplayBufferManager *replayManager; ///< Replay buffer manager
     HotkeyManager *hotkeyManager;       ///< Hotkey manager
     QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes

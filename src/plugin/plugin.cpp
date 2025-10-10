@@ -17,6 +17,7 @@
 // Qt includes
 #include <QMessageBox>
 #include <QTimer>
+#include <QVBoxLayout>
 
 // Local includes
 #include "utils/obs-utils.hpp"
@@ -30,12 +31,9 @@ namespace ReplayBufferPro
 	//=============================================================================
 
 	Plugin::Plugin(QWidget *parent)
-			: QDockWidget(parent), 
+			: QWidget(parent), 
 			  lastKnownBufferLength(0)
 	{
-		setWindowTitle(obs_module_text("ReplayBufferPro"));
-		setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-
 		// Create component instances
 		replayManager = new ReplayBufferManager(this);
 		settingsManager = new SettingsManager();
@@ -46,8 +44,15 @@ namespace ReplayBufferPro
 			[this]() { handleSaveFullBuffer(); }
 		);
 		
-		// Set the widget
-		setWidget(ui->createUI());
+		// Mount the UI into this widget
+		{
+			QWidget *root = ui->createUI();
+			auto *layout = new QVBoxLayout(this);
+			layout->setContentsMargins(0, 0, 0, 0);
+			layout->setSpacing(0);
+			layout->addWidget(root);
+			setLayout(layout);
+		}
 		
 		// Initialize signals and load settings
 		initSignals();
@@ -69,57 +74,7 @@ namespace ReplayBufferPro
 		settingsMonitorTimer->start();
 	}
 
-	Plugin::Plugin(QMainWindow *mainWindow)
-			: QDockWidget(mainWindow), 
-			  lastKnownBufferLength(0)
-	{
-		setWindowTitle(obs_module_text("ReplayBufferPro"));
-		setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-
-		// Create component instances
-		replayManager = new ReplayBufferManager(this);
-		settingsManager = new SettingsManager();
-		dockStateManager = new DockStateManager(this);
-		
-		// Create UI components with callbacks
-		ui = new UIComponents(this, 
-			[this](int duration) { handleSaveSegment(duration); },
-			[this]() { handleSaveFullBuffer(); }
-		);
-		
-		// Set the widget
-		setWidget(ui->createUI());
-		
-		// Initialize signals and load settings
-		initSignals();
-		loadBufferLength();
-
-		// Register OBS event callback
-		obs_frontend_add_event_callback(handleOBSEvent, this);
-		
-		// Create and register hotkeys
-		hotkeyManager = new HotkeyManager(
-			[this](int duration) { handleSaveSegment(duration); }
-		);
-		hotkeyManager->registerHotkeys();
-		
-		// Load dock state
-		dockStateManager->loadDockState(mainWindow);
-
-		// Connect dock state signals
-		connect(this, &QDockWidget::dockLocationChanged, this, [this]() {
-			dockStateManager->saveDockState();
-		});
-		connect(this, &QDockWidget::topLevelChanged, this, [this]() {
-			dockStateManager->saveDockState();
-		});
-
-		// Setup settings monitoring
-		settingsMonitorTimer = new QTimer(this);
-		settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
-		connect(settingsMonitorTimer, &QTimer::timeout, this, &Plugin::loadBufferLength);
-		settingsMonitorTimer->start();
-	}
+	// Removed QMainWindow-based constructor; OBS wraps QWidget into a dock
 
 	Plugin::~Plugin()
 	{

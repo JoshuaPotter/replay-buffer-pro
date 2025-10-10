@@ -294,6 +294,14 @@ namespace ReplayBufferPro
       onValueChanged = callback;
   }
 
+  void TickLabelWidget::showEvent(QShowEvent* event) {
+      QWidget::showEvent(event);
+      QTimer::singleShot(0, this, [this]() {
+          updateVisibleTicks();
+          updateTickPositions();
+      });
+  }
+
   void TickLabelWidget::updateVisibleTicks() {
       const int totalWidth = width();
       const int minSpaceBetweenLabels = 50; // Minimum pixels between labels
