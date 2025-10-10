@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(replay-buffer-pro VERSION 1.1.0)
+project(replay-buffer-pro VERSION 1.2.0)
 
 # Find Qt
 set(CMAKE_AUTOMOC ON)
@@ -122,6 +122,6 @@ add_custom_target(prepare_release
 
 # Create release target (no install)
 add_custom_target(create_release
-    COMMAND ${CMAKE_COMMAND} --build . --target prepare_release
+    DEPENDS prepare_release
     COMMENT "Creating release package..."
 )
