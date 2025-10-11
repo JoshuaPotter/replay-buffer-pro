@@ -89,7 +89,8 @@ endif()
 set(RELEASE_DIR "${CMAKE_BINARY_DIR}/obs-studio")
 set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
 set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
-set(RELEASE_ZIP "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${PROJECT_VERSION}-windows-x64.zip")
+set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
+set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${PROJECT_NAME}-windows-x64.zip")
 
 # Custom target that depends on the main target
 add_custom_target(prepare_release
@@ -97,6 +98,7 @@ add_custom_target(prepare_release
     # Create directory structure
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
 
     # Copy plugin DLL
     COMMAND ${CMAKE_COMMAND} -E copy 

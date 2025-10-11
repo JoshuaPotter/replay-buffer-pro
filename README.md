@@ -1,5 +1,8 @@
 # Replay Buffer Pro
 
+[![GitHub Release](https://img.shields.io/github/v/release/joshuapotter/replay-buffer-pro)
+![GitHub Release Date](https://img.shields.io/github/release-date/joshuapotter/replay-buffer-pro?display_date=published_at)](https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip)
+
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
 **Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support. The plugin uses Qt6 which also only provides 64-bit builds for Windows.
