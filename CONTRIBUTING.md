@@ -63,7 +63,7 @@ By participating in this project, you agree to maintain a respectful and constru
 
 1. Follow the build instructions in the README.md
 2. Ensure you have the following installed:
-   - Visual Studio 2019 or newer with C++ development tools
+   - Visual Studio 2022 with C++ development tools
    - Qt6 development libraries
    - CMake 3.16 or newer
    - OBS Studio development files
@@ -102,13 +102,44 @@ When adding new features or making significant changes:
 3. Update any relevant user documentation
 4. Include example usage if applicable
 
-## Release Process
+## Git Flow and Release Process
 
-The maintainers will handle releases. However, when contributing:
+We use a branch-based flow for integrating changes and publishing releases.
 
-1. Ensure your changes are backward compatible when possible
-2. Document any breaking changes
-3. Update version numbers according to semantic versioning if required
+### Branches
+- `main`: production, tagged releases
+- `develop`: integration branch for features/fixes
+- `feature/*`, `fix/*`: branch from `develop`, PR back to `develop`
+- `release/x.y.z`: stabilize a release from `develop`
+- `hotfix/x.y.z+1`: urgent fixes branched from `main`
+
+### Release steps
+From `develop`:
+
+```bash
+git checkout develop
+git pull
+git checkout -b release/x.y.z
+# bump version in CMakeLists.txt: project(replay-buffer-pro VERSION x.y.z)
+git commit -am "chore: bump version to x.y.z"
+
+# package the release (from your build dir)
+cmake -S .. -B .
+cmake --build . --config RelWithDebInfo --target create_release
+
+# finalize release
+git checkout main
+git merge --no-ff release/x.y.z
+git tag x.y.z
+git push origin main --tags
+
+# merge back to develop and start next iteration
+git checkout develop
+git merge --no-ff release/x.y.z
+git push
+```
+
+Hotfixes follow the same pattern but branch from `main` as `hotfix/x.y.z+1`, bump version, tag, then merge into both `main` and `develop`.
 
 ## Questions?
 
