@@ -20,8 +20,8 @@ if(WIN32)
   )
 
   set(OBS_LIBRARIES
-    "${OBS_ROOT_DIR}/build/libobs/RelWithDebInfo/obs.lib"
-    "${OBS_ROOT_DIR}/build/frontend/api/RelWithDebInfo/obs-frontend-api.lib"
+    "${OBS_ROOT_DIR}/build/libobs/$<CONFIG>/obs.lib"
+    "${OBS_ROOT_DIR}/build/frontend/api/$<CONFIG>/obs-frontend-api.lib"
   )
 else()
   find_package(LibObs REQUIRED)
