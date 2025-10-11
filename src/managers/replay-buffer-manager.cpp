@@ -21,6 +21,7 @@
 
 // STL includes
 #include <sstream>
+#include <vector>
 
 namespace ReplayBufferPro
 {
@@ -128,7 +129,9 @@ namespace ReplayBufferPro
     si.wShowWindow = SW_HIDE;
 
     // Create process
-    if (!CreateProcessA(nullptr, (LPSTR)command.c_str(),
+    std::vector<char> cmdBuf(command.begin(), command.end());
+    cmdBuf.push_back('\0');
+    if (!CreateProcessA(nullptr, cmdBuf.data(),
                         nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
     {
       return false;
@@ -191,8 +194,6 @@ namespace ReplayBufferPro
     catch (const std::exception &e)
     {
       Logger::error("Failed to trim replay: %s", e.what());
-      QMessageBox::warning(nullptr, obs_module_text("Error"),
-                           QString(obs_module_text("FailedToTrimReplay")).arg(e.what()));
     }
   }
 
