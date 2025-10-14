@@ -78,13 +78,15 @@ ol { color: var(--muted); }
   position: relative;
   overflow: hidden;
 }
-.hero-inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1.75rem; align-items: center; position: relative; z-index: 1; }
+.hero-inner { display: grid; grid-template-columns: 1fr; gap: 1.75rem; align-items: center; position: relative; z-index: 1; }
+.hero-media { display: grid; place-items: center; }
 .hero-badges { display: flex; gap: 0.625rem; align-items: center; margin: 0 0 0.75rem; }
 .hero-copy h1 { font-size: clamp(1.75rem, 5vw, 2.625rem); line-height: 1.2; margin: 0 0 0.5rem; }
 .hero-copy p { font-size: clamp(1rem, 2.2vw, 1.125rem); color: var(--muted); margin: 0 0 1.125rem; line-height: 1.6; }
 .hero-copy p.lead { font-size: clamp(1.25rem, 3vw, 1.5rem); margin: 0 0 1.125rem; line-height: 1.3; }
 .cta-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 .subtext { color: var(--muted); font-size: 0.875rem; }
+.hero-media { display: none; place-items: center; }
 .hero-media img { width: 100%; height: auto; background-size: contain; border-radius: 0.75rem; box-shadow: var(--shadow); border: 0.0625rem solid rgba(255,255,255,.06); aspect-ratio: 417 / 342; max-width: 417px; }
 
 /* Animated hero background pattern */
@@ -147,7 +149,7 @@ ol { color: var(--muted); }
   opacity: .22;
 }
 
-.features-grid { display: grid; grid-template-columns: repeat( auto-fit, minmax(15rem, 1fr) ); gap: 1rem; }
+.features-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .feature {
   position: relative;
   padding: 1rem 1rem 1rem 1.125rem;
@@ -228,9 +230,17 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 .footer-links { display: flex; gap: 0.75rem; }
 .footer-links a { text-decoration: none; }
 
-@media (max-width: 56.25rem) {
-  .hero-inner { grid-template-columns: 1fr; }
-  .hero-media { order: -1; }
+@media (min-width: 56.25rem) {
+  .hero-inner { grid-template-columns: 1.1fr .9fr; }
+  .hero-media { display: grid; place-items: center; }
+}
+
+@media (min-width: 48rem) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 75rem) {
+  .features-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 
