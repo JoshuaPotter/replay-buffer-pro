@@ -68,7 +68,7 @@ Note: Close OBS before installing or copying the DLL. You may need administrator
 
 ### Requirements
 
-- OBS Studio 29.0.0+ (64-bit)
+- OBS Studio 30.0.0+ (64-bit)
 - Windows 10/11 64-bit (Linux and MacOS are not supported at this time, PRs welcome!)
 - Qt6 (64-bit)
 - Visual Studio 2022+ with C++
