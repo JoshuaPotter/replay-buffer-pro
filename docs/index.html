@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Replay Buffer Pro for OBS Studio</title>
+    <meta name="description" content="Save the last moments of your stream or recording with one click. Trim the final 15s–30m from a longer replay buffer instantly, without re-encoding.">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Replay Buffer Pro for OBS Studio">
+    <meta property="og:description" content="Save the last moments of your stream with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/">
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Replay Buffer Pro",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Windows 10/11 (64-bit)",
+        "softwareVersion": "latest",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">Replay Buffer Pro</div>
+        <nav class="nav">
+          <a class="btn btn-ghost" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View on GitHub</a>
+          <a id="download-top" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <div class="hero-badges">
+              <span class="badge">OBS Studio</span>
+              <span class="badge">Plugin</span>
+              <span class="badge">Clips</span>
+            </div>
+            <h1>Replay Buffer Pro</h1>
+            <p class="lead">Save the last moments of your stream or recording with one click.</p>
+            <div class="cta-row">
+              <a id="download-cta" class="btn btn-primary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
+              <div id="release-meta" class="subtext"><span class="release-version" data-prefix"v">1.0.0</span> • Requires OBS Studio 30.0.0+ (64-bit)</div>
+            </div>
+          </div>
+          <div class="hero-media">
+            <picture>
+              <img src="../screenshot.png" width="417" height="342" alt="Replay Buffer Pro dock in OBS" onerror="this.style.display='none'">
+            </picture>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="features">
+        <div class="container">
+          <h2>What is Replay Buffer Pro?</h2>
+          <p>Replay Buffer Pro expands upon OBS Studio's built-in Replay Buffer. When you press a button or hotkey for quick-save preset, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
+          <h3>Key Features</h3>
+          <div class="features-grid">
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+              </div>
+              <h3>Quick-save presets</h3>
+              <p>Save the last 15s, 30s, 1m, 5m, 15m, or 30m instantly.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="4" y="5" width="16" height="4" rx="2" fill="currentColor" opacity=".9"/>
+                </svg>
+              </div>
+              <h3>Dockable, minimal UI</h3>
+              <p>Controls are always within reach.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 7h18" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M8 14l2 2 6-6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+              </div>
+              <h3>Instant clips</h3>
+              <p>No re-encoding, same quality as your buffer.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="6" y="9" width="4" height="6" rx="1" fill="currentColor"/>
+                  <rect x="12" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".8"/>
+                </svg>
+              </div>
+              <h3>Hotkeys</h3>
+              <p>Assign hotkeys for each preset length in settings.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="install">
+        <div class="container">
+          <div class="section-header">
+            <h2>Installation</h2>
+            <div class="section-actions">
+              <a id="download-secondary" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
+            </div>
+          </div>
+          <h3>Requirements</h3>
+          <ul id="requirements-list">
+            <li>OBS Studio 30.0.0+ (64-bit)</li>
+            <li>Windows 10/11 (64-bit)</li>
+            <li>macOS and Linux are not currently supported (coming soon!)</li>
+          </ul>
+          <h3>Instructions</h3>
+          <ol>
+            <li>Download the latest release of Replay Buffer Pro.</li>
+            <li>Close OBS Studio.</li>
+            <li>Extract the ZIP and merge the <code>obs-studio</code> folder into your OBS Studio installation directory (typically <code>C:\Program Files\obs-studio\</code>).</li>
+            <li>Verify the final installation structure resembles:</li>
+          </ol>
+          <pre class="code-block"><code>obs-studio/
+├── obs-plugins/
+│   └── 64bit/
+│       └── replay-buffer-pro.dll
+└── data/
+    └── obs-plugins/
+        └── replay-buffer-pro/
+            ├── locale/
+            │   └── en-US.ini
+            └── ffmpeg.exe</code></pre>
+          <p class="subtext">Tip: For Windows, you may need administrator privileges to copy files into Program Files.</p>
+        </div>
+      </section>
+
+      <section class="section alt" id="usage-tips">
+        <div class="container">
+          <h2>Getting Started</h2>
+          <h3>Usage</h3>
+          <ol>
+            <li>Open OBS and start the Replay Buffer.</li>
+            <li>Open the Replay Buffer Pro dock (View → Docks → Replay Buffer Pro).</li>
+            <li>Click a save button (e.g., “Last 30 Seconds”) or trigger its hotkey.</li>
+            <li>To change how much OBS stores, stop the Replay Buffer, then adjust the buffer length slider or seconds field.</li>
+          </ol>
+          <h3>Tips</h3>
+          <ul>
+            <li><strong>Hotkeys</strong>: Assign keys for each duration in OBS Studio Settings → Hotkeys (search “Replay Buffer Pro”).</li>
+            <li><strong>Disabled buttons</strong>: A clip button is disabled if your buffer isn't long enough (e.g., 5m clip requires a ≥5m replay buffer).</li>
+            <li><strong>Adjusting buffer length</strong>: Use the slider in the plugin UI; no need to dig through settings.</li>
+            <li><strong>Where clips save</strong>: They're written to the same folder OBS Studio uses for Replay Buffer saves (as configured in your OBS Studio Output settings).</li>
+          </ul>
+        </div>
+      </section>
+      
+      <section class="section" id="faq">
+        <div class="container">
+          <h2>FAQ</h2>
+          <details>
+            <summary>How is this different from OBS's default Replay Buffer?</summary>
+            <p>The default saves a single fixed duration. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically.</p>
+          </details>
+          <details>
+            <summary>Does it re-encode video?</summary>
+            <p>No. Trimming uses FFmpeg with <code>-c copy</code> for fast, lossless output.</p>
+          </details>
+          <details>
+            <summary>Why are some save buttons disabled?</summary>
+            <p>Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip.</p>
+          </details>
+          <details>
+            <summary>Why can't I change the buffer length right now?</summary>
+            <p>The Replay Buffer is active. Stop it to adjust the length, then start it again.</p>
+          </details>
+          <details>
+            <summary>Can I change the preset durations?</summary>
+            <p>Not currently. The UI provides fixed presets.</p>
+          </details>
+          <details>
+            <summary>Where are clips saved?</summary>
+            <p>In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="section alt" id="troubleshooting">
+        <div class="container">
+          <h2>Troubleshooting</h2>
+          <ul>
+            <li>Ensure <code>replay-buffer-pro.dll</code> is in <code>obs-studio/obs-plugins/64bit/</code>.</li>
+            <li>If trimming fails, confirm <code>ffmpeg.exe</code> exists at <code>obs-studio/data/obs-plugins/replay-buffer-pro/</code>.</li>
+            <li>Check OBS Studio log for plugin load messages and errors.</li>
+            <li>Close OBS Studio before installing or updating the DLL; use an elevated terminal if copying into Program Files.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>© <span id="year"></span> Replay Buffer Pro • GPL v2 or later</div>
+        <div class="footer-links">
+          <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" target="_blank" rel="noopener">All releases</a>
+          <a href="https://github.com/JoshuaPotter/replay-buffer-pro" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
+
