@@ -61,9 +61,77 @@
             </div>
           </div>
           <div class="hero-media">
-            <picture>
-              <img src="../screenshot.png" width="417" height="342" alt="Replay Buffer Pro dock in OBS" onerror="this.style.display='none'">
-            </picture>
+            <!-- Interactive Plugin UI Demo -->
+            <div class="plugin-ui-demo">
+              <div class="plugin-header">
+                <span class="plugin-title">Replay Buffer Pro</span>
+                <div class="plugin-controls">
+                  <button class="plugin-control-btn" aria-label="Popout">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M10 2h4v4M14 2l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 9v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <button class="plugin-control-btn" aria-label="Close">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="plugin-body">
+                <div class="plugin-section">
+                  <h3 class="plugin-section-title">Replay Buffer Settings</h3>
+                  
+                  <div class="slider-container">
+                    <label class="slider-label">
+                      <span>Maximum Replay Buffer Length</span>
+                      <span class="slider-value-wrapper">
+                        <input type="number" class="slider-value-input" id="slider-value-input" value="7200" min="1" max="21600" step="1">
+                        <span class="slider-value-unit">sec</span>
+                      </span>
+                    </label>
+                    <div class="slider-wrapper">
+                      <input 
+                        type="range" 
+                        class="buffer-slider" 
+                        id="buffer-slider"
+                        min="1" 
+                        max="21600" 
+                        value="7200" 
+                        step="1"
+                      />
+                      <div class="slider-track-fill" id="slider-fill"></div>
+                    </div>
+                    <div class="slider-markers">
+                      <button type="button" class="slider-marker" data-value="300">5m</button>
+                      <button type="button" class="slider-marker" data-value="3600">1h</button>
+                      <button type="button" class="slider-marker" data-value="7200">2h</button>
+                      <button type="button" class="slider-marker" data-value="10800">3h</button>
+                      <button type="button" class="slider-marker" data-value="14400">4h</button>
+                      <button type="button" class="slider-marker" data-value="18000">5h</button>
+                      <button type="button" class="slider-marker" data-value="21600">6h</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="plugin-section">
+                  <h3 class="plugin-section-title">Save Clips</h3>
+                  
+                  <div class="clip-buttons-grid">
+                    <button class="clip-btn">Last 15 Seconds</button>
+                    <button class="clip-btn">Last 30 Seconds</button>
+                    <button class="clip-btn">Last 1 Minute</button>
+                    <button class="clip-btn">Last 5 Minutes</button>
+                    <button class="clip-btn">Last 15 Minutes</button>
+                    <button class="clip-btn">Last 30 Minutes</button>
+                  </div>
+
+                  <button class="save-buffer-btn">Save Replay Buffer</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -71,7 +139,7 @@
       <section class="section alt" id="features">
         <div class="container">
           <h2>What is Replay Buffer Pro?</h2>
-          <p>Replay Buffer Pro is a plugin for OBS Studio that expands upon built-in Replay Buffer. When you press a button or hotkey for quick-save preset, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
+          <p><strong>Replay Buffer Pro is a plugin for OBS Studio</strong> that expands upon the built-in Replay Buffer. When you press a button or hotkey for quick-save preset, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
           <h3>Key Features</h3>
           <div class="features-grid">
             <article class="feature">
@@ -138,13 +206,13 @@
             </div>
             <ul class="requirements-list">
               <li>
-                <svg class="check-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
                   <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span>OBS Studio 30.0.0+</span>
               </li>
               <li>
-                <svg class="check-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
                   <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span>Windows 10/11 (64-bit)</span>
@@ -330,7 +398,7 @@
           </details>
           <details>
             <summary>Why would I use this?</summary>
-            <p>Use Replay Buffer Pro if you want to save recent moments of your stream or recording at different lengths, without manually clipping them from your final recording or stream. This plugin seeks to recreate Xbox &amp; Playstation's "Save Recent Gameplay" functionality. Perfect for preparing clips for TikTok, YouTube Shorts, and Instagram Reels.</p>
+            <p>Replay Buffer Pro is ideal for effortlessly capturing and saving recent moments from your streams or recordings in various lengths. Unlike traditional methods that require manual clipping, this plugin mimics the "Save Recent Gameplay" feature found on Xbox and Playstation, ensuring seamless and automatic trim functionality. It's the perfect tool for crafting clips ready for platforms like TikTok, YouTube Shorts, and Instagram Reels.</p>
           </details>
           <details>
             <summary>Does it re-encode video?</summary>
