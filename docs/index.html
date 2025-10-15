@@ -429,22 +429,83 @@
         </div>
       </section>
 
-      <section class="section alt" id="troubleshooting">
+      <section class="section alt troubleshooting-section" id="troubleshooting">
         <div class="container">
           <h2>Troubleshooting</h2>
-          <ul>
-            <li>Ensure <code>replay-buffer-pro.dll</code> is in <code>obs-studio/obs-plugins/64bit/</code>.</li>
-            <li>If trimming fails, confirm <code>ffmpeg.exe</code> exists at <code>obs-studio/data/obs-plugins/replay-buffer-pro/</code>.</li>
-            <li>Check OBS Studio log for plugin load messages and errors.</li>
-            <li>Close OBS Studio before installing or updating the DLL; use an elevated terminal if copying into Program Files.</li>
-          </ul>
+          <div class="troubleshoot-list">
+            <div class="troubleshoot-item">
+              <div class="troubleshoot-marker">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="troubleshoot-content">
+                <strong>Plugin Not Loading?</strong>
+                <p>Ensure <code>replay-buffer-pro.dll</code> is in <code>obs-studio/obs-plugins/64bit/</code>. Restart OBS Studio after placing the file.</p>
+              </div>
+            </div>
+            
+            <div class="troubleshoot-item">
+              <div class="troubleshoot-marker">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="troubleshoot-content">
+                <strong>Trimming Fails?</strong>
+                <p>Confirm <code>ffmpeg.exe</code> exists at <code>obs-studio/data/obs-plugins/replay-buffer-pro/</code>. The plugin requires FFmpeg for clip processing.</p>
+              </div>
+            </div>
+            
+            <div class="troubleshoot-item">
+              <div class="troubleshoot-marker">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="troubleshoot-content">
+                <strong>Check the Logs</strong>
+                <p>Review the OBS Studio log file for plugin load messages and errors. Look for "Replay Buffer Pro" entries to diagnose issues.</p>
+              </div>
+            </div>
+            
+            <div class="troubleshoot-item">
+              <div class="troubleshoot-marker">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="troubleshoot-content">
+                <strong>Installation Issues?</strong>
+                <p>Close OBS Studio before installing or updating. Use an elevated terminal (Run as Administrator) when copying files into Program Files.</p>
+              </div>
+            </div>
+            
+            <div class="troubleshoot-item">
+              <div class="troubleshoot-marker">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="troubleshoot-content">
+                <strong>Still Having Issues?</strong>
+                <p>If you're experiencing a bug or need additional help, please <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues/new" target="_blank" rel="noopener">file an issue on GitHub</a>. Include your OBS Studio version, plugin version, and any relevant log entries.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="container footer-inner">
-        <div>© <span id="year"></span> Replay Buffer Pro • GPL v2 or later</div>
+        <div>© <span class="year"></span> Replay Buffer Pro • GPL v2 or later</div>
         <div class="footer-links">
           <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" target="_blank" rel="noopener">All releases</a>
           <a href="https://github.com/JoshuaPotter/replay-buffer-pro" target="_blank" rel="noopener">GitHub</a>
