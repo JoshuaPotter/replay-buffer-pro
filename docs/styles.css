@@ -909,10 +909,9 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
   cursor: pointer;
 }
 
-.buffer-slider::-webkit-slider-thumb,
-.buffer-slider::-moz-range-thumb {
-  position: relative;
-  top: -15px;
+.buffer-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
   width: 0.875rem;
   height: 0.875rem;
   background: linear-gradient(180deg, #ffffff, #e8eaed);
@@ -923,7 +922,23 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
   transition: all 0.15s ease;
 }
 
-.buffer-slider::-webkit-slider-thumb:hover,
+.buffer-slider::-moz-range-thumb {
+  -moz-appearance: none;
+  appearance: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  background: linear-gradient(180deg, #ffffff, #e8eaed);
+  border: 0.125rem solid #5b6370;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.buffer-slider::-webkit-slider-thumb:hover {
+  background: #ffffff;
+}
+
 .buffer-slider::-moz-range-thumb:hover {
   background: #ffffff;
 }
