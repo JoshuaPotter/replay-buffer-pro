@@ -17,5 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update year in footer
   const yearEls = document.querySelectorAll('.year');
   updateYearByClass(yearEls);
+
+  // Scroll to top functionality
+  const scrollToTopLinks = document.querySelectorAll('.scroll-to-top');
+  scrollToTopLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  });
 });
 

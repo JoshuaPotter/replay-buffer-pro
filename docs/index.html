@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Replay Buffer Pro, a plugin for OBS Studio</title>
+    <title>Replay Buffer Pro - An OBS Studio Plugin</title>
     <meta name="description" content="Replay Buffer Pro is a plugin for OBS Studio that allows you to save the last moments of your stream or recording with one click. Trim the final 15s-30m from a longer replay buffer instantly, without re-encoding.">
     <link rel="stylesheet" href="styles.css">
     <script src="scripts/index.js" type="module" defer></script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Replay Buffer Pro, a plugin for OBS Studio">
-    <meta property="og:description" content="Save the last moments of your stream with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
+    <meta property="og:description" content="Save the last moments of your stream or recording with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
     <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/">
@@ -441,7 +441,7 @@
                 </svg>
               </div>
               <div class="troubleshoot-content">
-                <strong>Plugin Not Loading?</strong>
+                <strong>Plugin Not Loading</strong>
                 <p>Ensure <code>replay-buffer-pro.dll</code> is in <code>obs-studio/obs-plugins/64bit/</code>. Restart OBS Studio after placing the file.</p>
               </div>
             </div>
@@ -454,7 +454,7 @@
                 </svg>
               </div>
               <div class="troubleshoot-content">
-                <strong>Trimming Fails?</strong>
+                <strong>Trimming Fails</strong>
                 <p>Confirm <code>ffmpeg.exe</code> exists at <code>obs-studio/data/obs-plugins/replay-buffer-pro/</code>. The plugin requires FFmpeg for clip processing.</p>
               </div>
             </div>
@@ -475,27 +475,14 @@
             <div class="troubleshoot-item">
               <div class="troubleshoot-marker">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="troubleshoot-content">
-                <strong>Installation Issues?</strong>
-                <p>Close OBS Studio before installing or updating. Use an elevated terminal (Run as Administrator) when copying files into Program Files.</p>
-              </div>
-            </div>
-            
-            <div class="troubleshoot-item">
-              <div class="troubleshoot-marker">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
                   <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
               </div>
               <div class="troubleshoot-content">
-                <strong>Still Having Issues?</strong>
-                <p>If you're experiencing a bug or need additional help, please <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues/new" target="_blank" rel="noopener">file an issue on GitHub</a>. Include your OBS Studio version, plugin version, and any relevant log entries.</p>
+                <strong>Report an Issue</strong>
+                <p>If you're experiencing a bug or need additional help, please <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" target="_blank" rel="noopener">file an issue on GitHub</a>. Include your OBS Studio version, plugin version, and any relevant log entries.</p>
               </div>
             </div>
           </div>
@@ -504,11 +491,46 @@
     </main>
 
     <footer class="site-footer">
-      <div class="container footer-inner">
-        <div>© <span class="year"></span> Replay Buffer Pro • GPL v2 or later</div>
-        <div class="footer-links">
-          <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" target="_blank" rel="noopener">All releases</a>
-          <a href="https://github.com/JoshuaPotter/replay-buffer-pro" target="_blank" rel="noopener">GitHub</a>
+      <div class="container">
+        <div class="footer-content">
+          <!-- Brand & Legal -->
+          <div class="footer-section footer-brand-section">
+            <div class="footer-brand">Replay Buffer Pro</div>
+            <p class="footer-license">© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
+            <p class="footer-license">
+            Replay Buffer Pro is an independent project and is not affiliated with, endorsed, or sponsored by OBS Studio or its developers. All product names, trademarks, and registered trademarks are property of their respective owners.</p>
+          </div>
+          
+          <!-- Navigation Links -->
+          <div class="footer-section">
+            <h4 class="footer-section-title">Navigation</h4>
+            <ul class="footer-nav-list">
+              <li><a href="#features">Features</a></li>
+              <li><a href="#installation">Installation</a></li>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#troubleshooting">Troubleshooting</a></li>
+              <li><a href="#" class="scroll-to-top">↑ Scroll to Top</a></li>
+            </ul>
+          </div>
+          
+          <!-- Resources -->
+          <div class="footer-section">
+            <h4 class="footer-section-title">Resources</h4>
+            <ul class="footer-nav-list">
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub Repository<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an Issue<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
+            </ul>
+            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip" class="footer-download-btn" rel="noopener" target="_blank">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download (<span class="release-version" data-prefix"v">v1.0.0</span>)
+            </a>
+          </div>
         </div>
       </div>
     </footer>
