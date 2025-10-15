@@ -252,7 +252,13 @@ ol { color: var(--muted); }
 
 .requirements-list .muted-item {
   margin-top: 1rem;
+  align-items: start;
   color: var(--muted);
+}
+
+.requirements-list .muted-item svg {
+  position: relative;
+  top: 0.25rem;
 }
 
 /* Numbered Step Cards - Generic (used for installation & getting started) */
@@ -315,10 +321,12 @@ ol { color: var(--muted); }
   place-items: center;
   font-weight: 700;
   font-size: 1.125rem;
-  background: linear-gradient(135deg, var(--brand), #3b6dd4);
-  color: white;
   border-radius: 0.625rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(79,140,255,0.25);
+  color: #cfe0ff;
+  background: radial-gradient(7.5rem 3.75rem at -20% -10%, rgba(79,140,255,.35), transparent 60%),
+              linear-gradient(180deg, rgba(79,140,255,.15), rgba(79,140,255,.05));
+  border: 0.0625rem solid rgba(79,140,255,.2);
+  box-shadow: inset 0 0.0625rem 0 rgba(255,255,255,.06);
   flex-shrink: 0;
 }
 
@@ -410,6 +418,115 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 .footer-inner { display: flex; align-items: center; justify-content: space-between; }
 .footer-links { display: flex; gap: 0.75rem; }
 .footer-links a { text-decoration: none; }
+
+/* Mobile responsiveness */
+@media (max-width: 48rem) {
+  /* Header navigation - stack vertically on small screens */
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    height: auto;
+  }
+  
+  .brand {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .header-inner .btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.6875rem;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+  }
+  
+  /* Section header - stack vertically on small screens */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .section-actions {
+    width: 100%;
+  }
+  
+  .section-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Adjust hero padding for taller header */
+  .hero {
+    padding-top: 9rem;
+  }
+  
+  /* Footer - stack on mobile */
+  .footer-inner {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+  }
+  
+  /* Step cards - vertical layout on mobile */
+  .step-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1rem 1rem 1.125rem;
+  }
+  
+  .step-icon {
+    display: none;
+  }
+  
+  .step-content {
+    width: 100%;
+  }
+  
+  .step-content p:only-child {
+    margin-top: 0;
+  }
+  
+  /* Make all buttons smaller on mobile */
+  .btn {
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .btn-lg {
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+  }
+}
+
+/* Extra small screens - stack header buttons vertically */
+@media (max-width: 25rem) {
+  .nav {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .header-inner .btn {
+    width: 100%;
+  }
+  
+  .hero {
+    padding-top: 11rem;
+  }
+}
 
 @media (min-width: 56.25rem) {
   .hero-inner { grid-template-columns: 1.1fr .9fr; }
@@ -528,7 +645,7 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
   color: #d4d8de;
   font-weight: 500;
   font-size: 0.6875rem;
-  width: 3.5rem;
+  width: 2rem;
   text-align: right;
   outline: none;
   padding: 0;
