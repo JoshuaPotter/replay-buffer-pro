@@ -410,8 +410,9 @@ ol { color: var(--muted); }
 
 .code-block { background: #0b1118; padding: 0.875rem; border-radius: 0.75rem; border: 0.0625rem solid rgba(255,255,255,0.08); overflow: auto; }
 
-details { background: #111418; border: 0.0625rem solid rgba(255,255,255,0.06); border-radius: 0.75rem; padding: 1rem 1.125rem; margin: 0.625rem 0; }
-details summary { cursor: pointer; font-weight: 600; user-select: none; }
+details { background: #111418; border: 0.0625rem solid rgba(255,255,255,0.06); border-radius: 0.75rem; margin: 0.625rem 0; padding: 1rem 1.125rem; }
+details summary { cursor: pointer; font-weight: 600; user-select: none; padding: 1rem 1.125rem; margin: -1rem -1.125rem; border-radius: 0.75rem; }
+details[open] summary { margin-bottom: 0.25rem; padding-bottom: 0.25rem; }
 details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 
 .site-footer { padding: 1.5rem 0; color: var(--muted); font-size: 0.875rem; border-top: 0.0625rem solid rgba(255,255,255,0.06); }
