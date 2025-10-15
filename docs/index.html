@@ -15,21 +15,174 @@
     <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
     <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/">
 
-    <!-- JSON-LD -->
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Replay Buffer Pro - OBS Studio Plugin">
+    <meta name="twitter:description" content="Save the last moments of your stream or recording with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+
+    <!-- Enhanced meta -->
+    <meta name="keywords" content="OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, twitch, youtube, instant replay, obs plugin, video clipping, content creation, gaming clips">
+    <meta name="author" content="Joshua Potter">
+    <meta name="application-name" content="Replay Buffer Pro">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="theme-color" content="#6366f1">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/">
+    
+    <!-- LLM-optimized content -->
+    <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-optimized documentation">
+
+    <!-- AI-Specific Meta Tags -->
+    <meta property="product:category" content="Software">
+    <meta property="product:price:amount" content="0">
+    <meta property="product:price:currency" content="USD">
+
+    <!-- Schema.org Item Properties -->
+    <meta itemprop="name" content="Replay Buffer Pro">
+    <meta itemprop="description" content="OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding">
+    <meta itemprop="image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+
+    <!-- Enhanced JSON-LD with multiple schemas -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Replay Buffer Pro",
+        "description": "OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding. Perfect for streamers, gamers, and content creators.",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Windows 10/11 (64-bit)",
-        "softwareVersion": "latest",
+        "softwareVersion": "1.2.0",
+        "datePublished": "2024-01-01",
+        "author": {
+          "@type": "Person",
+          "name": "Joshua Potter"
+        },
         "offers": {
           "@type": "Offer",
           "price": "0",
           "priceCurrency": "USD"
         },
-        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip",
+        "softwareRequirements": "OBS Studio 30.0.0+",
+        "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
+        "screenshot": "https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png"
+      }
+    </script>
+
+    <!-- Source Code Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "Replay Buffer Pro",
+        "description": "OBS Studio plugin for saving replay buffer clips at multiple preset durations",
+        "codeRepository": "https://github.com/JoshuaPotter/replay-buffer-pro",
+        "programmingLanguage": "C++",
+        "runtimePlatform": "Windows 10/11 (64-bit)",
+        "license": "https://www.gnu.org/licenses/gpl-2.0.html",
+        "targetProduct": {
+          "@type": "SoftwareApplication",
+          "name": "OBS Studio",
+          "version": "30.0.0+"
+        }
+      }
+    </script>
+
+    <!-- FAQ Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How is Replay Buffer Pro different from OBS's default Replay Buffer?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why would I use Replay Buffer Pro?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Replay Buffer Pro is ideal for effortlessly capturing and saving recent moments from your streams or recordings in various lengths. Unlike traditional methods that require manual clipping, this plugin mimics the 'Save Recent Gameplay' feature found on Xbox and Playstation, ensuring seamless and automatic trim functionality. It's the perfect tool for crafting clips ready for platforms like TikTok, YouTube Shorts, and Instagram Reels."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Replay Buffer Pro re-encode video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Trimming uses FFmpeg with -c copy for fast, lossless output."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why are some save buttons disabled?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where are clips saved?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I change the preset durations?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Not currently. The UI provides fixed presets: 15 seconds, 30 seconds, 1 minute, 5 minutes, 15 minutes, and 30 minutes."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Installation HowTo Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Install Replay Buffer Pro for OBS Studio",
+        "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows",
+        "totalTime": "PT5M",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Download Plugin",
+            "text": "Download the latest release of Replay Buffer Pro from the link above.",
+            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Close OBS Studio",
+            "text": "Make sure OBS Studio is completely closed before proceeding."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Extract and Merge Files",
+            "text": "Extract the ZIP and merge the obs-studio folder into your OBS Studio installation directory (typically C:\\Program Files\\obs-studio\\)."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Verify Installation",
+            "text": "Verify the final installation structure: replay-buffer-pro.dll in obs-plugins/64bit/, and data files in data/obs-plugins/replay-buffer-pro/ including ffmpeg.exe."
+          }
+        ]
       }
     </script>
   </head>
@@ -182,6 +335,52 @@
               </div>
               <h3>Dockable, minimal UI</h3>
               <p>Simple user interface designed for quick access.</p>
+            </article>
+          </div>
+
+          <h3>Use Cases</h3>
+          <div class="features-grid">
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <path d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Streaming & Content Creation</h3>
+              <p>Twitch and YouTube streamers can instantly capture highlight moments during live streams and create clips ready for TikTok, YouTube Shorts, and Instagram Reels.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                </svg>
+              </div>
+              <h3>Sports & Esports Analysis</h3>
+              <p>Coaches and analysts can quickly save gameplay segments at precise moments for detailed review and breakdown without post-processing delays or complex editing.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                </svg>
+              </div>
+              <h3>Tutorial & Educational Content</h3>
+              <p>Educators and tutorial creators can capture specific segments of their recordings at various lengths, perfect for different platforms and diverse educational use cases.</p>
+            </article>
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M7 7h10M7 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Software Development & QA</h3>
+              <p>Developers and QA testers can instantly save bug reproductions, feature demonstrations, and code walkthroughs at the exact moment issues or behaviors occur.</p>
             </article>
           </div>
         </div>
