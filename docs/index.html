@@ -6,6 +6,7 @@
     <title>Replay Buffer Pro, a plugin for OBS Studio</title>
     <meta name="description" content="Replay Buffer Pro is a plugin for OBS Studio that allows you to save the last moments of your stream or recording with one click. Trim the final 15s-30m from a longer replay buffer instantly, without re-encoding.">
     <link rel="stylesheet" href="styles.css">
+    <script src="scripts/index.js" type="module" defer></script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Replay Buffer Pro, a plugin for OBS Studio">
@@ -126,20 +127,87 @@
               <a id="download-secondary" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
             </div>
           </div>
-          <h3>Requirements</h3>
-          <ul id="requirements-list">
-            <li>OBS Studio 30.0.0+</li>
-            <li>Windows 10/11 (64-bit)</li>
-            <li>macOS and Linux are not currently supported (coming soon!)</li>
-          </ul>
-          <h3>Instructions</h3>
-          <ol>
-            <li>Download the latest release of Replay Buffer Pro.</li>
-            <li>Close OBS Studio.</li>
-            <li>Extract the ZIP and merge the <code>obs-studio</code> folder into your OBS Studio installation directory (typically <code>C:\Program Files\obs-studio\</code>).</li>
-            <li>Verify the final installation structure resembles:</li>
-          </ol>
-          <pre class="code-block"><code>obs-studio/
+          
+          <div class="requirements-box">
+            <div class="requirements-header">
+              <svg class="requirements-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <h3>Requirements</h3>
+            </div>
+            <ul class="requirements-list">
+              <li>
+                <svg class="check-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>OBS Studio 30.0.0+</span>
+              </li>
+              <li>
+                <svg class="check-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Windows 10/11 (64-bit)</span>
+              </li>
+              <li class="muted-item">
+                <svg class="info-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>macOS and Linux are not currently supported (coming soon!)</span>
+              </li>
+            </ul>
+          </div>
+
+          <h3 class="steps-title">Installation Steps</h3>
+          <div class="steps-container">
+            <div class="step-card">
+              <div class="step-badge">1</div>
+              <div class="step-content">
+                <h4 class="step-title">Download Plugin</h4>
+                <p class="step-description">Download the latest release of Replay Buffer Pro from the link above.</p>
+              </div>
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M3 15v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge">2</div>
+              <div class="step-content">
+                <h4 class="step-title">Close OBS Studio</h4>
+                <p class="step-description">Make sure OBS Studio is completely closed before proceeding.</p>
+              </div>
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge">3</div>
+              <div class="step-content">
+                <h4 class="step-title">Extract & Merge Files</h4>
+                <p class="step-description">Extract the ZIP and merge the <code>obs-studio</code> folder into your OBS Studio installation directory (typically <code>C:\Program Files\obs-studio\</code>).</p>
+              </div>
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-4-4H5a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M13 3v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-badge">4</div>
+              <div class="step-content">
+                <h4 class="step-title">Verify Installation</h4>
+                <p class="step-description">Verify the final installation structure matches the expected layout:</p>
+                <pre class="code-block"><code>obs-studio/
 ├── obs-plugins/
 │   └── 64bit/
 │       └── replay-buffer-pro.dll
@@ -149,27 +217,107 @@
             ├── locale/
             │   └── en-US.ini
             └── ffmpeg.exe</code></pre>
-          <p class="subtext">Tip: For Windows, you may need administrator privileges to copy files into Program Files.</p>
+              </div>
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="install-note">
+            <svg class="note-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span><strong>Note:</strong> For Windows, you may need administrator privileges to copy files into Program Files.</span>
+          </div>
         </div>
       </section>
 
       <section class="section alt" id="usage-tips">
         <div class="container">
           <h2>Getting Started</h2>
-          <h3>Usage</h3>
-          <ol>
-            <li>Open OBS and start the Replay Buffer.</li>
-            <li>Open the Replay Buffer Pro dock (View → Docks → Replay Buffer Pro).</li>
-            <li>Click a save button (e.g., “Last 30 Seconds”) or trigger its hotkey.</li>
-            <li>To change how much OBS stores, stop the Replay Buffer, then adjust the buffer length slider or seconds field.</li>
-          </ol>
-          <h3>Tips</h3>
-          <ul>
-            <li><strong>Hotkeys</strong>: Assign keys for each duration in OBS Studio Settings → Hotkeys (search “Replay Buffer Pro”).</li>
-            <li><strong>Disabled buttons</strong>: A clip button is disabled if your buffer isn't long enough (e.g., 5m clip requires a ≥5m replay buffer).</li>
-            <li><strong>Adjusting buffer length</strong>: Use the slider in the plugin UI; no need to dig through settings.</li>
-            <li><strong>Where clips save</strong>: They're written to the same folder OBS Studio uses for Replay Buffer saves (as configured in your OBS Studio Output settings).</li>
-          </ul>
+          
+          <div class="usage-section">
+            <h3 class="steps-title">Usage Guide</h3>
+            <div class="steps-container">
+              <div class="step-card">
+                <div class="step-badge">1</div>
+                <div class="step-content">
+                  <p>Open OBS and start the Replay Buffer.</p>
+                </div>
+              </div>
+              <div class="step-card">
+                <div class="step-badge">2</div>
+                <div class="step-content">
+                  <p>Open the Replay Buffer Pro dock (<strong>View → Docks → Replay Buffer Pro</strong>).</p>
+                </div>
+              </div>
+              <div class="step-card">
+                <div class="step-badge">3</div>
+                <div class="step-content">
+                  <p>Click a save button (e.g., "Last 30 Seconds") or trigger its hotkey.</p>
+                </div>
+              </div>
+              <div class="step-card">
+                <div class="step-badge">4</div>
+                <div class="step-content">
+                  <p>To change how much OBS stores, stop the Replay Buffer, then adjust the buffer length slider or seconds field.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="section-subtitle">Tips</h3>
+          <div class="features-grid">
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="6" y="9" width="4" height="6" rx="1" fill="currentColor"/>
+                  <rect x="12" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".8"/>
+                </svg>
+              </div>
+              <h3>Hotkeys</h3>
+              <p>Assign keys for each duration in <strong>OBS Studio Settings → Hotkeys</strong> (search "Replay Buffer Pro").</p>
+            </article>
+
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Disabled Buttons</h3>
+              <p>A clip button is disabled if your buffer isn't long enough (e.g., 5m clip requires a ≥5m replay buffer).</p>
+            </article>
+
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Adjusting Buffer Length</h3>
+              <p>Adjust the Replay Buffer length easily with the slider in the plugin UI, bypassing the settings menu.</p>
+            </article>
+
+            <article class="feature">
+              <div class="feature-icon" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-4-4H5a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M13 3v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Saved Clips</h3>
+              <p>Clips save in to the same OBS recordings folder you set in Output settings.</p>
+            </article>
+          </div>
         </div>
       </section>
       
@@ -229,8 +377,6 @@
         </div>
       </div>
     </footer>
-
-    <script src="script.js"></script>
   </body>
   </html>
 
