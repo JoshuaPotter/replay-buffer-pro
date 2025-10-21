@@ -1,0 +1,155 @@
+# Replay Buffer Pro
+
+> OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding
+
+## Overview
+
+Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon the built-in Replay Buffer functionality. It allows content creators, streamers, and gamers to save recent footage at multiple preset durations (15 seconds, 30 seconds, 1 minute, 5 minutes, 15 minutes, or 30 minutes) with a single click or hotkey press, similar to PlayStation and Xbox's "Save Recent Gameplay" feature.
+
+**Key Value Proposition**: Save clips at different lengths from the same replay buffer without re-encoding, making it perfect for creating content for various platforms (TikTok, YouTube Shorts, Instagram Reels, etc.).
+
+## Technical Specifications
+
+- **Type**: OBS Studio Dock Plugin
+- **Platform**: Windows 10/11 (64-bit only)
+- **Requirements**: OBS Studio 30.0.0+
+- **Programming Language**: C++ with Qt6
+- **Video Processing**: FFmpeg with stream copy (no re-encoding)
+- **License**: GPL v2 or later (Open Source)
+- **Repository**: https://github.com/JoshuaPotter/replay-buffer-pro
+- **Documentation**: https://joshuapotter.github.io/replay-buffer-pro/
+
+## Key Features
+
+1. **Quick-Save Presets**: Save the last 15s, 30s, 1m, 5m, 15m, or 30m instantly
+2. **No Re-encoding**: Uses FFmpeg with `-c copy` for fast, lossless output
+3. **Hotkey Support**: Assign hotkeys for each preset length in OBS settings
+4. **Adjustable Buffer Length**: Set replay buffer from 1 second to 6 hours via slider
+5. **Dockable UI**: Minimal, clean interface that docks in OBS Studio
+6. **Automatic Trimming**: Saves full buffer then trims to desired length automatically
+
+## Use Cases
+
+- **Streaming & Content Creation**: Twitch and YouTube streamers capture highlight moments for social media clips
+- **Sports & Esports Analysis**: Coaches save gameplay segments for review without post-processing delays
+- **Tutorial & Educational Content**: Educators capture recording segments at various lengths for different platforms
+- **Software Development & QA**: Developers save bug reproductions and feature demonstrations instantly
+
+## Installation
+
+### Quick Install (Windows)
+
+1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip
+2. Close OBS Studio completely
+3. Extract the ZIP file
+4. Merge the `obs-studio` folder into your OBS Studio installation directory (typically `C:\Program Files\obs-studio\`)
+5. Verify installation:
+   - DLL location: `obs-studio/obs-plugins/64bit/replay-buffer-pro.dll`
+   - Data location: `obs-studio/data/obs-plugins/replay-buffer-pro/` (includes ffmpeg.exe and locale files)
+6. Open OBS Studio
+
+**Note**: Administrator privileges may be required to copy files to Program Files.
+
+## Usage
+
+### Basic Workflow
+
+1. Open OBS Studio
+2. Show the Replay Buffer Pro dock: **Docks → Replay Buffer Pro**
+3. Adjust the Replay Buffer length using the slider (optional)
+4. Start the Replay Buffer from OBS
+5. Click a save button (e.g., "Last 30 Seconds") or trigger its hotkey to save a clip
+
+### Setting Up Hotkeys
+
+1. Go to **OBS Studio Settings → Hotkeys**
+2. Search for "Replay Buffer Pro"
+3. Assign keys for each duration preset
+4. Click OK to save
+
+### Important Notes
+
+- Clips save to the same OBS recordings folder set in Output settings
+- Save buttons are disabled if the buffer length is shorter than the clip length
+- Buffer length cannot be changed while Replay Buffer is active (stop it first)
+- No re-encoding means clips maintain the same quality as your buffer
+
+## FAQ
+
+**Q: How is this different from OBS's default Replay Buffer?**
+A: The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically.
+
+**Q: Does it re-encode video?**
+A: No. Trimming uses FFmpeg with `-c copy` for fast, lossless output.
+
+**Q: Why are some save buttons disabled?**
+A: Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip.
+
+**Q: Can I change the preset durations?**
+A: Not currently. The UI provides fixed presets: 15s, 30s, 1m, 5m, 15m, and 30m.
+
+**Q: Where are clips saved?**
+A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
+
+**Q: What platforms are supported?**
+A: Currently Windows 10/11 (64-bit) only. macOS and Linux support is planned for future releases.
+
+## Troubleshooting
+
+**Plugin Not Loading**
+- Ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- Restart OBS Studio after placing the file
+- Check OBS logs for "Replay Buffer Pro" entries
+
+**Trimming Fails**
+- Confirm `ffmpeg.exe` exists at `obs-studio/data/obs-plugins/replay-buffer-pro/`
+- Check disk space availability
+- Verify write permissions in output directory
+
+**Button Disabled**
+- Check if your buffer length is long enough for that clip duration
+- Ensure Replay Buffer is started in OBS
+
+## Building from Source
+
+### Requirements
+- Visual Studio 2022+ with C++ Desktop Development
+- Qt6 (MSVC 2022 64-bit)
+- CMake 3.16+
+- OBS Studio 30.0.0+ source code
+- FFmpeg executable
+
+### Build Steps
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+mkdir build && cd build
+cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..
+cmake --build . --config RelWithDebInfo
+cmake --install . --config RelWithDebInfo
+```
+
+**Note**: Ensure `obs-studio` repository is located as a sibling directory. Install command requires elevated privileges.
+
+## Links
+
+- **Website**: https://joshuapotter.github.io/replay-buffer-pro/
+- **GitHub Repository**: https://github.com/JoshuaPotter/replay-buffer-pro
+- **Latest Release**: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest
+- **Issue Tracker**: https://github.com/JoshuaPotter/replay-buffer-pro/issues
+- **License**: GPL v2 or later
+
+## Third-Party Software
+
+This plugin includes FFmpeg (https://ffmpeg.org/) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
+
+## Disclaimer
+
+Replay Buffer Pro is an independent project and is not affiliated with, endorsed, or sponsored by OBS Studio or its developers. All product names, trademarks, and registered trademarks are property of their respective owners.
+
+---
+
+Last Updated: 2025-10-15
+Version: 1.2.0
+
+
