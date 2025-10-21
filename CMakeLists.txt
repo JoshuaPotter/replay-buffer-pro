@@ -68,7 +68,6 @@ set(SOURCES
   src/utils/video-trimmer.cpp
   src/ui/ui-components.cpp
   src/managers/settings-manager.cpp
-  src/managers/dock-state-manager.cpp
   src/managers/replay-buffer-manager.cpp
   src/managers/hotkey-manager.cpp
 )
