@@ -14,7 +14,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 - **Platform**: Windows 10/11 (64-bit only)
 - **Requirements**: OBS Studio 30.0.0+
 - **Programming Language**: C++ with Qt6
-- **Video Processing**: FFmpeg with stream copy (no re-encoding)
+- **Video Processing**: libavformat with stream copy (no re-encoding)
 - **License**: GPL v2 or later (Open Source)
 - **Repository**: https://github.com/JoshuaPotter/replay-buffer-pro
 - **Documentation**: https://joshuapotter.github.io/replay-buffer-pro/
@@ -22,7 +22,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 ## Key Features
 
 1. **Quick-Save Presets**: Save the last 15s, 30s, 1m, 5m, 15m, or 30m instantly
-2. **No Re-encoding**: Uses FFmpeg with `-c copy` for fast, lossless output
+2. **No Re-encoding**: Uses libavformat with stream copy for fast, lossless output
 3. **Hotkey Support**: Assign hotkeys for each preset length in OBS settings
 4. **Adjustable Buffer Length**: Set replay buffer from 1 second to 6 hours via slider
 5. **Dockable UI**: Minimal, clean interface that docks in OBS Studio
@@ -45,7 +45,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 4. Merge the `obs-studio` folder into your OBS Studio installation directory (typically `C:\Program Files\obs-studio\`)
 5. Verify installation:
    - DLL location: `obs-studio/obs-plugins/64bit/replay-buffer-pro.dll`
-   - Data location: `obs-studio/data/obs-plugins/replay-buffer-pro/` (includes ffmpeg.exe and locale files)
+   - Data location: `obs-studio/data/obs-plugins/replay-buffer-pro/` (includes locale files)
 6. Open OBS Studio
 
 **Note**: Administrator privileges may be required to copy files to Program Files.
@@ -102,7 +102,7 @@ A: Currently Windows 10/11 (64-bit) only. macOS and Linux support is planned for
 - Check OBS logs for "Replay Buffer Pro" entries
 
 **Trimming Fails**
-- Confirm `ffmpeg.exe` exists at `obs-studio/data/obs-plugins/replay-buffer-pro/`
+- Confirm locale files exist at `obs-studio/data/obs-plugins/replay-buffer-pro/locale/`
 - Check disk space availability
 - Verify write permissions in output directory
 
@@ -141,7 +141,7 @@ cmake --install . --config RelWithDebInfo
 
 ## Third-Party Software
 
-This plugin includes FFmpeg (https://ffmpeg.org/) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
+This plugin uses OBS Studio's built-in FFmpeg libraries (libavformat) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
 
 ## Disclaimer
 

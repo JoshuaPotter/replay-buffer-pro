@@ -187,7 +187,7 @@
             "@type": "HowToStep",
             "position": 4,
             "name": "Verify Installation",
-            "text": "Verify the final installation structure: replay-buffer-pro.dll in obs-plugins/64bit/, and data files in data/obs-plugins/replay-buffer-pro/ including ffmpeg.exe."
+            "text": "Verify the final installation structure: replay-buffer-pro.dll in obs-plugins/64bit/, and data files in data/obs-plugins/replay-buffer-pro/ including locale files."
           }
         ]
       }
@@ -492,9 +492,8 @@
 └── data/
     └── obs-plugins/
         └── replay-buffer-pro/
-            ├── locale/
-            │   └── en-US.ini
-            └── ffmpeg.exe</code></pre>
+            └── locale/
+                └── en-US.ini</code></pre>
               </div>
               <div class="step-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -665,7 +664,7 @@
               </div>
               <div class="troubleshoot-content">
                 <strong>Trimming Fails</strong>
-                <p>Confirm <code>ffmpeg.exe</code> exists at <code>obs-studio/data/obs-plugins/replay-buffer-pro/</code>. The plugin requires FFmpeg for clip processing.</p>
+                <p>Check disk space and write permissions in the output directory.</p>
               </div>
             </div>
             

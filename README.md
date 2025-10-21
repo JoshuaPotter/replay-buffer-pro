@@ -46,9 +46,8 @@ obs-studio/
 └── data/
     └── obs-plugins/
         └── replay-buffer-pro/
-            ├── locale/
-            │   └── en-US.ini
-            └── ffmpeg.exe
+            └── locale/
+                └── en-US.ini
 ```
 
 ### From Source 
@@ -56,11 +55,10 @@ obs-studio/
 See below for instructions to build from source.
 
 After building, you can use the command to automatically copy the files or manually copy the compiled files:
+1. Copy compiled plugin:
    - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
 2. Copy from source `data` directory:
    - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-3. Copy from source `deps/ffmpeg`:
-   - FFmpeg files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
 
 Note: Close OBS before installing or copying the DLL. You may need administrator privileges to copy files to Program Files.
 
@@ -73,17 +71,12 @@ Note: Close OBS before installing or copying the DLL. You may need administrator
 - Qt6 (64-bit)
 - Visual Studio 2022+ with C++
 - CMake 3.16+
-- FFmpeg (bundled with plugin)
 
 ### 1. Prerequisites
 
 1. Install Visual Studio 2022+ with "Desktop development with C++"
 2. Install Qt6 (MSVC 2022 64-bit) from https://www.qt.io/download-qt-installer
 3. Install CMake 3.16+ from https://cmake.org/download/
-4. Download FFmpeg:
-   - Get latest build from https://github.com/BtbN/FFmpeg-Builds/releases
-   - Download "ffmpeg-master-latest-win64-gpl"
-   - Extract ffmpeg.exe to `deps/ffmpeg/` in the plugin directory
 
 ### 2. Build OBS Studio
 
@@ -136,9 +129,11 @@ replay-buffer-pro/
 ├── CMakeLists.txt       # Build configuration
 ├── data/               
 │   └── locale/          # Translations
-├── deps/
-│   └── ffmpeg/          # FFmpeg executable
 ├── src/                 # Source files
+│   ├── managers/        # Core functionality managers
+│   ├── plugin/          # Main plugin implementation
+│   ├── ui/              # User interface components
+│   └── utils/           # Utility classes (including video-trimmer)
 └── README.md
 ```
 
@@ -148,7 +143,6 @@ replay-buffer-pro/
 - Check OBS logs for errors
 - For trimming issues:
   - Check disk space
-  - Verify FFmpeg.exe is in the correct location
   - Check write permissions in output directory
 - When building from source
   - Ensure Qt6 and OBS paths are correct in CMake
@@ -157,8 +151,7 @@ replay-buffer-pro/
 
 ## Third-Party Software
 
-This plugin includes FFmpeg (https://ffmpeg.org/) for video trimming functionality.
-FFmpeg is licensed under the LGPL v2.1+ license. See FFmpeg documentation for details.
+This plugin uses OBS Studio's built-in FFmpeg libraries (libavformat) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
 
 ## License
 
