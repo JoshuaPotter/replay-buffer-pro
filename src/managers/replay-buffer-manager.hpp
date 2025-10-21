@@ -19,6 +19,9 @@
 #include <QObject>
 #include <QMessageBox>
 
+// Local includes
+#include "utils/video-trimmer.hpp"
+
 namespace ReplayBufferPro
 {
   /**
@@ -100,13 +103,6 @@ namespace ReplayBufferPro
      * @return Trimmed file path
      */
     std::string getTrimmedOutputPath(const char *sourcePath);
-
-    /**
-     * @brief Executes an FFmpeg command
-     * @param command Command to execute
-     * @return Success status
-     */
-    bool executeFFmpegCommand(const std::string &command);
   };
 
 } // namespace ReplayBufferPro
