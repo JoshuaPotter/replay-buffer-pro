@@ -19,6 +19,10 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+// STL includes
+#include <thread>
+#include <string>
+
 // Local includes
 #include "utils/obs-utils.hpp"
 #include "plugin/plugin.hpp"
@@ -200,10 +204,16 @@ namespace ReplayBufferPro
 		int duration = replayManager->getPendingSaveDuration();
 		if (duration > 0) {
 			const char* savedPath = obs_frontend_get_last_replay();
-			if (savedPath) {
-				replayManager->trimReplayBuffer(savedPath, duration);
-				bfree((void*)savedPath);
-			}
+      if (savedPath) {
+        std::string pathCopy(savedPath);
+        bfree((void*)savedPath);
+
+        // Offload trimming to background thread to avoid blocking OBS event thread
+        auto *manager = replayManager;
+        std::thread([manager, path = std::move(pathCopy), duration]() {
+          manager->trimReplayBuffer(path.c_str(), duration);
+        }).detach();
+      }
 			replayManager->clearPendingSaveDuration();
 		}
 	}
