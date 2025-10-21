@@ -40,8 +40,6 @@ namespace ReplayBufferPro
 
     // Configuration keys
     constexpr const char *REPLAY_BUFFER_LENGTH_KEY = "RecRBTime";
-    constexpr const char *DOCK_AREA_KEY = "DockArea";
-    constexpr const char *DOCK_GEOMETRY_KEY = "DockGeometry";
     constexpr const char *HOTKEY_BINDINGS_KEY = "HotkeyBindings";
 
     // Timer intervals
@@ -49,7 +47,6 @@ namespace ReplayBufferPro
     constexpr int SLIDER_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
 
     // File paths
-    constexpr const char *DOCK_STATE_FILENAME = "dock_state.json";
     constexpr const char *TEMP_FILE_SUFFIX = "tmp";
     constexpr const char *BACKUP_FILE_SUFFIX = "bak";
   } // namespace Config
