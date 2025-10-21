@@ -112,42 +112,6 @@ namespace ReplayBufferPro
     return path;
   }
 
-<<<<<<< HEAD
-  bool ReplayBufferManager::executeFFmpegCommand(const std::string &command)
-  {
-#ifdef _WIN32
-    STARTUPINFOA si = {sizeof(si)};
-    PROCESS_INFORMATION pi;
-    si.dwFlags = STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_HIDE;
-
-    // Create process
-    std::vector<char> cmdBuf(command.begin(), command.end());
-    cmdBuf.push_back('\0');
-    if (!CreateProcessA(nullptr, cmdBuf.data(),
-                        nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
-    {
-      return false;
-    }
-
-    // Wait for completion
-    WaitForSingleObject(pi.hProcess, INFINITE);
-
-    // Get exit code
-    DWORD exitCode;
-    GetExitCodeProcess(pi.hProcess, &exitCode);
-
-    // Clean up
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
-    return exitCode == 0;
-#else
-    return system(command.c_str()) == 0;
-#endif
-  }
-=======
->>>>>>> develop
 
   void ReplayBufferManager::trimReplayBuffer(const char *sourcePath, int duration)
   {
