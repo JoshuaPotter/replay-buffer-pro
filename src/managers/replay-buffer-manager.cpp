@@ -135,8 +135,6 @@ namespace ReplayBufferPro
     catch (const std::exception &e)
     {
       Logger::error("Failed to trim replay: %s", e.what());
-      QMessageBox::warning(nullptr, obs_module_text("Error"),
-                           QString(obs_module_text("FailedToTrimReplay")).arg(e.what()));
     }
   }
 
