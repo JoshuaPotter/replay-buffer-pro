@@ -90,9 +90,11 @@ namespace ReplayBufferPro
 		// Remove OBS callbacks before destroying components
 		obs_frontend_remove_event_callback(handleOBSEvent, this);
 		
-		// No need for explicit manager deletion since destructors are defaulted
+		// Clean up managers that were allocated with new
+		delete hotkeyManager;
+		delete settingsManager;
 		
-		// Qt parent-child relationship will handle cleanup
+		// Qt parent-child relationship will handle cleanup for other components
 	}
 
 	//=============================================================================
