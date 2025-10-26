@@ -79,15 +79,6 @@ namespace ReplayBufferPro
      * Restores previously saved hotkey bindings from the plugin's config file.
      */
     void loadHotkeySettings();
-
-    /**
-     * @brief Handles hotkey press events
-     * @param id The ID of the pressed hotkey
-     * 
-     * Called when a registered hotkey is pressed. Finds the corresponding
-     * duration and triggers the save segment callback.
-     */
-    void handleHotkeyPress(obs_hotkey_id id);
   };
 
 } // namespace ReplayBufferPro 
