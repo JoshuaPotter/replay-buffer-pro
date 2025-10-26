@@ -100,7 +100,8 @@ namespace ReplayBufferPro
     secondsEdit->setSuffix(" sec");
     secondsEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
     secondsEdit->setCursor(Qt::PointingHandCursor);
-    secondsEdit->installEventFilter(new BufferLengthEventFilter());
+    auto* secondsEditFilter = new BufferLengthEventFilter();
+    secondsEdit->installEventFilter(secondsEditFilter);
     secondsEdit->setContentsMargins(2, 2, 2, 2);
     headerLayout->addWidget(secondsEdit);
     mainLayout->addLayout(headerLayout);
@@ -109,7 +110,8 @@ namespace ReplayBufferPro
     // Buffer length slider
     slider = new QSlider(Qt::Horizontal, container);
     slider->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
-    slider->installEventFilter(new BufferLengthEventFilter());
+    auto* sliderFilter = new BufferLengthEventFilter();
+    slider->installEventFilter(sliderFilter);
     
     // Create custom tick label widget
     tickWidget = new TickLabelWidget(container, &isBufferActive);
