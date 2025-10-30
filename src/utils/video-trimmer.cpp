@@ -18,6 +18,7 @@ extern "C" {
 #include <libavutil/timestamp.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/error.h>
+#include <libavutil/log.h>
 }
 
 // Helper function to convert error codes to strings (MSVC-compatible)
@@ -43,6 +44,8 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
     // Declare variables before any goto statements to avoid C2362 errors
     int64_t seekTarget = 0;
     bool success = false;
+    int videoStreamIndex = -1;
+    int64_t keyframeTime = AV_NOPTS_VALUE;
     
     try {
         Logger::info("Starting video trim operation: %s -> %s (%d seconds)", 
@@ -113,6 +116,14 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             goto cleanup;
         }
         
+        // Find the video stream
+        for (unsigned int i = 0; i < inputCtx->nb_streams; i++) {
+            if (inputCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+                videoStreamIndex = i;
+                break;
+            }
+        }
+        
         // Seek to start time
         seekTarget = static_cast<int64_t>(startTime * AV_TIME_BASE);
         ret = av_seek_frame(inputCtx, -1, seekTarget, AVSEEK_FLAG_BACKWARD);
@@ -121,7 +132,46 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             // Continue anyway - we might still be able to copy from the beginning
         }
         
-        // Copy packets from start time to end
+        // Find the first keyframe at or after our desired start time
+        if (videoStreamIndex >= 0) {
+            AVPacket* searchPacket = av_packet_alloc();
+            if (searchPacket) {
+                while (av_read_frame(inputCtx, searchPacket) >= 0) {
+                    if (searchPacket->stream_index == videoStreamIndex) {
+                        double packetTime = 0.0;
+                        if (searchPacket->pts != AV_NOPTS_VALUE) {
+                            packetTime = static_cast<double>(searchPacket->pts) * 
+                                       av_q2d(inputCtx->streams[videoStreamIndex]->time_base);
+                        }
+                        
+                        // Check if this is a keyframe at or after our start time
+                        if (packetTime >= startTime && (searchPacket->flags & AV_PKT_FLAG_KEY)) {
+                            keyframeTime = searchPacket->pts;
+                            Logger::info("Found keyframe at %.2f seconds (requested %.2f)", 
+                                       packetTime, startTime);
+                            break;
+                        }
+                    }
+                    av_packet_unref(searchPacket);
+                }
+                av_packet_free(&searchPacket);
+                
+                // Seek back to the keyframe
+                if (keyframeTime != AV_NOPTS_VALUE) {
+                    int64_t keyframeSeekTarget = av_rescale_q(keyframeTime, 
+                        inputCtx->streams[videoStreamIndex]->time_base, AV_TIME_BASE_Q);
+                    ret = av_seek_frame(inputCtx, -1, keyframeSeekTarget, AVSEEK_FLAG_BACKWARD);
+                    if (ret < 0) {
+                        Logger::error("Error seeking to keyframe: %s", av_error_string(ret).c_str());
+                    }
+                } else {
+                    Logger::warning("No keyframe found, seeking back to original position");
+                    ret = av_seek_frame(inputCtx, -1, seekTarget, AVSEEK_FLAG_BACKWARD);
+                }
+            }
+        }
+        
+        // Copy packets from keyframe to end
         success = false;
         {
             AVPacket* packet = av_packet_alloc();
@@ -134,64 +184,72 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             bool foundFirstPacket = false;
             
             while (av_read_frame(inputCtx, packet) >= 0) {
-            AVStream* inputStream = inputCtx->streams[packet->stream_index];
-            AVStream* outputStream = outputCtx->streams[packet->stream_index];
-            
-            // Convert packet timestamp to seconds for comparison
-            double packetTime = 0.0;
-            if (packet->pts != AV_NOPTS_VALUE) {
-                packetTime = static_cast<double>(packet->pts) * av_q2d(inputStream->time_base);
-            } else if (packet->dts != AV_NOPTS_VALUE) {
-                packetTime = static_cast<double>(packet->dts) * av_q2d(inputStream->time_base);
-            }
-            
-            // Skip packets before our start time
-            if (packetTime < startTime) {
+                AVStream* inputStream = inputCtx->streams[packet->stream_index];
+                AVStream* outputStream = outputCtx->streams[packet->stream_index];
+                
+                // Convert packet timestamp to seconds for comparison
+                double packetTime = 0.0;
+                if (packet->pts != AV_NOPTS_VALUE) {
+                    packetTime = static_cast<double>(packet->pts) * av_q2d(inputStream->time_base);
+                } else if (packet->dts != AV_NOPTS_VALUE) {
+                    packetTime = static_cast<double>(packet->dts) * av_q2d(inputStream->time_base);
+                }
+                
+                // For video streams, start from the keyframe we found
+                // For audio streams, use the original start time
+                double effectiveStartTime = startTime;
+                if (packet->stream_index == videoStreamIndex && keyframeTime != AV_NOPTS_VALUE) {
+                    effectiveStartTime = static_cast<double>(keyframeTime) * 
+                                       av_q2d(inputCtx->streams[videoStreamIndex]->time_base);
+                }
+                
+                // Skip packets before our effective start time
+                if (packetTime < effectiveStartTime) {
+                    av_packet_unref(packet);
+                    continue;
+                }
+                
+                // Record the first packet timestamp for offset calculation
+                if (!foundFirstPacket && packet->pts != AV_NOPTS_VALUE) {
+                    firstPts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
+                    foundFirstPacket = true;
+                }
+                
+                // Rescale timestamps
+                if (packet->pts != AV_NOPTS_VALUE) {
+                    packet->pts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
+                    if (foundFirstPacket) {
+                        packet->pts -= firstPts;
+                    }
+                }
+                
+                if (packet->dts != AV_NOPTS_VALUE) {
+                    packet->dts = av_rescale_q(packet->dts, inputStream->time_base, outputStream->time_base);
+                    if (foundFirstPacket) {
+                        packet->dts -= firstPts;
+                    }
+                }
+                
+                if (packet->duration > 0) {
+                    packet->duration = av_rescale_q(packet->duration, inputStream->time_base, outputStream->time_base);
+                }
+                
+                packet->pos = -1;
+                packet->stream_index = packet->stream_index;
+                
+                // Write packet
+                ret = av_interleaved_write_frame(outputCtx, packet);
+                if (ret < 0) {
+                    Logger::error("Error writing packet: %s", av_error_string(ret).c_str());
+                    av_packet_free(&packet);
+                    goto cleanup;
+                }
+                
                 av_packet_unref(packet);
-                continue;
             }
             
-            // Record the first packet timestamp for offset calculation
-            if (!foundFirstPacket && packet->pts != AV_NOPTS_VALUE) {
-                firstPts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
-                foundFirstPacket = true;
-            }
-            
-            // Rescale timestamps
-            if (packet->pts != AV_NOPTS_VALUE) {
-                packet->pts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
-                if (foundFirstPacket) {
-                    packet->pts -= firstPts;
-                }
-            }
-            
-            if (packet->dts != AV_NOPTS_VALUE) {
-                packet->dts = av_rescale_q(packet->dts, inputStream->time_base, outputStream->time_base);
-                if (foundFirstPacket) {
-                    packet->dts -= firstPts;
-                }
-            }
-            
-            if (packet->duration > 0) {
-                packet->duration = av_rescale_q(packet->duration, inputStream->time_base, outputStream->time_base);
-            }
-            
-            packet->pos = -1;
-            packet->stream_index = packet->stream_index;
-            
-            // Write packet
-            ret = av_interleaved_write_frame(outputCtx, packet);
-            if (ret < 0) {
-                Logger::error("Error writing packet: %s", av_error_string(ret).c_str());
-                av_packet_free(&packet);
-                goto cleanup;
-            }
-            
-            av_packet_unref(packet);
-        }
-        
-        av_packet_free(&packet);
-        success = true;
+            av_packet_free(&packet);
+            success = true;
         }
         
         if (!success) {

@@ -28,6 +28,21 @@ namespace ReplayBufferPro
     }
 
     /**
+     * @brief Log warning message
+     * @param format Format string
+     * @param ... Format arguments
+     */
+    static void warning(const char *format, ...)
+    {
+      va_list args;
+      va_start(args, format);
+      char buf[4096];
+      vsnprintf(buf, sizeof(buf), format, args);
+      blog(LOG_WARNING, "[ReplayBufferPro] %s", buf);
+      va_end(args);
+    }
+
+    /**
      * @brief Log error message
      * @param format Format string
      * @param ... Format arguments
