@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(replay-buffer-pro VERSION 1.2.0)
+project(replay-buffer-pro VERSION 1.3.0)
 
 # Find Qt
 set(CMAKE_AUTOMOC ON)
