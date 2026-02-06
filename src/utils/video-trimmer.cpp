@@ -30,6 +30,7 @@ static std::string av_error_string(int errnum) {
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace ReplayBufferPro {
 
@@ -42,10 +43,10 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
     AVFormatContext* outputCtx = nullptr;
     
     // Declare variables before any goto statements to avoid C2362 errors
-    int64_t seekTarget = 0;
-    bool success = false;
     int videoStreamIndex = -1;
     int64_t keyframeTime = AV_NOPTS_VALUE;
+    int64_t seekTarget = 0;
+    double effectiveStartTime = 0.0;
     
     try {
         Logger::info("Starting video trim operation: %s -> %s (%d seconds)", 
@@ -67,8 +68,25 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             return false;
         }
         
-        // Get total duration
-        double totalDuration = getVideoDuration(inputPath);
+        // Get total duration (prefer input context if available)
+        double totalDuration = -1.0;
+        if (inputCtx->duration != AV_NOPTS_VALUE) {
+            totalDuration = static_cast<double>(inputCtx->duration) / AV_TIME_BASE;
+        } else {
+            // Try to get duration from the longest stream
+            for (unsigned int i = 0; i < inputCtx->nb_streams; i++) {
+                AVStream* stream = inputCtx->streams[i];
+                if (stream->duration != AV_NOPTS_VALUE) {
+                    double streamDuration = static_cast<double>(stream->duration) * av_q2d(stream->time_base);
+                    totalDuration = std::max(totalDuration, streamDuration);
+                }
+            }
+        }
+
+        if (totalDuration <= 0) {
+            Logger::warning("Input context duration unavailable, falling back to duration probe");
+            totalDuration = getVideoDuration(inputPath, inputCtx);
+        }
         if (totalDuration <= 0) {
             Logger::error("Could not determine video duration or file is empty");
             avformat_close_input(&inputCtx);
@@ -80,10 +98,9 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
         // Calculate start time (total duration - desired duration)
         // Ensure we don't go before the beginning of the file
         double startTime = std::max(0.0, totalDuration - durationSeconds);
-        double actualDuration = totalDuration - startTime;
         
         Logger::info("Trimming from %.2f seconds to end (%.2f seconds total)", 
-                    startTime, actualDuration);
+                    startTime, totalDuration - startTime);
         
         // Create output context
         ret = avformat_alloc_output_context2(&outputCtx, nullptr, nullptr, outputPath.c_str());
@@ -133,6 +150,7 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
         }
         
         // Find the first keyframe at or after our desired start time
+        effectiveStartTime = startTime;
         if (videoStreamIndex >= 0) {
             AVPacket* searchPacket = av_packet_alloc();
             if (searchPacket) {
@@ -147,6 +165,7 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                         // Check if this is a keyframe at or after our start time
                         if (packetTime >= startTime && (searchPacket->flags & AV_PKT_FLAG_KEY)) {
                             keyframeTime = searchPacket->pts;
+                            effectiveStartTime = packetTime;
                             Logger::info("Found keyframe at %.2f seconds (requested %.2f)", 
                                        packetTime, startTime);
                             break;
@@ -156,7 +175,7 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                 }
                 av_packet_free(&searchPacket);
                 
-                // Seek back to the keyframe
+                // Seek to the keyframe position for all streams
                 if (keyframeTime != AV_NOPTS_VALUE) {
                     int64_t keyframeSeekTarget = av_rescale_q(keyframeTime, 
                         inputCtx->streams[videoStreamIndex]->time_base, AV_TIME_BASE_Q);
@@ -164,15 +183,15 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                     if (ret < 0) {
                         Logger::error("Error seeking to keyframe: %s", av_error_string(ret).c_str());
                     }
+                    Logger::info("All streams will start from keyframe at %.2f seconds", effectiveStartTime);
                 } else {
                     Logger::warning("No keyframe found, seeking back to original position");
-                    ret = av_seek_frame(inputCtx, -1, seekTarget, AVSEEK_FLAG_BACKWARD);
+                    ret = av_seek_frame(inputCtx, -1, static_cast<int64_t>(startTime * AV_TIME_BASE), AVSEEK_FLAG_BACKWARD);
                 }
             }
         }
         
         // Copy packets from keyframe to end
-        success = false;
         {
             AVPacket* packet = av_packet_alloc();
             if (!packet) {
@@ -180,8 +199,7 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                 goto cleanup;
             }
             
-            int64_t firstPts = AV_NOPTS_VALUE;
-            bool foundFirstPacket = false;
+            std::vector<int64_t> firstPtsPerStream(inputCtx->nb_streams, AV_NOPTS_VALUE);
             
             while (av_read_frame(inputCtx, packet) >= 0) {
                 AVStream* inputStream = inputCtx->streams[packet->stream_index];
@@ -195,38 +213,41 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                     packetTime = static_cast<double>(packet->dts) * av_q2d(inputStream->time_base);
                 }
                 
-                // For video streams, start from the keyframe we found
-                // For audio streams, use the original start time
-                double effectiveStartTime = startTime;
-                if (packet->stream_index == videoStreamIndex && keyframeTime != AV_NOPTS_VALUE) {
-                    effectiveStartTime = static_cast<double>(keyframeTime) * 
-                                       av_q2d(inputCtx->streams[videoStreamIndex]->time_base);
-                }
-                
-                // Skip packets before our effective start time
+                // Skip packets before the effective start time (all streams use same start)
                 if (packetTime < effectiveStartTime) {
                     av_packet_unref(packet);
                     continue;
                 }
                 
-                // Record the first packet timestamp for offset calculation
-                if (!foundFirstPacket && packet->pts != AV_NOPTS_VALUE) {
-                    firstPts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
-                    foundFirstPacket = true;
+                // Record the first packet timestamp for offset calculation (per stream)
+                int streamIndex = packet->stream_index;
+                int64_t& streamFirstPts = firstPtsPerStream[streamIndex];
+                if (streamFirstPts == AV_NOPTS_VALUE) {
+                    if (packet->pts != AV_NOPTS_VALUE) {
+                        streamFirstPts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
+                    } else if (packet->dts != AV_NOPTS_VALUE) {
+                        streamFirstPts = av_rescale_q(packet->dts, inputStream->time_base, outputStream->time_base);
+                    }
+
+                    if (streamFirstPts != AV_NOPTS_VALUE) {
+                        double offsetSeconds = static_cast<double>(streamFirstPts) *
+                                               av_q2d(outputStream->time_base);
+                        Logger::info("Stream %d offset initialized to %.3f seconds", streamIndex, offsetSeconds);
+                    }
                 }
                 
                 // Rescale timestamps
                 if (packet->pts != AV_NOPTS_VALUE) {
                     packet->pts = av_rescale_q(packet->pts, inputStream->time_base, outputStream->time_base);
-                    if (foundFirstPacket) {
-                        packet->pts -= firstPts;
+                    if (streamFirstPts != AV_NOPTS_VALUE) {
+                        packet->pts -= streamFirstPts;
                     }
                 }
                 
                 if (packet->dts != AV_NOPTS_VALUE) {
                     packet->dts = av_rescale_q(packet->dts, inputStream->time_base, outputStream->time_base);
-                    if (foundFirstPacket) {
-                        packet->dts -= firstPts;
+                    if (streamFirstPts != AV_NOPTS_VALUE) {
+                        packet->dts -= streamFirstPts;
                     }
                 }
                 
@@ -235,7 +256,6 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                 }
                 
                 packet->pos = -1;
-                packet->stream_index = packet->stream_index;
                 
                 // Write packet
                 ret = av_interleaved_write_frame(outputCtx, packet);
@@ -249,11 +269,6 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             }
             
             av_packet_free(&packet);
-            success = true;
-        }
-        
-        if (!success) {
-            goto cleanup;
         }
         
         // Write trailer
@@ -301,20 +316,26 @@ void VideoTrimmer::initializeFFmpeg() {
     }
 }
 
-double VideoTrimmer::getVideoDuration(const std::string& inputPath) {
-    AVFormatContext* ctx = nullptr;
+double VideoTrimmer::getVideoDuration(const std::string& inputPath, AVFormatContext* inputCtx) {
+    // If context is provided, try to extract duration from it first
+    // (though this is unlikely to help since we already tried this inline)
+    AVFormatContext* ctx = inputCtx;
+    bool shouldClose = false;
     
-    int ret = avformat_open_input(&ctx, inputPath.c_str(), nullptr, nullptr);
-    if (ret < 0) {
-        Logger::error("Could not open file for duration check: %s", av_error_string(ret).c_str());
-        return -1.0;
-    }
-    
-    ret = avformat_find_stream_info(ctx, nullptr);
-    if (ret < 0) {
-        Logger::error("Could not find stream info for duration check: %s", av_error_string(ret).c_str());
-        avformat_close_input(&ctx);
-        return -1.0;
+    if (!ctx) {
+        int ret = avformat_open_input(&ctx, inputPath.c_str(), nullptr, nullptr);
+        if (ret < 0) {
+            Logger::error("Could not open file for duration check: %s", av_error_string(ret).c_str());
+            return -1.0;
+        }
+        
+        ret = avformat_find_stream_info(ctx, nullptr);
+        if (ret < 0) {
+            Logger::error("Could not find stream info for duration check: %s", av_error_string(ret).c_str());
+            avformat_close_input(&ctx);
+            return -1.0;
+        }
+        shouldClose = true;
     }
     
     double duration = 0.0;
@@ -331,17 +352,10 @@ double VideoTrimmer::getVideoDuration(const std::string& inputPath) {
         }
     }
     
-    avformat_close_input(&ctx);
+    if (shouldClose) {
+        avformat_close_input(&ctx);
+    }
     return duration;
-}
-
-bool VideoTrimmer::copyStreamsWithTimeRange(AVFormatContext* inputCtx,
-                                           AVFormatContext* outputCtx,
-                                           double startTime,
-                                           double endTime) {
-    // This method is kept for potential future use
-    // Currently the main logic is in trimToLastSeconds for simplicity
-    return true;
 }
 
 bool VideoTrimmer::setupOutputStreams(AVFormatContext* inputCtx,
@@ -368,6 +382,10 @@ bool VideoTrimmer::setupOutputStreams(AVFormatContext* inputCtx,
         
         // Copy time base
         outputStream->time_base = inputStream->time_base;
+
+        // Preserve stream metadata and disposition flags
+        av_dict_copy(&outputStream->metadata, inputStream->metadata, 0);
+        outputStream->disposition = inputStream->disposition;
         
         Logger::info("Setup output stream %d: codec=%s, time_base=%d/%d", 
                     i, avcodec_get_name(outputStream->codecpar->codec_id),

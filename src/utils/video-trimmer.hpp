@@ -57,29 +57,14 @@ private:
     /**
      * @brief Get duration of video file in seconds
      * 
-     * Opens a video file and determines its total duration in seconds.
+     * Determines the total duration in seconds. If a context is provided,
+     * attempts to extract duration from it first. Otherwise, opens the file.
      * 
      * @param inputPath Path to the video file
+     * @param inputCtx Optional already-open format context (may be nullptr)
      * @return Duration in seconds, or -1.0 if error
      */
-    static double getVideoDuration(const std::string& inputPath);
-    
-    /**
-     * @brief Copy streams from input to output with time range
-     * 
-     * Copies all streams from input to output format context within
-     * the specified time range, using stream copy for performance.
-     * 
-     * @param inputCtx Input format context
-     * @param outputCtx Output format context
-     * @param startTime Start time in seconds
-     * @param endTime End time in seconds (or -1 for end of file)
-     * @return true if successful, false otherwise
-     */
-    static bool copyStreamsWithTimeRange(AVFormatContext* inputCtx,
-                                        AVFormatContext* outputCtx,
-                                        double startTime,
-                                        double endTime = -1.0);
+    static double getVideoDuration(const std::string& inputPath, AVFormatContext* inputCtx = nullptr);
     
     /**
      * @brief Setup output streams to match input streams
