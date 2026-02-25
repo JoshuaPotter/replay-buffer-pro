@@ -1,10 +1,10 @@
 # Replay Buffer Pro
 
-> OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding
+> OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding
 
 ## Overview
 
-Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon the built-in Replay Buffer functionality. It allows content creators, streamers, and gamers to save recent footage at multiple preset durations (15 seconds, 30 seconds, 1 minute, 5 minutes, 15 minutes, or 30 minutes) with a single click or hotkey press, similar to PlayStation and Xbox's "Save Recent Gameplay" feature.
+Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon the built-in Replay Buffer functionality. It allows content creators, streamers, and gamers to save recent footage at multiple customizable durations with a single click or hotkey press, similar to PlayStation and Xbox's "Save Recent Gameplay" feature.
 
 **Key Value Proposition**: Save clips at different lengths from the same replay buffer without re-encoding, making it perfect for creating content for various platforms (TikTok, YouTube Shorts, Instagram Reels, etc.).
 
@@ -23,7 +23,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 1. **Quick-Save Presets**: Save the last 15s, 30s, 1m, 5m, 15m, or 30m instantly
 2. **No Re-encoding**: Uses libavformat with stream copy for fast, lossless output
-3. **Hotkey Support**: Assign hotkeys for each preset length in OBS settings
+3. **Hotkey Support**: Assign hotkeys for each save button in OBS settings
 4. **Adjustable Buffer Length**: Set replay buffer from 1 second to 6 hours via slider
 5. **Dockable UI**: Minimal, clean interface that docks in OBS Studio
 6. **Automatic Trimming**: Saves full buffer then trims to desired length automatically
@@ -64,7 +64,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 1. Go to **OBS Studio Settings → Hotkeys**
 2. Search for "Replay Buffer Pro"
-3. Assign keys for each duration preset
+3. Assign keys for each save button duration
 4. Click OK to save
 
 ### Important Notes
@@ -77,7 +77,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 ## FAQ
 
 **Q: How is this different from OBS's default Replay Buffer?**
-A: The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically.
+A: The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons/hotkeys, and trims automatically.
 
 **Q: Does it re-encode video?**
 A: No. Trimming uses FFmpeg with `-c copy` for fast, lossless output.
@@ -86,7 +86,7 @@ A: No. Trimming uses FFmpeg with `-c copy` for fast, lossless output.
 A: Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip.
 
 **Q: Can I change the preset durations?**
-A: Not currently. The UI provides fixed presets: 15s, 30s, 1m, 5m, 15m, and 30m.
+A: Yes. Use the Customize button in the Save Clips section to set each button's duration.
 
 **Q: Where are clips saved?**
 A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
@@ -151,5 +151,4 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 Last Updated: 2025-10-15
 Version: 1.2.0
-
 

@@ -15,7 +15,7 @@ The dock assembles a vertical layout that includes:
 - Buffer length slider (`QSlider`).
 - Tick label widget for quick duration selection.
 - Divider line.
-- Save clip section title and a grid of save buttons.
+- Save clip section title, customize button, and a grid of save buttons.
 
 ## UI controls and behavior
 ### Buffer length controls
@@ -31,10 +31,11 @@ The dock assembles a vertical layout that includes:
 - When the replay buffer is active, clicking labels shows a warning and does not update settings.
 
 ### Save buttons
-- Save buttons are generated from `Config::SAVE_BUTTONS`.
+- Save buttons are generated from the current customizable duration settings.
 - Buttons are arranged in a grid, 3 per row.
 - A full buffer save button spans the final row.
 - Buttons are enabled only when the current buffer length is at least the duration they save.
+- A customize button opens a dialog to edit per-button durations.
 
 ## Event and state flow
 1. User adjusts slider/spinbox or clicks a tick label.
@@ -46,7 +47,7 @@ The dock assembles a vertical layout that includes:
 ## Configuration inputs
 - Slider range uses `Config::MIN_BUFFER_LENGTH` and `Config::MAX_BUFFER_LENGTH`.
 - Debounce interval uses `Config::SLIDER_DEBOUNCE_INTERVAL`.
-- Save buttons are generated from `Config::SAVE_BUTTONS` and `Config::SAVE_BUTTON_COUNT`.
+- Save buttons are generated from `SaveButtonSettings` and `Config::SAVE_BUTTON_COUNT`.
 
 ## Key classes and functions
 - `ReplayBufferPro::Plugin` (dock widget)
