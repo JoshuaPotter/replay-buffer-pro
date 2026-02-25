@@ -139,9 +139,3 @@ add_custom_target(prepare_release
 
     COMMENT "Creating release package..."
 )
-
-# Create release target (no install)
-add_custom_target(create_release
-    DEPENDS prepare_release
-    COMMENT "Creating release package..."
-)
