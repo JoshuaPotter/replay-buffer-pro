@@ -5,6 +5,7 @@
 
 #include "ui/ui-components.hpp"
 #include "config/config.hpp"
+#include "utils/duration-format.hpp"
 
 // OBS includes
 #include <obs-module.h>
@@ -24,6 +25,9 @@
 #include <QFrame>
 #include <QResizeEvent>
 #include <QMessageBox>
+
+// STL includes
+#include <algorithm>
 
 namespace ReplayBufferPro
 {
@@ -51,14 +55,17 @@ namespace ReplayBufferPro
 
   UIComponents::UIComponents(QWidget *parent,
                              std::function<void(int)> saveSegmentCallback,
-                             std::function<void()> saveFullBufferCallback)
+                             std::function<void()> saveFullBufferCallback,
+                             std::function<void()> customizeSaveButtonsCallback)
       : slider(nullptr),
         secondsEdit(nullptr),
         saveFullBufferBtn(nullptr),
+        customizeSaveButtonsBtn(nullptr),
         sliderDebounceTimer(new QTimer(parent)),
         tickWidget(nullptr),
         onSaveSegment(saveSegmentCallback),
-        onSaveFullBuffer(saveFullBufferCallback)
+        onSaveFullBuffer(saveFullBufferCallback),
+        onCustomizeSaveButtons(customizeSaveButtonsCallback)
   {
     if (!parent) {
         qWarning("UIComponents: parent widget cannot be null");
@@ -67,6 +74,7 @@ namespace ReplayBufferPro
     
     sliderDebounceTimer->setSingleShot(true);
     sliderDebounceTimer->setInterval(Config::SLIDER_DEBOUNCE_INTERVAL);
+    saveButtonDurations = getDefaultSaveButtonDurations();
   }
 
   //=============================================================================
@@ -134,10 +142,22 @@ namespace ReplayBufferPro
     
     mainLayout->addSpacing(24); // Space after divider
 
-    // Save clip label
-    QLabel* saveClipLabel = new QLabel(obs_module_text("SaveClipLabel"), container);  
+    // Save clip label + customize button
+    QHBoxLayout *saveClipHeaderLayout = new QHBoxLayout();
+    QLabel* saveClipLabel = new QLabel(obs_module_text("SaveClipLabel"), container);
     saveClipLabel->setStyleSheet("opacity: .75; font-size: 14px; font-weight: bold;");
-    mainLayout->addWidget(saveClipLabel);
+    saveClipHeaderLayout->addWidget(saveClipLabel);
+    saveClipHeaderLayout->addStretch();
+
+    customizeSaveButtonsBtn = new QPushButton(obs_module_text("CustomizeButtons"), container);
+    customizeSaveButtonsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    if (onCustomizeSaveButtons)
+    {
+      QObject::connect(customizeSaveButtonsBtn, &QPushButton::clicked, onCustomizeSaveButtons);
+    }
+
+    saveClipHeaderLayout->addWidget(customizeSaveButtonsBtn);
+    mainLayout->addLayout(saveClipHeaderLayout);
     mainLayout->addSpacing(8);  // Space after save clip label
 
     // Save clip buttons
@@ -153,6 +173,11 @@ namespace ReplayBufferPro
   {
     saveButtons.clear();
 
+    if (saveButtonDurations.size() != Config::SAVE_BUTTON_COUNT)
+    {
+      saveButtonDurations = getDefaultSaveButtonDurations();
+    }
+
     QGridLayout *gridLayout = new QGridLayout();
     gridLayout->setSpacing(5);
 
@@ -161,12 +186,12 @@ namespace ReplayBufferPro
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
       auto *button = new QPushButton();
-      const auto &btn = Config::SAVE_BUTTONS[i];
-      button->setText(obs_module_text(btn.text));
+      int duration = saveButtonDurations[i];
+      button->setText(formatDurationLabel(duration));
       button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-      QObject::connect(button, &QPushButton::clicked, [this, duration = btn.duration]()
-                       { onSaveSegment(duration); });
+      QObject::connect(button, &QPushButton::clicked, [this, index = i]()
+                       { onSaveSegment(saveButtonDurations[index]); });
 
       int row = i / buttonsPerRow;
       int col = i % buttonsPerRow;
@@ -207,10 +232,53 @@ namespace ReplayBufferPro
 
   void UIComponents::toggleSaveButtons(int bufferLength)
   {
+    if (saveButtons.size() != saveButtonDurations.size())
+    {
+      return;
+    }
+
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
-      saveButtons[i]->setEnabled(bufferLength >= Config::SAVE_BUTTONS[i].duration);
+      int duration = saveButtonDurations[i];
+      saveButtons[i]->setEnabled(bufferLength >= duration);
     }
+  }
+
+  void UIComponents::setSaveButtonDurations(const std::vector<int> &durations)
+  {
+    saveButtonDurations = getDefaultSaveButtonDurations();
+    size_t limit = std::min(durations.size(), saveButtonDurations.size());
+    for (size_t i = 0; i < limit; i++)
+    {
+      saveButtonDurations[i] = durations[i];
+    }
+
+    updateSaveButtonLabels();
+    toggleSaveButtons(slider ? slider->value() : Config::DEFAULT_BUFFER_LENGTH);
+  }
+
+  void UIComponents::updateSaveButtonLabels()
+  {
+    if (saveButtons.size() != saveButtonDurations.size())
+    {
+      return;
+    }
+
+    for (size_t i = 0; i < saveButtons.size(); i++)
+    {
+      saveButtons[i]->setText(formatDurationLabel(saveButtonDurations[i]));
+    }
+  }
+
+  std::vector<int> UIComponents::getDefaultSaveButtonDurations() const
+  {
+    std::vector<int> defaults;
+    defaults.reserve(Config::SAVE_BUTTON_COUNT);
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+    {
+      defaults.push_back(Config::SAVE_BUTTONS[i].duration);
+    }
+    return defaults;
   }
 
   //=============================================================================

@@ -18,15 +18,22 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QSpinBox>
+#include <QPushButton>
 
 // STL includes
 #include <thread>
 #include <string>
+#include <vector>
 
 // Local includes
 #include "utils/obs-utils.hpp"
 #include "plugin/plugin.hpp"
-#include "config/config.hpp"	
+#include "config/config.hpp"
+#include "utils/logger.hpp"
 
 namespace ReplayBufferPro
 {
@@ -41,12 +48,16 @@ namespace ReplayBufferPro
 		// Create component instances
 		replayManager = new ReplayBufferManager(this);
 		settingsManager = new SettingsManager();
+		saveButtonSettings = new SaveButtonSettings();
+		saveButtonSettings->load();
 		
 		// Create UI components with callbacks
 		ui = new UIComponents(this, 
 			[this](int duration) { handleSaveSegment(duration); },
-			[this]() { handleSaveFullBuffer(); }
+			[this]() { handleSaveFullBuffer(); },
+			[this]() { handleCustomizeSaveButtons(); }
 		);
+		ui->setSaveButtonDurations(saveButtonSettings->getDurations());
 		
 		// Mount the UI into this widget
 		{
@@ -67,7 +78,8 @@ namespace ReplayBufferPro
 
 		// Create and register hotkeys
 		hotkeyManager = new HotkeyManager(
-			[this](int duration) { handleSaveSegment(duration); }
+			[this](int duration) { handleSaveSegment(duration); },
+			saveButtonSettings->getDurations()
 		);
 		hotkeyManager->registerHotkeys();
 
@@ -92,6 +104,7 @@ namespace ReplayBufferPro
 		
 		// Clean up managers that were allocated with new
 		delete hotkeyManager;
+		delete saveButtonSettings;
 		delete settingsManager;
 		
 		// Qt parent-child relationship will handle cleanup for other components
@@ -217,6 +230,66 @@ namespace ReplayBufferPro
         }).detach();
       }
 			replayManager->clearPendingSaveDuration();
+		}
+	}
+
+	void Plugin::handleCustomizeSaveButtons()
+	{
+		QDialog dialog(this);
+		dialog.setWindowTitle(obs_module_text("CustomizeButtonsTitle"));
+		QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+		QFormLayout *formLayout = new QFormLayout();
+		std::vector<QSpinBox *> inputs;
+		inputs.reserve(Config::SAVE_BUTTON_COUNT);
+
+		const auto &durations = saveButtonSettings->getDurations();
+		for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+		{
+			QSpinBox *spinBox = new QSpinBox(&dialog);
+			spinBox->setRange(1, Config::MAX_BUFFER_LENGTH);
+			spinBox->setSuffix(" sec");
+			if (i < durations.size())
+			{
+				spinBox->setValue(durations[i]);
+			}
+
+			QString labelText = QString::fromUtf8(obs_module_text("SaveClipButtonLabel")).arg(i + 1);
+			formLayout->addRow(labelText, spinBox);
+			inputs.push_back(spinBox);
+		}
+
+		layout->addLayout(formLayout);
+
+		QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		buttonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("CustomizeButtonsSave"));
+		buttonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("CustomizeButtonsCancel"));
+		connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+		connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+		layout->addWidget(buttonBox);
+
+		if (dialog.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+
+		std::vector<int> updatedDurations;
+		updatedDurations.reserve(inputs.size());
+		for (auto *input : inputs)
+		{
+			updatedDurations.push_back(input->value());
+		}
+
+		saveButtonSettings->setDurations(updatedDurations);
+		if (!saveButtonSettings->save())
+		{
+			Logger::warning("Failed to save custom save button durations");
+		}
+
+		ui->setSaveButtonDurations(saveButtonSettings->getDurations());
+		if (hotkeyManager)
+		{
+			hotkeyManager->setSaveButtonDurations(saveButtonSettings->getDurations());
 		}
 	}
 

@@ -77,7 +77,8 @@ namespace ReplayBufferPro
      */
     UIComponents(QWidget *parent,
                  std::function<void(int)> saveSegmentCallback,
-                 std::function<void()> saveFullBufferCallback);
+                 std::function<void()> saveFullBufferCallback,
+                 std::function<void()> customizeSaveButtonsCallback);
 
     /**
      * @brief Destructor
@@ -106,10 +107,22 @@ namespace ReplayBufferPro
     const std::vector<QPushButton *> &getSaveButtons() const { return saveButtons; }
 
     /**
+     * @brief Gets the save button durations
+     * @return Vector of save button durations
+     */
+    const std::vector<int> &getSaveButtonDurations() const { return saveButtonDurations; }
+
+    /**
      * @brief Gets the save full buffer button
      * @return Pointer to the save full buffer button
      */
     QPushButton *getSaveFullBufferBtn() const { return saveFullBufferBtn; }
+
+    /**
+     * @brief Gets the customize save buttons button
+     * @return Pointer to the customize button
+     */
+    QPushButton *getCustomizeSaveButtonsBtn() const { return customizeSaveButtonsBtn; }
 
     /**
      * @brief Gets the slider debounce timer
@@ -147,6 +160,12 @@ namespace ReplayBufferPro
      */
     void toggleSaveButtons(int bufferLength);
 
+    /**
+     * @brief Updates save button durations and labels
+     * @param durations Updated durations in seconds
+     */
+    void setSaveButtonDurations(const std::vector<int> &durations);
+
   private:
     //=========================================================================
     // UI COMPONENTS
@@ -154,15 +173,18 @@ namespace ReplayBufferPro
     QSlider *slider;                        ///< Buffer length control (10s to 6h)
     QSpinBox *secondsEdit;                 ///< Manual buffer length input
     QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
+    QPushButton *customizeSaveButtonsBtn;   ///< Customize save buttons trigger
     std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
     QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
     TickLabelWidget* tickWidget;  // Now this will work
+    std::vector<int> saveButtonDurations;   ///< Durations for save buttons
 
     //=========================================================================
     // CALLBACKS
     //=========================================================================
     std::function<void(int)> onSaveSegment; ///< Callback for save segment button clicks
     std::function<void()> onSaveFullBuffer; ///< Callback for save full buffer button clicks
+    std::function<void()> onCustomizeSaveButtons; ///< Callback for customizing save buttons
 
     //=========================================================================
     // INITIALIZATION
@@ -172,6 +194,9 @@ namespace ReplayBufferPro
      * @param layout Parent layout for the buttons
      */
     void initSaveButtons(QHBoxLayout *layout);
+
+    void updateSaveButtonLabels();
+    std::vector<int> getDefaultSaveButtonDurations() const;
 
     bool isBufferActive = false;  // Track buffer active state
   };

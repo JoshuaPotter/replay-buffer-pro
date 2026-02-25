@@ -29,7 +29,7 @@ namespace ReplayBufferPro
     };
 
     /**
-     * @brief Number of predefined save buttons
+     * @brief Number of save buttons
      */
     constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]);
 
