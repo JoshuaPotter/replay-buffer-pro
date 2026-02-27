@@ -21,7 +21,9 @@ extern "C" {
 #include <libavutil/log.h>
 }
 
-// Helper function to convert error codes to strings (MSVC-compatible)
+// Helper function to convert FFmpeg error codes to strings.
+// av_err2str() uses a compound literal which is invalid in C++, so we use
+// av_strerror() directly instead.
 static std::string av_error_string(int errnum) {
     char errbuf[AV_ERROR_MAX_STRING_SIZE];
     av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
