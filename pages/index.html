@@ -59,7 +59,7 @@
         "name": "Replay Buffer Pro",
         "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding. Perfect for streamers, gamers, and content creators.",
         "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "Windows 10/11 (64-bit)",
+        "operatingSystem": "Windows 10/11, Linux, macOS",
         "softwareVersion": "1.2.0",
         "datePublished": "2024-01-01",
         "author": {
@@ -71,7 +71,7 @@
           "price": "0",
           "priceCurrency": "USD"
         },
-        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip",
+        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest",
         "softwareRequirements": "OBS Studio 30.0.0+",
         "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
         "screenshot": "https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png"
@@ -87,7 +87,7 @@
         "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
         "codeRepository": "https://github.com/JoshuaPotter/replay-buffer-pro",
         "programmingLanguage": "C++",
-        "runtimePlatform": "Windows 10/11 (64-bit)",
+        "runtimePlatform": "Windows 10/11, Linux, macOS",
         "license": "https://www.gnu.org/licenses/gpl-2.0.html",
         "targetProduct": {
           "@type": "SoftwareApplication",
@@ -161,15 +161,15 @@
         "@context": "https://schema.org",
         "@type": "HowTo",
         "name": "How to Install Replay Buffer Pro for OBS Studio",
-        "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows",
+        "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio",
         "totalTime": "PT5M",
         "step": [
           {
             "@type": "HowToStep",
             "position": 1,
             "name": "Download Plugin",
-            "text": "Download the latest release of Replay Buffer Pro from the link above.",
-            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+            "text": "Download the latest release of Replay Buffer Pro from the releases page.",
+            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest"
           },
           {
             "@type": "HowToStep",
@@ -180,14 +180,14 @@
           {
             "@type": "HowToStep",
             "position": 3,
-            "name": "Extract and Merge Files",
-            "text": "Extract the ZIP and merge the obs-studio folder into your OBS Studio installation directory (typically C:\\Program Files\\obs-studio\\)."
+            "name": "Install Plugin Files",
+            "text": "On Windows: extract the ZIP and merge the obs-studio folder into your OBS Studio installation directory (typically C:\\Program Files\\obs-studio\\). On Linux/macOS: build from source and run cmake --install."
           },
           {
             "@type": "HowToStep",
             "position": 4,
             "name": "Verify Installation",
-            "text": "Verify the final installation structure: replay-buffer-pro.dll in obs-plugins/64bit/, and data files in data/obs-plugins/replay-buffer-pro/ including locale files."
+            "text": "Verify the plugin binary and data files are in the correct OBS plugins directory, then restart OBS Studio."
           }
         ]
       }
@@ -203,7 +203,7 @@
         <div class="brand">Replay Buffer Pro</div>
         <nav class="nav">
           <a class="btn btn-ghost" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View on GitHub</a>
-          <a id="download-top" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download (<span class="release-version" data-prefix"v">v1.0.0</span>)</a>
+          <a id="download-top" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download (<span class="release-version" data-prefix"v">v1.0.0</span>)</a>
         </nav>
       </div>
     </header>
@@ -220,7 +220,7 @@
             <h1>Replay Buffer Pro</h1>
             <p class="lead">Save the last moments of your stream or recording with one click.</p>
             <div class="cta-row">
-              <a id="download-cta" class="btn btn-primary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
+              <a id="download-cta" class="btn btn-primary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
               <div id="release-meta" class="subtext"><span class="release-version" data-prefix"v">v1.0.0</span> • Requires OBS Studio 30.0.0+</div>
             </div>
           </div>
@@ -472,7 +472,7 @@
           <div class="section-header">
             <h2>Installation</h2>
             <div class="section-actions">
-              <a id="download-secondary" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
+              <a id="download-secondary" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download Latest Release</a>
             </div>
           </div>
           
@@ -495,14 +495,7 @@
                 <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
                   <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <span>Windows 10/11 (64-bit)</span>
-              </li>
-              <li class="muted-item">
-                <svg class="info-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>macOS and Linux are not currently supported - coming soon!</span>
+                <span>Windows 10/11 (64-bit), Linux (x86_64), or macOS (Intel + Apple Silicon)</span>
               </li>
             </ul>
           </div>
@@ -540,7 +533,7 @@
               <div class="step-badge">3</div>
               <div class="step-content">
                 <h4 class="step-title">Extract & Merge Files</h4>
-                <p class="step-description">Extract the ZIP and merge the <code>obs-studio</code> folder into your OBS Studio installation directory (typically <code>C:\Program Files\obs-studio\</code>).</p>
+                <p class="step-description">Extract the ZIP and merge its contents into your OBS Studio installation directory. On Windows this is typically <code>C:\Program Files\obs-studio\</code>. On Linux/macOS, run <code>cmake --install</code> after building from source.</p>
               </div>
               <div class="step-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -579,7 +572,7 @@
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
               <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <span><strong>Note:</strong> For Windows, you may need administrator privileges to copy files into Program Files.</span>
+            <span><strong>Note:</strong> On Windows you may need administrator privileges to copy files into Program Files. Linux and macOS users should build from source — see the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#building-from-source" rel="noopener" target="_blank">README</a> for instructions.</span>
           </div>
         </div>
       </section>
@@ -721,7 +714,7 @@
               </div>
               <div class="troubleshoot-content">
                 <strong>Plugin Not Loading</strong>
-                <p>Ensure <code>replay-buffer-pro.dll</code> is in <code>obs-studio/obs-plugins/64bit/</code>. Restart OBS Studio after placing the file.</p>
+                <p>Ensure the plugin binary (<code>replay-buffer-pro.dll</code> on Windows, <code>replay-buffer-pro.so</code> on Linux/macOS) is in the correct OBS plugins directory. Restart OBS Studio after placing the file.</p>
               </div>
             </div>
             
@@ -801,7 +794,7 @@
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an Issue<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
             </ul>
-            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip" class="footer-download-btn" rel="noopener" target="_blank">
+            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" class="footer-download-btn" rel="noopener" target="_blank">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
