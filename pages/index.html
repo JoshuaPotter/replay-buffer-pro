@@ -226,7 +226,8 @@
           </div>
           <div class="hero-media">
             <!-- Interactive Plugin UI Demo -->
-            <div class="plugin-ui-demo">
+            <div class="plugin-ui-stage">
+            <div class="plugin-ui-demo" id="plugin-ui-demo">
               <div class="plugin-header">
                 <span class="plugin-title">Replay Buffer Pro</span>
                 <div class="plugin-controls">
@@ -281,8 +282,11 @@
                 </div>
 
                 <div class="plugin-section">
-                  <h3 class="plugin-section-title">Save Clips</h3>
-                  
+                  <div class="plugin-section-header">
+                    <h3 class="plugin-section-title">Save Clips</h3>
+                    <button type="button" class="customize-btn" id="customize-btn" aria-haspopup="dialog">Customize</button>
+                  </div>
+
                   <div class="clip-buttons-grid">
                     <button class="clip-btn">Last 15 Seconds</button>
                     <button class="clip-btn">Last 30 Seconds</button>
@@ -296,6 +300,72 @@
                 </div>
               </div>
             </div>
+
+            <!-- Customize Save Buttons Modal (panel-scoped) -->
+            <div id="customize-modal" class="demo-modal-overlay" aria-hidden="true">
+              <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <div class="demo-modal-header">
+                  <span id="modal-title" class="demo-modal-title">Customize Save Buttons</span>
+                  <button type="button" class="demo-modal-close" id="modal-close" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="demo-modal-body">
+                  <div class="demo-modal-form" id="modal-form">
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-0">Button 1</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-0" min="1" max="21600" value="15">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-1">Button 2</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-1" min="1" max="21600" value="30">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-2">Button 3</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-2" min="1" max="21600" value="60">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-3">Button 4</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-3" min="1" max="21600" value="300">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-4">Button 5</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-4" min="1" max="21600" value="900">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-5">Button 6</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-5" min="1" max="21600" value="1800">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-modal-footer">
+                  <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-cancel">Cancel</button>
+                  <button type="button" class="demo-modal-btn demo-modal-save" id="modal-save">Save</button>
+                </div>
+              </div>
+            </div>
+
+            </div><!-- /.plugin-ui-stage -->
           </div>
         </div>
       </section>
