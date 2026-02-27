@@ -54,6 +54,9 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 
 ## Build and localization
 - Built via CMake; links OBS, Qt6, and FFmpeg libs.
+- Supports Windows (x64), Linux (x86_64), and macOS (Intel + Apple Silicon).
+- Windows: builds against a sibling `obs-studio` source checkout and its bundled `.deps/` FFmpeg.
+- Linux/macOS: uses `find_package(libobs)` + `find_package(obs-frontend-api)` CMake targets and system FFmpeg via `pkg_check_modules`.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 
 ## Not present
