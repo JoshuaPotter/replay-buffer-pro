@@ -50,11 +50,16 @@ if(WIN32)
     "${OBS_DEPS_DIR}/lib/avutil.lib"
   )
 else()
-  find_package(LibObs REQUIRED)
-  # For Linux/Mac, use system FFmpeg or find FFmpeg from OBS installation
+  # Find OBS via CMake package config (installed via cmake --install or distro package).
+  # OBS 28+ ships libobs and obs-frontend-api as separate CMake packages.
+  find_package(libobs REQUIRED)
+  find_package(obs-frontend-api REQUIRED)
+
+  # Find FFmpeg via pkg-config (system libraries on Linux/macOS).
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LIBAV REQUIRED libavformat libavcodec libavutil)
   set(FFMPEG_LIBRARIES ${LIBAV_LIBRARIES})
+  set(FFMPEG_INCLUDE_DIRS ${LIBAV_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -76,46 +81,82 @@ set(SOURCES
 
 add_library(${PROJECT_NAME} MODULE ${SOURCES})
 
+# Common includes and link targets
 target_include_directories(${PROJECT_NAME} PRIVATE
-  ${obs_INCLUDE_DIRS}
   ${Qt6Widgets_INCLUDE_DIRS}
   src
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${OBS_LIBRARIES}
-  ${FFMPEG_LIBRARIES}
   Qt6::Widgets
   Qt6::Core
+  ${FFMPEG_LIBRARIES}
 )
+
+# Platform-specific OBS wiring
+if(WIN32)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${obs_INCLUDE_DIRS})
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${OBS_LIBRARIES})
+else()
+  target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(${PROJECT_NAME} PRIVATE OBS::libobs OBS::obs-frontend-api)
+endif()
 
 # Regular installation (for development)
 if(WIN32)
-  set(PLUGIN_DEST "C:/Program Files/obs-studio/obs-plugins/64bit")
-  set(DATA_DEST "C:/Program Files/obs-studio/data/obs-plugins/${PROJECT_NAME}")
-
-  # Install plugin binary
-  install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION ${PLUGIN_DEST}
-    RUNTIME DESTINATION ${PLUGIN_DEST}
-  )
-
-  # Install data files
-  install(DIRECTORY data/
-    DESTINATION ${DATA_DEST}
-  )
+  # Default to the standard OBS installation directory on Windows if the user
+  # hasn't overridden CMAKE_INSTALL_PREFIX.
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "C:/Program Files/obs-studio" CACHE PATH
+        "Default OBS install prefix on Windows" FORCE)
+  endif()
+  set(PLUGIN_DEST "obs-plugins/64bit")
+  set(DATA_DEST "data/obs-plugins/${PROJECT_NAME}")
+elseif(APPLE)
+  # macOS: OBS expects plugins under <prefix>/obs-plugins and data under
+  # <prefix>/data/obs-plugins/<name>.  The typical user install prefix is
+  # ~/Library/Application Support/obs-studio/plugins/<name>, but when
+  # building against a system/Homebrew OBS the prefix is set by the caller.
+  set(PLUGIN_DEST "obs-plugins")
+  set(DATA_DEST "data/obs-plugins/${PROJECT_NAME}")
 else()
-  # Linux/Mac paths
-  set(PLUGIN_DEST "${CMAKE_INSTALL_PREFIX}/lib/obs-plugins")
-  set(DATA_DEST "${CMAKE_INSTALL_PREFIX}/share/obs/obs-plugins/${PROJECT_NAME}")
+  # Linux: standard FHS paths used by system-installed OBS.
+  set(PLUGIN_DEST "lib/obs-plugins")
+  set(DATA_DEST "share/obs/obs-plugins/${PROJECT_NAME}")
 endif()
 
+# Install plugin binary (all platforms)
+install(TARGETS ${PROJECT_NAME}
+  LIBRARY DESTINATION ${PLUGIN_DEST}
+  RUNTIME DESTINATION ${PLUGIN_DEST}
+)
+
+# Install data files (all platforms)
+install(DIRECTORY data/
+  DESTINATION ${DATA_DEST}
+)
+
 # Release package configuration
-set(RELEASE_DIR "${CMAKE_BINARY_DIR}/obs-studio")
-set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
+if(WIN32)
+  set(RELEASE_PLATFORM "windows-x64")
+  set(RELEASE_PLUGIN_SUBDIR "obs-plugins/64bit")
+else()
+  # Linux and macOS share the same plugin subdirectory layout
+  set(RELEASE_PLUGIN_SUBDIR "obs-plugins")
+  if(APPLE)
+    # Detect Apple Silicon vs Intel at configure time via CMAKE_SYSTEM_PROCESSOR.
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _arch)
+    set(RELEASE_PLATFORM "macos-${_arch}")
+  else()
+    set(RELEASE_PLATFORM "linux-x86_64")
+  endif()
+endif()
+
+set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-staging")
+set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/${RELEASE_PLUGIN_SUBDIR}")
 set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
 set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
-set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${PROJECT_NAME}-windows-x64.zip")
+set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${PROJECT_NAME}-${RELEASE_PLATFORM}.zip")
 
 # Custom target that depends on the main target
 add_custom_target(prepare_release
@@ -125,8 +166,8 @@ add_custom_target(prepare_release
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
 
-    # Copy plugin DLL
-    COMMAND ${CMAKE_COMMAND} -E copy 
+    # Copy plugin binary
+    COMMAND ${CMAKE_COMMAND} -E copy
         "$<TARGET_FILE:${PROJECT_NAME}>"
         "${RELEASE_PLUGIN_DIR}/"
 
@@ -139,5 +180,5 @@ add_custom_target(prepare_release
     COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
         "${RELEASE_DIR}/"
 
-    COMMENT "Creating release package..."
+    COMMENT "Creating release package for ${RELEASE_PLATFORM}..."
 )
