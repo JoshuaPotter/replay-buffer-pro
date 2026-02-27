@@ -3,6 +3,163 @@
  * Handles initialization of the interactive plugin demo
  */
 
+/** Default durations in seconds, matching Config::SAVE_BUTTONS in the real plugin */
+const DEFAULT_DURATIONS = [15, 30, 60, 300, 900, 1800];
+
+/** Live duration state for the 6 clip buttons (mutated by the customize modal) */
+let currentDurations = [...DEFAULT_DURATIONS];
+
+/**
+ * Formats a duration in seconds to a human-readable label.
+ * Mirrors the C++ formatDurationLabel / formatDurationValue logic.
+ * @param {number} seconds
+ * @returns {string} e.g. "Last 15 Seconds", "Last 5 Minutes", "Last 1 Hour"
+ */
+function formatDurationLabel(seconds) {
+  if (seconds >= 3600 && seconds % 3600 === 0) {
+    const hours = seconds / 3600;
+    return `Last ${hours} ${hours === 1 ? 'Hour' : 'Hours'}`;
+  }
+  if (seconds >= 60 && seconds % 60 === 0) {
+    const minutes = seconds / 60;
+    return `Last ${minutes} ${minutes === 1 ? 'Minute' : 'Minutes'}`;
+  }
+  return `Last ${seconds} ${seconds === 1 ? 'Second' : 'Seconds'}`;
+}
+
+/**
+ * Clamps a value to [1, 21600] and returns an integer.
+ * Mirrors normalizeDurations in the real plugin.
+ * @param {number} value
+ * @returns {number}
+ */
+function clampDuration(value) {
+  const n = parseInt(value, 10);
+  if (isNaN(n)) return DEFAULT_DURATIONS[0];
+  return Math.max(1, Math.min(21600, n));
+}
+
+/**
+ * Applies currentDurations to the 6 clip button labels.
+ */
+function applyDurationsToButtons() {
+  const clipButtons = document.querySelectorAll('.clip-btn');
+  clipButtons.forEach((btn, i) => {
+    if (i < currentDurations.length) {
+      btn.textContent = formatDurationLabel(currentDurations[i]);
+    }
+  });
+}
+
+/**
+ * Updates clip button enabled/disabled states based on buffer length.
+ * Reads durations from currentDurations (not button text) for accuracy.
+ * @param {number} bufferLengthSeconds
+ */
+function updateClipButtonStates(bufferLengthSeconds) {
+  const clipButtons = document.querySelectorAll('.clip-btn');
+  clipButtons.forEach((btn, i) => {
+    const clipDuration = currentDurations[i] ?? 0;
+    if (clipDuration > bufferLengthSeconds) {
+      btn.disabled = true;
+      btn.classList.add('disabled');
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+    }
+  });
+}
+
+/**
+ * Initializes the Customize Save Buttons modal.
+ * Opens on Customize button click, allows editing 6 durations in seconds,
+ * saves with clamping, updates button labels, refreshes disabled states.
+ */
+function initializeCustomizeModal() {
+  const overlay = document.getElementById('customize-modal');
+  const openBtn = document.getElementById('customize-btn');
+  const closeBtn = document.getElementById('modal-close');
+  const cancelBtn = document.getElementById('modal-cancel');
+  const saveBtn = document.getElementById('modal-save');
+  const panel = document.getElementById('plugin-ui-demo');
+
+  if (!overlay || !openBtn) return;
+
+  const inputs = Array.from({ length: 6 }, (_, i) =>
+    document.getElementById(`btn-input-${i}`)
+  );
+
+  function openModal() {
+    // Sync inputs to current durations before showing
+    inputs.forEach((input, i) => {
+      if (input) input.value = currentDurations[i] ?? DEFAULT_DURATIONS[i];
+    });
+    overlay.setAttribute('aria-hidden', 'false');
+
+    // Recede the panel first, then reveal the modal after a beat
+    // so the push-back is visible before focus shifts to the card.
+    if (panel) panel.classList.add('panel-recessed');
+    setTimeout(() => {
+      overlay.classList.add('show');
+      if (inputs[0]) inputs[0].focus();
+    }, 60);
+  }
+
+  function closeModal() {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    if (panel) panel.classList.remove('panel-recessed');
+    openBtn.focus();
+  }
+
+  function saveModal() {
+    const newDurations = inputs.map((input, i) =>
+      input ? clampDuration(input.value) : DEFAULT_DURATIONS[i]
+    );
+    currentDurations = newDurations;
+
+    // Reflect clamped values back into inputs
+    inputs.forEach((input, i) => {
+      if (input) input.value = currentDurations[i];
+    });
+
+    applyDurationsToButtons();
+
+    // Re-evaluate disabled states against the current slider value
+    const slider = document.getElementById('buffer-slider');
+    const bufferLength = slider ? parseInt(slider.value, 10) : 21600;
+    updateClipButtonStates(bufferLength);
+
+    closeModal();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  if (saveBtn) saveBtn.addEventListener('click', saveModal);
+
+  // Close on backdrop click (click directly on overlay, not the modal card)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('show')) {
+      closeModal();
+    }
+  });
+
+  // Allow Enter key to submit from any input
+  inputs.forEach(input => {
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveModal();
+      });
+    }
+  });
+}
+
 /**
  * Initializes the plugin UI demo slider interactions
  */
@@ -63,6 +220,9 @@ export function initializePluginSlider() {
   // Initialize on load
   updateFromSlider();
 
+  // Apply initial button labels from currentDurations
+  applyDurationsToButtons();
+
   // Update on slider input
   slider.addEventListener('input', updateFromSlider);
 
@@ -94,35 +254,11 @@ export function initializePluginSlider() {
   // Initialize button states based on current slider value
   updateClipButtonStates(parseInt(slider.value));
 
+  // Initialize customize modal
+  initializeCustomizeModal();
+
   // Initialize easter egg
   initializeClipButtonEasterEgg();
-}
-
-/**
- * Updates clip button enabled/disabled states based on buffer length
- */
-function updateClipButtonStates(bufferLengthSeconds) {
-  const clipButtons = document.querySelectorAll('.clip-btn');
-  
-  clipButtons.forEach(button => {
-    const buttonText = button.textContent.trim();
-    const durationMatch = buttonText.match(/(\d+)\s+(Second|Minute)/i);
-    
-    if (durationMatch) {
-      const value = parseInt(durationMatch[1]);
-      const unit = durationMatch[2].toLowerCase();
-      const clipDurationSeconds = unit.startsWith('second') ? value : value * 60;
-      
-      // Disable if clip duration exceeds buffer length
-      if (clipDurationSeconds > bufferLengthSeconds) {
-        button.disabled = true;
-        button.classList.add('disabled');
-      } else {
-        button.disabled = false;
-        button.classList.remove('disabled');
-      }
-    }
-  });
 }
 
 /**
@@ -192,13 +328,19 @@ const adjectives = ['excellent', 'impressive', 'unstoppable', 'dominating', 'mon
       title = 'Replay buffer saved!';
     } else {
       // Extract duration from button text (e.g., "Last 15 Seconds" -> "15s")
-      const durationMatch = buttonText.match(/(\d+)\s+(Second|Minute)/i);
+      const durationMatch = buttonText.match(/(\d+)\s+(Second|Minute|Hour)/i);
       let durationStr = '';
       
       if (durationMatch) {
         const value = durationMatch[1];
         const unit = durationMatch[2].toLowerCase();
-        durationStr = unit.startsWith('second') ? `${value}s` : `${value}m`;
+        if (unit.startsWith('hour')) {
+          durationStr = `${value}h`;
+        } else if (unit.startsWith('minute')) {
+          durationStr = `${value}m`;
+        } else {
+          durationStr = `${value}s`;
+        }
       }
       
       const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
@@ -262,4 +404,3 @@ const adjectives = ['excellent', 'impressive', 'unstoppable', 'dominating', 'mon
     console.log(`🎮 Easter Egg Stats: ${clickCount} clips saved, ${clickedButtons.size}/7 buttons clicked, ${shownAchievements.size} achievements unlocked`);
   }
 }
-
