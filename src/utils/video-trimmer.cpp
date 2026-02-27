@@ -149,7 +149,10 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             // Continue anyway - we might still be able to copy from the beginning
         }
         
-        // Find the first keyframe at or after our desired start time
+        // Find the last keyframe at or before our desired start time.
+        // AVSEEK_FLAG_BACKWARD already positioned the stream at or before startTime, so we
+        // scan forward and keep updating keyframeTime for every key video frame we see until
+        // we pass startTime. The last recorded keyframe is the correct cut point.
         effectiveStartTime = startTime;
         if (videoStreamIndex >= 0) {
             AVPacket* searchPacket = av_packet_alloc();
@@ -158,34 +161,40 @@ bool VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
                     if (searchPacket->stream_index == videoStreamIndex) {
                         double packetTime = 0.0;
                         if (searchPacket->pts != AV_NOPTS_VALUE) {
-                            packetTime = static_cast<double>(searchPacket->pts) * 
+                            packetTime = static_cast<double>(searchPacket->pts) *
                                        av_q2d(inputCtx->streams[videoStreamIndex]->time_base);
                         }
-                        
-                        // Check if this is a keyframe at or after our start time
-                        if (packetTime >= startTime && (searchPacket->flags & AV_PKT_FLAG_KEY)) {
+
+                        if (searchPacket->flags & AV_PKT_FLAG_KEY) {
+                            // Keep tracking keyframes until we pass the cut point
                             keyframeTime = searchPacket->pts;
                             effectiveStartTime = packetTime;
-                            Logger::info("Found keyframe at %.2f seconds (requested %.2f)", 
-                                       packetTime, startTime);
+                        }
+
+                        // Once we've moved past startTime we have the last keyframe before it
+                        if (packetTime > startTime) {
                             break;
                         }
                     }
                     av_packet_unref(searchPacket);
                 }
                 av_packet_free(&searchPacket);
-                
-                // Seek to the keyframe position for all streams
+
+                // Seek exactly to the chosen keyframe so all streams start from there
                 if (keyframeTime != AV_NOPTS_VALUE) {
-                    int64_t keyframeSeekTarget = av_rescale_q(keyframeTime, 
+                    int64_t keyframeSeekTarget = av_rescale_q(keyframeTime,
                         inputCtx->streams[videoStreamIndex]->time_base, AV_TIME_BASE_Q);
-                    ret = av_seek_frame(inputCtx, -1, keyframeSeekTarget, AVSEEK_FLAG_BACKWARD);
+                    // Use AVSEEK_FLAG_ANY (exact) — we already know this is a keyframe position
+                    ret = av_seek_frame(inputCtx, -1, keyframeSeekTarget, AVSEEK_FLAG_ANY);
                     if (ret < 0) {
-                        Logger::error("Error seeking to keyframe: %s", av_error_string(ret).c_str());
+                        Logger::warning("Exact seek to keyframe failed, retrying with backward seek: %s",
+                                       av_error_string(ret).c_str());
+                        ret = av_seek_frame(inputCtx, -1, keyframeSeekTarget, AVSEEK_FLAG_BACKWARD);
                     }
-                    Logger::info("All streams will start from keyframe at %.2f seconds", effectiveStartTime);
+                    Logger::info("Found keyframe at %.2f seconds (requested %.2f); all streams start here",
+                                effectiveStartTime, startTime);
                 } else {
-                    Logger::warning("No keyframe found, seeking back to original position");
+                    Logger::warning("No keyframe found before startTime, seeking to original position");
                     ret = av_seek_frame(inputCtx, -1, static_cast<int64_t>(startTime * AV_TIME_BASE), AVSEEK_FLAG_BACKWARD);
                 }
             }
