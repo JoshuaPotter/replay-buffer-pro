@@ -139,7 +139,7 @@ namespace ReplayBufferPro
     defaults.reserve(Config::SAVE_BUTTON_COUNT);
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
     {
-      defaults.push_back(Config::SAVE_BUTTONS[i].duration);
+      defaults.push_back(Config::SAVE_BUTTONS[i]);
     }
     return defaults;
   }

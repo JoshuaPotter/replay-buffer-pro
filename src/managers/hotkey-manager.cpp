@@ -176,7 +176,7 @@ namespace ReplayBufferPro
 
     if (index < Config::SAVE_BUTTON_COUNT)
     {
-      return Config::SAVE_BUTTONS[index].duration;
+      return Config::SAVE_BUTTONS[index];
     }
 
     return 0;

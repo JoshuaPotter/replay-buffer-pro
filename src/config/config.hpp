@@ -8,30 +8,14 @@ namespace ReplayBufferPro
   namespace Config
   {
     /**
-     * @brief Defines a save button configuration
+     * @brief Default save button durations in seconds
      */
-    struct SaveButton
-    {
-      int duration;     // Duration in seconds to save
-      const char *text; // Translation key for button text
-    };
-
-    /**
-     * @brief Predefined save durations and their labels
-     */
-    constexpr SaveButton SAVE_BUTTONS[] = {
-        {15, "Save15Sec"},  // 15 seconds
-        {30, "Save30Sec"},  // 30 seconds
-        {60, "Save1Min"},   // 1 minute
-        {300, "Save5Min"},  // 5 minutes
-        {900, "Save15Min"}, // 15 minutes
-        {1800, "Save30Min"} // 30 minutes
-    };
+    constexpr int SAVE_BUTTONS[] = {15, 30, 60, 300, 900, 1800};
 
     /**
      * @brief Number of save buttons
      */
-    constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(SAVE_BUTTONS[0]);
+    constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(int);
 
     // Buffer length configuration
     constexpr int MIN_BUFFER_LENGTH = 1;      // 1 seconds minimum
