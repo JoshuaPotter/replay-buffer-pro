@@ -1,11 +1,11 @@
 # Replay Buffer Pro
 
 [![GitHub Release](https://img.shields.io/github/v/release/joshuapotter/replay-buffer-pro)
-![GitHub Release Date](https://img.shields.io/github/release-date/joshuapotter/replay-buffer-pro?display_date=published_at)](https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip)
+![GitHub Release Date](https://img.shields.io/github/release-date/joshuapotter/replay-buffer-pro?display_date=published_at)](https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest)
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
-**Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support. The plugin uses Qt6 which also only provides 64-bit builds for Windows.
+**Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support.
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
@@ -53,51 +53,163 @@ obs-studio/
                 └── en-US.ini
 ```
 
-### From Source 
+### From Source
 
-See below for instructions to build from source.
-
-After building, you can use the command to automatically copy the files or manually copy the compiled files:
-1. Copy compiled plugin:
-   - `replay-buffer-pro.dll` → `C:/Program Files/obs-studio/obs-plugins/64bit/`
-2. Copy from source `data` directory:
-   - Data files → `C:/Program Files/obs-studio/data/obs-plugins/replay-buffer-pro/`
-
-Note: Close OBS before installing or copying the DLL. You may need administrator privileges to copy files to Program Files.
+See the [Building from Source](#building-from-source) section below. After building, run `cmake --install build` to install directly into OBS, or build the `prepare_release` target to create a zip package.
 
 ## Building from Source
 
-### Requirements
+### Requirements (all platforms)
 
-- OBS Studio 30.0.0+ (64-bit)
-- Windows 10/11 64-bit (Linux and MacOS are not supported at this time, PRs welcome!)
-- Qt6 (64-bit)
-- Visual Studio 2022+ with C++
+- OBS Studio 30.0.0+ (64-bit), built from source or installed with CMake package config
+- Qt6 (Widgets + Core)
+- FFmpeg (libavformat, libavcodec, libavutil)
 - CMake 3.16+
 
-### 1. Prerequisites
+---
+
+### Windows
+
+**Additional requirements:**
+- Windows 10/11 64-bit
+- Visual Studio 2022+ with "Desktop development with C++"
+
+#### 1. Prerequisites
 
 1. Install Visual Studio 2022+ with "Desktop development with C++"
 2. Install Qt6 (MSVC 2022 64-bit) from https://www.qt.io/download-qt-installer
 3. Install CMake 3.16+ from https://cmake.org/download/
 
-### 2. Build OBS Studio
+#### 2. Build OBS Studio
 
 ```bash
-# Clone OBS (with submodules)
+# Clone OBS (with submodules) as a sibling of this repo
 git clone --recursive https://github.com/obsproject/obs-studio.git
 cd obs-studio
-
-# Prepare build directory
 mkdir -p build && cd build
 
-# Configure with Visual Studio 2022 and Windows dependencies (obs-deps)
-# Download obs-deps for Windows separately and set its path via -DDepsPath  (otherwise, omit this parameter)
+# Configure (obs-deps provides FFmpeg; set -DDepsPath if downloaded separately)
 cmake -G "Visual Studio 17 2022" -A x64 -DDepsPath="C:/Dev/obs-deps-2022" ..
 
 # Build OBS (RelWithDebInfo to match plugin build)
 cmake --build . --config RelWithDebInfo
 ```
+
+#### 3. Build Plugin
+
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+mkdir -p build && cd build
+
+# Replace path with your local Qt 6 msvc2022_64 installation
+cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..
+
+cmake --build . --config RelWithDebInfo
+
+# Install to OBS (run as Administrator with OBS closed)
+cmake --install . --config RelWithDebInfo
+```
+
+**Note:** Ensure the `obs-studio` repository is located as a sibling of this plugin (same parent directory).
+
+---
+
+### Linux
+
+**Additional requirements:**
+- GCC 11+ or Clang 14+
+- OBS Studio 30.0.0+ installed with CMake package config (e.g. built from source with `cmake --install`)
+- Qt6, FFmpeg development headers: `libqt6-dev libavformat-dev libavcodec-dev libavutil-dev`
+
+#### 1. Install dependencies (Ubuntu/Debian)
+
+```bash
+sudo apt install cmake gcc g++ \
+  qt6-base-dev libavformat-dev libavcodec-dev libavutil-dev
+```
+
+#### 2. Build OBS Studio (if not already installed with CMake config)
+
+```bash
+git clone --recursive https://github.com/obsproject/obs-studio.git
+cd obs-studio
+cmake -B build -DENABLE_UI=OFF -DENABLE_PLUGINS=OFF
+cmake --build build
+sudo cmake --install build   # installs libobs and obs-frontend-api CMake config
+```
+
+#### 3. Build Plugin
+
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+cmake -B build
+cmake --build build
+
+# Install to system OBS plugin directory
+sudo cmake --install build
+```
+
+To install to a custom prefix (e.g. your home directory):
+```bash
+cmake -B build -DCMAKE_INSTALL_PREFIX="$HOME/.config/obs-studio"
+cmake --build build
+cmake --install build
+```
+
+---
+
+### macOS
+
+**Additional requirements:**
+- Xcode Command Line Tools or full Xcode
+- OBS Studio 30.0.0+ installed with CMake package config (built from source or via Homebrew with cmake config)
+- Qt6 and FFmpeg via Homebrew: `brew install qt6 ffmpeg`
+
+#### 1. Install dependencies
+
+```bash
+xcode-select --install
+brew install cmake qt6 ffmpeg
+```
+
+#### 2. Build OBS Studio
+
+```bash
+git clone --recursive https://github.com/obsproject/obs-studio.git
+cd obs-studio
+cmake -B build -DENABLE_UI=OFF -DENABLE_PLUGINS=OFF \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --build build
+sudo cmake --install build
+```
+
+#### 3. Build Plugin
+
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+cmake -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --build build
+
+# Install to user OBS plugin directory
+cmake -B build \
+  -DCMAKE_INSTALL_PREFIX="$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro" \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
+cmake --install build
+```
+
+---
+
+### Release Packaging (all platforms)
+
+Iterate the version in `CMakeLists.txt`, then run:
+```bash
+cmake --build build --target prepare_release
+```
+
+The output zip will be named `replay-buffer-pro-<platform>.zip` (e.g. `windows-x64`, `linux-x86_64`, `macos-arm64`) under `build/releases/<version>/`.
 
 ### 3. Build Plugin
 
