@@ -216,20 +216,25 @@ namespace ReplayBufferPro
 
 	void Plugin::handleReplayBufferSaved() 
 	{
+		// Consume the pending duration immediately (before spawning the thread) so that a
+		// rapid second save event sees 0 and does not attempt to double-trim.
 		int duration = replayManager->getPendingSaveDuration();
 		if (duration > 0) {
-			const char* savedPath = obs_frontend_get_last_replay();
-      if (savedPath) {
-        std::string pathCopy(savedPath);
-        bfree((void*)savedPath);
-
-        // Offload trimming to background thread to avoid blocking OBS event thread
-        auto *manager = replayManager;
-        std::thread([manager, path = std::move(pathCopy), duration]() {
-          manager->trimReplayBuffer(path.c_str(), duration);
-        }).detach();
-      }
 			replayManager->clearPendingSaveDuration();
+
+			const char* savedPath = obs_frontend_get_last_replay();
+			if (savedPath) {
+				std::string pathCopy(savedPath);
+				bfree((void*)savedPath);
+
+				// Offload trimming to background thread to avoid blocking OBS event thread.
+				// duration is captured by value; clearPendingSaveDuration has already been
+				// called above so the next save event can proceed independently.
+				auto *manager = replayManager;
+				std::thread([manager, path = std::move(pathCopy), duration]() {
+					manager->trimReplayBuffer(path.c_str(), duration);
+				}).detach();
+			}
 		}
 	}
 

@@ -12,6 +12,7 @@
 #include <obs-frontend-api.h>
 
 // STL includes
+#include <atomic>
 #include <string>
 #include <stdexcept>
 
@@ -92,7 +93,7 @@ namespace ReplayBufferPro
     //=========================================================================
     // MEMBER VARIABLES
     //=========================================================================
-    int pendingSaveDuration; ///< Duration to save when buffer save completes
+    std::atomic<int> pendingSaveDuration; ///< Duration to save when buffer save completes (atomic for thread safety)
 
     //=========================================================================
     // HELPER METHODS
