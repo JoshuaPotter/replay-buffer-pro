@@ -764,13 +764,17 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 /* Plugin UI Demo Component */
 .plugin-ui-demo {
   width: 100%;
-  max-width: 26rem;
   background: #2b2f38;
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.5);
   border: 0.0625rem solid rgba(0, 0, 0, 0.4);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  transform-origin: center bottom;
+  transition:
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .plugin-header {
@@ -1025,7 +1029,7 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 
 /* Responsive adjustments for plugin demo */
 @media (max-width: 56.25rem) {
-  .plugin-ui-demo {
+  .plugin-ui-stage {
     max-width: 100%;
   }
 }
@@ -1197,6 +1201,260 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
 .clip-btn:disabled:active,
 .clip-btn.disabled:active {
   transform: none;
+}
+
+/* ============================================
+   Plugin Section Header (title + Customize btn)
+   ============================================ */
+
+.plugin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.plugin-section-header .plugin-section-title {
+  margin-bottom: 0;
+}
+
+.customize-btn {
+  background: transparent;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.25rem;
+  color: #9aa7b2;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 0.1875rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.customize-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #c4cdd6;
+}
+
+.customize-btn:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ============================================
+   Plugin UI Stage — contains panel + modal
+   ============================================ */
+
+.plugin-ui-stage {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  /* Extra vertical room so the modal card can overflow the panel top edge */
+  padding-top: 0.5rem;
+}
+
+/* Panel recession effect when modal is open */
+.plugin-ui-demo.panel-recessed {
+  transform: scale(0.94);
+  filter: blur(3px) brightness(0.55);
+  box-shadow:
+    0 2.5rem 6rem rgba(0, 0, 0, 0.8),
+    0 0 0 0.0625rem rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ============================================
+   Customize Save Buttons Modal (panel-scoped)
+   ============================================ */
+
+.demo-modal-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.demo-modal-overlay.show {
+  pointer-events: auto;
+}
+
+.demo-modal {
+  background: #2b2f38;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.13);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 0 0 0.0625rem rgba(0, 0, 0, 0.35),
+    0 0.5rem 1.25rem rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 14rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.2, 0, 0.3, 1);
+}
+
+.demo-modal-overlay.show .demo-modal {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.demo-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.875rem 0.625rem;
+  border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.3);
+  background: #1e2229;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.demo-modal-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #d4d8de;
+  letter-spacing: 0.00625rem;
+}
+
+.demo-modal-close {
+  background: transparent;
+  border: none;
+  color: #9aa7b2;
+  cursor: pointer;
+  padding: 0.1875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.1875rem;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.demo-modal-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d4d8de;
+}
+
+.demo-modal-body {
+  padding: 0.75rem 0.875rem;
+}
+
+.demo-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.demo-modal-label {
+  font-size: 0.75rem;
+  color: #b4bec9;
+  flex: 1;
+  min-width: 0;
+}
+
+.demo-modal-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #3a3f4a;
+  border: 0.0625rem solid rgba(0, 0, 0, 0.3);
+  border-radius: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  transition: border-color 0.15s ease;
+}
+
+.demo-modal-input-wrap:focus-within {
+  border-color: rgba(107, 163, 255, 0.5);
+  box-shadow: 0 0 0 0.125rem rgba(107, 163, 255, 0.15);
+}
+
+.demo-modal-input {
+  background: transparent;
+  border: none;
+  color: #d4d8de;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  font-family: inherit;
+  width: 3rem;
+  text-align: right;
+  outline: none;
+  padding: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.demo-modal-input::-webkit-outer-spin-button,
+.demo-modal-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.demo-modal-unit {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #9aa7b2;
+  white-space: nowrap;
+}
+
+.demo-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem 0.75rem;
+  border-top: 0.0625rem solid rgba(0, 0, 0, 0.3);
+}
+
+.demo-modal-btn {
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 0.0625rem solid transparent;
+}
+
+.demo-modal-cancel {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #9aa7b2;
+}
+
+.demo-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #c4cdd6;
+}
+
+.demo-modal-save {
+  background: #4a5060;
+  border-color: rgba(0, 0, 0, 0.3);
+  color: #e8eaed;
+}
+
+.demo-modal-save:hover {
+  background: #555c6e;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.demo-modal-save:active {
+  opacity: 0.9;
 }
 
 
