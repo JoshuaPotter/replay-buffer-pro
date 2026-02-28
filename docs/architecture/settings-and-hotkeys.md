@@ -1,6 +1,6 @@
 # Settings and Hotkeys
 
-This document describes how replay buffer length settings are stored and how hotkeys are registered and persisted.
+This document describes how replay buffer length settings are stored, how save button durations are persisted, and how hotkeys are registered.
 
 ## Settings management
 ### Responsibilities
@@ -27,16 +27,26 @@ This document describes how replay buffer length settings are stored and how hot
 - `Config::DEFAULT_BUFFER_LENGTH` is used when OBS has no stored value.
 - `Config::SETTINGS_MONITOR_INTERVAL` controls how often the dock polls settings.
 
+## Save button durations
+### Responsibilities
+- Load and save customizable save button durations globally (module config path).
+- Normalize values to stay within valid bounds.
+
+### Persistence
+- Settings are stored in `save_button_settings.json` under the module config path.
+- Schema stores a version and an array of per-button durations.
+- Invalid or missing data falls back to default durations.
+
 ## Hotkeys
 ### Responsibilities
-- Register a hotkey per save button duration.
+- Register a hotkey per save button index.
 - Save hotkey bindings to a module config JSON file.
 - Load hotkey bindings after registration.
 
 ### Hotkey registration details
-- Hotkey name format: `ReplayBufferPro.Save{duration}Sec`.
-- Description format: `Save {label}` where `{label}` comes from localization.
-- Callback maps the pressed hotkey ID back to the configured duration.
+- Hotkey name format: `ReplayBufferPro.SaveButton{index}`.
+- Description format: localized template with current duration.
+- Callback maps the pressed hotkey ID back to the current duration for that index.
 
 ### Persistence
 - `saveHotkeySettings()` writes bindings to `hotkey_bindings.json` under the module config path.
@@ -47,6 +57,8 @@ This document describes how replay buffer length settings are stored and how hot
 - `SettingsManager::getConfigContext()`
 - `SettingsManager::updateBufferLengthSettings(...)`
 - `SettingsManager::getCurrentBufferLength()`
+- `SaveButtonSettings::load()`
+- `SaveButtonSettings::save()`
 - `HotkeyManager::registerHotkeys()`
 - `HotkeyManager::saveHotkeySettings()`
 - `HotkeyManager::loadHotkeySettings()`
@@ -54,6 +66,8 @@ This document describes how replay buffer length settings are stored and how hot
 ## Related code
 - `src/managers/settings-manager.hpp`
 - `src/managers/settings-manager.cpp`
+- `src/managers/save-button-settings.hpp`
+- `src/managers/save-button-settings.cpp`
 - `src/managers/hotkey-manager.hpp`
 - `src/managers/hotkey-manager.cpp`
 - `src/config/config.hpp`

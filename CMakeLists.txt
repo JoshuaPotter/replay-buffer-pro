@@ -65,9 +65,11 @@ set(SOURCES
   src/main.cpp
   src/plugin/plugin.cpp
   src/utils/obs-utils.cpp
+  src/utils/duration-format.cpp
   src/utils/video-trimmer.cpp
   src/ui/ui-components.cpp
   src/managers/settings-manager.cpp
+  src/managers/save-button-settings.cpp
   src/managers/replay-buffer-manager.cpp
   src/managers/hotkey-manager.cpp
 )

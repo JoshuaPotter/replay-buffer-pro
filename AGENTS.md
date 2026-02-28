@@ -4,7 +4,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 
 ## Project summary
 - Adds a dockable OBS UI for replay buffer controls.
-- Lets users adjust replay buffer length and save clips of preset durations.
+- Lets users adjust replay buffer length and save clips of customizable durations.
 - Trims saved replays to the last N seconds using FFmpeg libavformat (no re-encode).
 
 ## Architecture map (start here)
@@ -13,6 +13,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - UI components + tick labels: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
+- Save button settings: `src/managers/save-button-settings.hpp`, `src/managers/save-button-settings.cpp`
 - Hotkey manager: `src/managers/hotkey-manager.hpp`, `src/managers/hotkey-manager.cpp`
 - Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`
 - Config constants: `src/config/config.hpp`
@@ -49,6 +50,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
 - Hotkey bindings are stored in `hotkey_bindings.json` under the module config path.
+- Custom save button durations are stored in `save_button_settings.json` under the module config path.
 
 ## Build and localization
 - Built via CMake; links OBS, Qt6, and FFmpeg libs.

@@ -12,6 +12,10 @@ This document covers shared utilities used across the plugin.
 - Each helper writes to OBS logs using `blog(...)` with the `[ReplayBufferPro]` prefix.
 - Buffer size is fixed to 4096 chars per log call.
 
+## Duration formatting
+- `duration-format` formats localized duration labels (seconds/minutes/hours).
+- Used for save button labels and hotkey descriptions.
+
 ## Video trimming (FFmpeg libavformat)
 `VideoTrimmer` trims a saved replay file down to the last N seconds using stream copy (no re-encoding). It follows this sequence:
 1. Open the input file and find stream info.
@@ -35,6 +39,8 @@ This document covers shared utilities used across the plugin.
 ## Related code
 - `src/utils/obs-utils.hpp`
 - `src/utils/obs-utils.cpp`
+- `src/utils/duration-format.hpp`
+- `src/utils/duration-format.cpp`
 - `src/utils/logger.hpp`
 - `src/utils/video-trimmer.hpp`
 - `src/utils/video-trimmer.cpp`

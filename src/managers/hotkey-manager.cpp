@@ -6,6 +6,7 @@
 #include "managers/hotkey-manager.hpp"
 #include "utils/logger.hpp"
 #include "utils/obs-utils.hpp"
+#include "utils/duration-format.hpp"
 
 // OBS includes
 #include <util/platform.h>
@@ -20,8 +21,10 @@ namespace ReplayBufferPro
   //=============================================================================
 
   HotkeyManager::HotkeyManager(
-      std::function<void(int)> saveSegmentCallback
-  ) : onSaveSegment(saveSegmentCallback)
+      std::function<void(int)> saveSegmentCallback,
+      const std::vector<int> &saveButtonDurations
+  ) : onSaveSegment(saveSegmentCallback),
+      saveButtonDurations(saveButtonDurations)
   {
     // Initialize hotkey IDs to invalid
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
@@ -37,9 +40,9 @@ namespace ReplayBufferPro
   {
     // Register hotkeys for each save duration
     for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
-      const auto &btn = Config::SAVE_BUTTONS[i];
-      std::string name = std::string("ReplayBufferPro.Save") + std::to_string(btn.duration) + "Sec";
-      std::string description = std::string("Save ") + obs_module_text(btn.text);
+      std::string name = std::string("ReplayBufferPro.SaveButton") + std::to_string(i + 1);
+      QString descriptionText = formatHotkeyDescription(getDurationForIndex(i));
+      std::string description = descriptionText.toUtf8().constData();
       
       // Capture 'this' and button index for the callback
       saveHotkeys[i] = obs_hotkey_register_frontend(
@@ -53,7 +56,7 @@ namespace ReplayBufferPro
             // Find which hotkey was pressed by matching the ID
             for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++) {
               if (self->saveHotkeys[i] == id) {
-                duration = Config::SAVE_BUTTONS[i].duration;
+                duration = self->getDurationForIndex(i);
                 break;
               }
             }
@@ -66,11 +69,12 @@ namespace ReplayBufferPro
         this
       );
       
-      Logger::info("Registered hotkey for saving %d seconds", btn.duration);
+      Logger::info("Registered hotkey for save button %zu", i + 1);
     }
 
     // Load saved hotkey bindings after registration
     loadHotkeySettings();
+    hotkeysRegistered = true;
   }
 
   //=============================================================================
@@ -155,6 +159,47 @@ namespace ReplayBufferPro
     }
 
     Logger::info("Loaded hotkey bindings");
+  }
+
+  void HotkeyManager::setSaveButtonDurations(const std::vector<int> &durations)
+  {
+    saveButtonDurations = durations;
+    updateHotkeyDescriptions();
+  }
+
+  int HotkeyManager::getDurationForIndex(size_t index) const
+  {
+    if (index < saveButtonDurations.size() && saveButtonDurations[index] > 0)
+    {
+      return saveButtonDurations[index];
+    }
+
+    if (index < Config::SAVE_BUTTON_COUNT)
+    {
+      return Config::SAVE_BUTTONS[index];
+    }
+
+    return 0;
+  }
+
+  void HotkeyManager::updateHotkeyDescriptions()
+  {
+    if (!hotkeysRegistered)
+    {
+      return;
+    }
+
+    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+    {
+      if (saveHotkeys[i] == OBS_INVALID_HOTKEY_ID)
+      {
+        continue;
+      }
+
+      QString descriptionText = formatHotkeyDescription(getDurationForIndex(i));
+      std::string description = descriptionText.toUtf8().constData();
+      obs_hotkey_set_description(saveHotkeys[i], description.c_str());
+    }
   }
 
 } // namespace ReplayBufferPro 

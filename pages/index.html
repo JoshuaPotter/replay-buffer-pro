@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Replay Buffer Pro - An OBS Studio Plugin</title>
-    <meta name="description" content="An OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding.">
+    <meta name="description" content="An OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding.">
     <link rel="stylesheet" href="styles.css">
     <script src="scripts/index.js" type="module" defer></script>
     <!-- Google Tag Manager -->
@@ -17,7 +17,7 @@
 
     <!-- Open Graph -->
     <meta property="og:title" content="Replay Buffer Pro, a plugin for OBS Studio">
-    <meta property="og:description" content="Save the last moments of your stream or recording with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
+    <meta property="og:description" content="Save the last moments of your stream or recording with one click. Instantly clip customizable durations without re-encoding.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
     <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/">
@@ -25,7 +25,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Replay Buffer Pro - OBS Studio Plugin">
-    <meta name="twitter:description" content="Save the last moments of your stream or recording with one click. Instantly clip 15s, 30s, 1m, 5m, 15m, or 30m without re-encoding.">
+    <meta name="twitter:description" content="Save the last moments of your stream or recording with one click. Instantly clip customizable durations without re-encoding.">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
 
     <!-- Enhanced meta -->
@@ -48,7 +48,7 @@
 
     <!-- Schema.org Item Properties -->
     <meta itemprop="name" content="Replay Buffer Pro">
-    <meta itemprop="description" content="OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding">
+    <meta itemprop="description" content="OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding">
     <meta itemprop="image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
 
     <!-- Enhanced JSON-LD with multiple schemas -->
@@ -57,7 +57,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "Replay Buffer Pro",
-        "description": "OBS Studio plugin for saving replay buffer clips at multiple preset durations without re-encoding. Perfect for streamers, gamers, and content creators.",
+        "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding. Perfect for streamers, gamers, and content creators.",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Windows 10/11 (64-bit)",
         "softwareVersion": "1.2.0",
@@ -84,7 +84,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
         "name": "Replay Buffer Pro",
-        "description": "OBS Studio plugin for saving replay buffer clips at multiple preset durations",
+        "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
         "codeRepository": "https://github.com/JoshuaPotter/replay-buffer-pro",
         "programmingLanguage": "C++",
         "runtimePlatform": "Windows 10/11 (64-bit)",
@@ -108,7 +108,7 @@
             "name": "How is Replay Buffer Pro different from OBS's default Replay Buffer?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically."
+              "text": "The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons/hotkeys, and trims automatically."
             }
           },
           {
@@ -145,10 +145,10 @@
           },
           {
             "@type": "Question",
-            "name": "Can I change the preset durations?",
+            "name": "Can I customize the save button durations?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Not currently. The UI provides fixed presets: 15 seconds, 30 seconds, 1 minute, 5 minutes, 15 minutes, and 30 minutes."
+              "text": "Yes. Use the Customize button in the Save Clips section to set each button's duration."
             }
           }
         ]
@@ -226,7 +226,8 @@
           </div>
           <div class="hero-media">
             <!-- Interactive Plugin UI Demo -->
-            <div class="plugin-ui-demo">
+            <div class="plugin-ui-stage">
+            <div class="plugin-ui-demo" id="plugin-ui-demo">
               <div class="plugin-header">
                 <span class="plugin-title">Replay Buffer Pro</span>
                 <div class="plugin-controls">
@@ -281,8 +282,11 @@
                 </div>
 
                 <div class="plugin-section">
-                  <h3 class="plugin-section-title">Save Clips</h3>
-                  
+                  <div class="plugin-section-header">
+                    <h3 class="plugin-section-title">Save Clips</h3>
+                    <button type="button" class="customize-btn" id="customize-btn" aria-haspopup="dialog">Customize</button>
+                  </div>
+
                   <div class="clip-buttons-grid">
                     <button class="clip-btn">Last 15 Seconds</button>
                     <button class="clip-btn">Last 30 Seconds</button>
@@ -296,6 +300,72 @@
                 </div>
               </div>
             </div>
+
+            <!-- Customize Save Buttons Modal (panel-scoped) -->
+            <div id="customize-modal" class="demo-modal-overlay" aria-hidden="true">
+              <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <div class="demo-modal-header">
+                  <span id="modal-title" class="demo-modal-title">Customize Save Buttons</span>
+                  <button type="button" class="demo-modal-close" id="modal-close" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="demo-modal-body">
+                  <div class="demo-modal-form" id="modal-form">
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-0">Button 1</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-0" min="1" max="21600" value="15">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-1">Button 2</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-1" min="1" max="21600" value="30">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-2">Button 3</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-2" min="1" max="21600" value="60">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-3">Button 4</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-3" min="1" max="21600" value="300">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-4">Button 5</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-4" min="1" max="21600" value="900">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                    <div class="demo-modal-row">
+                      <label class="demo-modal-label" for="btn-input-5">Button 6</label>
+                      <div class="demo-modal-input-wrap">
+                        <input type="number" class="demo-modal-input" id="btn-input-5" min="1" max="21600" value="1800">
+                        <span class="demo-modal-unit">sec</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-modal-footer">
+                  <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-cancel">Cancel</button>
+                  <button type="button" class="demo-modal-btn demo-modal-save" id="modal-save">Save</button>
+                </div>
+              </div>
+            </div>
+
+            </div><!-- /.plugin-ui-stage -->
           </div>
         </div>
       </section>
@@ -303,7 +373,7 @@
       <section class="section alt" id="features">
         <div class="container">
           <h2>What is Replay Buffer Pro?</h2>
-          <p><strong>Replay Buffer Pro is a plugin for OBS Studio</strong> that expands upon the built-in Replay Buffer. When you press a button or hotkey for quick-save preset, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
+          <p><strong>Replay Buffer Pro is a plugin for OBS Studio</strong> that expands upon the built-in Replay Buffer. When you press a button or hotkey for a custom save button, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
           <h3>Key Features</h3>
           <div class="features-grid">
             <article class="feature">
@@ -312,8 +382,8 @@
                   <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke="currentColor" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <h3>Quick-save presets</h3>
-              <p>Save the last 15s, 30s, 1m, 5m, 15m, or 30m instantly.</p>
+              <h3>Custom save buttons</h3>
+              <p>Save any custom clip length instantly with fully customizable save buttons.</p>
             </article>
             <article class="feature">
               <div class="feature-icon" aria-hidden="true">
@@ -335,7 +405,7 @@
                 </svg>
               </div>
               <h3>Hotkeys</h3>
-              <p>Assign hotkeys for each preset length in settings.</p>
+              <p>Assign hotkeys for each save button in settings.</p>
             </article>
             <article class="feature">
               <div class="feature-icon" aria-hidden="true">
@@ -609,7 +679,7 @@
           <h2>FAQ</h2>
           <details>
             <summary>How is this different from OBS's default Replay Buffer?</summary>
-            <p>The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple preset lengths on demand with buttons/hotkeys, and trims automatically.</p>
+            <p>The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons/hotkeys, and trims automatically.</p>
           </details>
           <details>
             <summary>Why would I use this?</summary>
@@ -628,8 +698,8 @@
             <p>The Replay Buffer is active. Stop it to adjust the length, then start it again.</p>
           </details>
           <details>
-            <summary>Can I change the preset durations?</summary>
-            <p>Not currently. The UI provides fixed presets.</p>
+            <summary>Can I customize the save button durations?</summary>
+            <p>Yes. Use the Customize button in the Save Clips section to set each button's duration.</p>
           </details>
           <details>
             <summary>Where are clips saved?</summary>
@@ -745,5 +815,3 @@
     </footer>
   </body>
   </html>
-
-

@@ -10,7 +10,7 @@
  *
  * Key features:
  * - Adjustable buffer length (10 seconds to 6 hours)
- * - Quick-save buttons for predefined durations
+ * - Quick-save buttons for customizable durations
  * - Full buffer save capability
  * - Automatic UI state management based on buffer status
  * - Persistent dock position and settings
@@ -30,6 +30,7 @@
 // Local includes
 #include "ui/ui-components.hpp"
 #include "managers/settings-manager.hpp"
+#include "managers/save-button-settings.hpp"
 #include "managers/replay-buffer-manager.hpp"
 #include "managers/hotkey-manager.hpp"
 
@@ -40,7 +41,7 @@ namespace ReplayBufferPro
    *
    * Features:
    * - Adjustable buffer length (10 seconds to 6 hours)
-   * - Quick-save buttons for predefined durations
+    * - Quick-save buttons for customizable durations
    * - Full buffer save capability
    * - Automatic UI state management based on buffer status
    * - Persistent dock position and settings
@@ -130,7 +131,12 @@ namespace ReplayBufferPro
      * Handles the event when a replay buffer is saved.
      * Invokes the trim operation and clears the pending save duration, if needed.
      */
-    void handleReplayBufferSaved();
+     void handleReplayBufferSaved();
+
+    /**
+     * @brief Opens dialog to customize save button durations
+     */
+    void handleCustomizeSaveButtons();
 
   private:
     //=========================================================================
@@ -138,6 +144,7 @@ namespace ReplayBufferPro
     //=========================================================================
     UIComponents *ui;                   ///< UI components
     SettingsManager *settingsManager;   ///< Settings manager
+    SaveButtonSettings *saveButtonSettings; ///< Save button settings manager
     ReplayBufferManager *replayManager; ///< Replay buffer manager
     HotkeyManager *hotkeyManager;       ///< Hotkey manager
     QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes
