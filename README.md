@@ -14,7 +14,7 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 The project website is currently hosted via GitHub Pages.
 
-![Screenshot](./screenshot.png)
+![Plugin UI](./plugin_ui.png)
 
 ## Usage
 
@@ -22,6 +22,9 @@ The project website is currently hosted via GitHub Pages.
 1. Start the Replay Buffer in OBS
 2. Click any save clip button (customizable durations) or use the assigned hotkey
 3. Use the Customize button to set your preferred clip lengths
+
+   ![Customize UI](./customize_ui.png)
+
 4. The plugin will:
    - Save the full replay buffer
    - Automatically trim to the selected duration (Without re-encoding)
