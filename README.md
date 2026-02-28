@@ -140,7 +140,8 @@ replay-buffer-pro/
 │   ├── plugin/          # Main plugin implementation
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
-├── pages/               # Project website source
+├── docs/                # Project website source
+├── reference/           # Developer documentation
 └── README.md
 ```
 
