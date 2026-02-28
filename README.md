@@ -3,23 +3,29 @@
 [![GitHub Release](https://img.shields.io/github/v/release/joshuapotter/replay-buffer-pro)
 ![GitHub Release Date](https://img.shields.io/github/release-date/joshuapotter/replay-buffer-pro?display_date=published_at)](https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip)
 
-This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
+This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
 **Note:** This plugin is 64-bit only, as it requires OBS Studio 29.0.0+ which dropped 32-bit support. The plugin uses Qt6 which also only provides 64-bit builds for Windows.
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
 
-Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio plugin allows users to save different lengths on demand. Set the replay buffer length, then clip pre-defined lengths of footage automatically. Example: Set your replay buffer to 10 minutes. Save the last 30 seconds, 2 minutes, or 5 minutes instantly with UI buttons or hotkeys.
+Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio plugin allows users to save different lengths on demand. Set the replay buffer length, then clip custom lengths of footage automatically. Example: Set your replay buffer to 10 minutes. Save the last 30 seconds, 2 minutes, or 5 minutes instantly with UI buttons or hotkeys.
 
-![Screenshot](./screenshot.png)
+The project website is currently hosted via GitHub Pages.
+
+![Plugin UI](./plugin_ui.png)
 
 ## Usage
 
 ### Saving Clips
 1. Start the Replay Buffer in OBS
-2. Click any save clip button (15s, 30s, 1m, etc.) or use the assigned hotkey
-3. The plugin will:
+2. Click any save clip button (customizable durations) or use the assigned hotkey
+3. Use the Customize button to set your preferred clip lengths
+
+   ![Customize UI](./customize_ui.png)
+
+4. The plugin will:
    - Save the full replay buffer
    - Automatically trim to the selected duration (Without re-encoding)
    - Replace the original file with the trimmed version
@@ -118,7 +124,7 @@ cmake --install . --config RelWithDebInfo
 Iterate the version in `CMakeLists.txt`, then run:
 ```bash
 cmake -S .. -B .
-cmake --build . --config RelWithDebInfo --target create_release
+cmake --build . --config RelWithDebInfo --target prepare_release
 ```
 
 ### Project Structure
@@ -134,6 +140,7 @@ replay-buffer-pro/
 │   ├── plugin/          # Main plugin implementation
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
+├── pages/               # Project website source
 └── README.md
 ```
 

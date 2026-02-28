@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(replay-buffer-pro VERSION 1.3.0)
+project(replay-buffer-pro VERSION 1.4.0)
 
 # Find Qt
 set(CMAKE_AUTOMOC ON)
@@ -65,9 +65,11 @@ set(SOURCES
   src/main.cpp
   src/plugin/plugin.cpp
   src/utils/obs-utils.cpp
+  src/utils/duration-format.cpp
   src/utils/video-trimmer.cpp
   src/ui/ui-components.cpp
   src/managers/settings-manager.cpp
+  src/managers/save-button-settings.cpp
   src/managers/replay-buffer-manager.cpp
   src/managers/hotkey-manager.cpp
 )
@@ -137,11 +139,5 @@ add_custom_target(prepare_release
     COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
         "${RELEASE_DIR}/"
 
-    COMMENT "Creating release package..."
-)
-
-# Create release target (no install)
-add_custom_target(create_release
-    DEPENDS prepare_release
     COMMENT "Creating release package..."
 )

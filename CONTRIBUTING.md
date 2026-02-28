@@ -125,7 +125,7 @@ git commit -am "chore: bump version to x.y.z"
 
 # package the release (from your build dir)
 cmake -S .. -B .
-cmake --build . --config RelWithDebInfo --target create_release
+cmake --build . --config RelWithDebInfo --target prepare_release
 
 # finalize release
 git checkout main

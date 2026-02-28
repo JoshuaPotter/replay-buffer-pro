@@ -14,6 +14,7 @@
 // STL includes
 #include <functional>
 #include <string>
+#include <vector>
 
 // Local includes
 #include "ui/ui-components.hpp"
@@ -34,8 +35,9 @@ namespace ReplayBufferPro
      * @brief Constructor
      * @param saveSegmentCallback Callback for save segment hotkeys
      */
-    HotkeyManager(
-        std::function<void(int)> saveSegmentCallback
+     HotkeyManager(
+         std::function<void(int)> saveSegmentCallback,
+         const std::vector<int> &saveButtonDurations
     );
 
     /**
@@ -62,12 +64,20 @@ namespace ReplayBufferPro
      */
     void saveHotkeySettings();
 
+    /**
+     * @brief Updates durations used by hotkeys and refreshes descriptions
+     * @param saveButtonDurations Updated durations for each save button
+     */
+    void setSaveButtonDurations(const std::vector<int> &saveButtonDurations);
+
   private:
     //=========================================================================
     // MEMBER VARIABLES
     //=========================================================================
     obs_hotkey_id saveHotkeys[Config::SAVE_BUTTON_COUNT]; ///< Array of hotkey IDs for each save duration
     std::function<void(int)> onSaveSegment;       ///< Callback for save segment hotkeys
+    std::vector<int> saveButtonDurations;         ///< Current durations for save buttons
+    bool hotkeysRegistered = false;
 
     //=========================================================================
     // PRIVATE METHODS
@@ -79,6 +89,9 @@ namespace ReplayBufferPro
      * Restores previously saved hotkey bindings from the plugin's config file.
      */
     void loadHotkeySettings();
+
+    int getDurationForIndex(size_t index) const;
+    void updateHotkeyDescriptions();
   };
 
 } // namespace ReplayBufferPro 
