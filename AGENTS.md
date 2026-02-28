@@ -60,6 +60,6 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs.
 
 ## Documentation upkeep
-- More documentation is available in `docs/` and README.md.
-- Project website source lives in `pages/` and should be updated when relevant.
-- Any changes to the project should be reflected in `docs/` for developers, `pages/` for plugin users and distribution, README.md for project introduction and setup, and this `AGENTS.md` file for agentic coding assistance.
+- More documentation is available in `reference/` and README.md.
+- Project website source lives in `docs/` and should be updated when relevant.
+- Any changes to the project should be reflected in `reference/` for developers, `docs/` for plugin users and distribution, README.md for project introduction and setup, and this `AGENTS.md` file for agentic coding assistance.
