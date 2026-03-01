@@ -207,39 +207,17 @@ cmake --install build
 
 ### Release Packaging (all platforms)
 
-Iterate the version in `CMakeLists.txt`, then run:
+1. Update the version in `CMakeLists.txt`
+2. Reconfigure and build the `prepare_release` target:
+
 ```bash
+cmake -B build   # re-run configure to pick up the new version
 cmake --build build --target prepare_release
 ```
 
-The output zip will be named `replay-buffer-pro-<platform>.zip` (e.g. `windows-x64`, `linux-x86_64`, `macos-arm64`) under `build/releases/<version>/`.
+The output zip will be placed at `build/releases/<version>/replay-buffer-pro-<platform>.zip` (e.g. `windows-x64`, `linux-x86_64`, `macos-arm64`).
 
-### 3. Build Plugin
-
-```bash
-git clone https://github.com/joshuapotter/replay-buffer-pro.git
-cd replay-buffer-pro
-mkdir -p build && cd build
-
-# Replace path with your local Qt 6 msvc2022_64
-cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..
-
-# Build the plugin (RelWithDebInfo to match OBS)
-cmake --build . --config RelWithDebInfo
-
-# Install (run an elevated shell and ensure OBS is closed)
-cmake --install . --config RelWithDebInfo
-```
-**Note:** Replace the Qt path with your installation. Ensure the `obs-studio` repository is located as a sibling of this plugin (same parent directory). You may need to run the install command elevated (Run as administrator) to install to Program Files.
-
-### 4. Release Plugin
-Iterate the version in `CMakeLists.txt`, then run:
-```bash
-cmake -S .. -B .
-cmake --build . --config RelWithDebInfo --target prepare_release
-```
-
-### Project Structure
+## Project Structure
 
 ```
 obs-studio/              # OBS Studio source code (from step 2)
