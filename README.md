@@ -166,42 +166,43 @@ cmake --install build
 ### macOS
 
 **Additional requirements:**
-- Xcode Command Line Tools or full Xcode
-- OBS Studio 30.0.0+ installed with CMake package config (built from source or via Homebrew with cmake config)
-- Qt6 and FFmpeg via Homebrew: `brew install qt6 ffmpeg`
+- macOS 11+ with Apple Silicon (M1/M2/M3) or Intel
+- Xcode Command Line Tools: `xcode-select --install`
+- OBS Studio 30.0.0+ 
+- Qt6, FFmpeg, and simde via Homebrew: `brew install qt6 ffmpeg simde pkg-config cmake`
+- OBS Studio built from source at `../obs-studio`
 
 #### 1. Install dependencies
 
 ```bash
 xcode-select --install
-brew install cmake qt6 ffmpeg
+brew install cmake qt6 ffmpeg simde pkg-config
 ```
 
-#### 2. Build OBS Studio
+#### 2. Clone and Build OBS Studio
 
 ```bash
-git clone --recursive https://github.com/obsproject/obs-studio.git
+# From your project parent directory
+git clone --depth 1 https://github.com/obsproject/obs-studio.git
 cd obs-studio
-cmake -B build -DENABLE_UI=OFF -DENABLE_PLUGINS=OFF \
-  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-cmake --build build
-sudo cmake --install build
+cmake -B build_macos -S . -DCMAKE_PREFIX_PATH="/opt/homebrew"
+cmake --build build_macos
 ```
 
 #### 3. Build Plugin
 
 ```bash
-git clone https://github.com/joshuapotter/replay-buffer-pro.git
-cd replay-buffer-pro
-cmake -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-cmake --build build
+cd ../replay-buffer-pro
+mkdir -p build && cd build
+
+cmake ..
+cmake --build .
 
 # Install to user OBS plugin directory
-cmake -B build \
-  -DCMAKE_INSTALL_PREFIX="$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro" \
-  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-cmake --install build
+cmake --install . --prefix "$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro"
 ```
+
+**Note:** Like Windows, macOS requires building OBS from source first. The plugin links against the OBS libraries in the build directory.
 
 ---
 
