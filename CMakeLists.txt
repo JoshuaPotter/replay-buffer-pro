@@ -58,17 +58,35 @@ elseif(APPLE)
   endif()
 
   # Find OBS build directory (could be build_macos or build)
+  # On macOS with Xcode generator, libraries are in Debug/Release subdirectories
   set(OBS_BUILD_DIR "")
-  if(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/libobs.dylib")
+  set(OBS_LIBOBS_PATH "")
+  set(OBS_FRONTEND_PATH "")
+  
+  # Check for Xcode-style build structure (Debug/Release configs)
+  if(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/Debug/libobs.framework/libobs")
     set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build_macos")
+    set(OBS_LIBOBS_PATH "${OBS_BUILD_DIR}/libobs/Debug/libobs.framework/libobs")
+    set(OBS_FRONTEND_PATH "${OBS_BUILD_DIR}/frontend/api/Debug/obs-frontend-api.dylib")
+  elseif(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/Release/libobs.framework/libobs")
+    set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build_macos")
+    set(OBS_LIBOBS_PATH "${OBS_BUILD_DIR}/libobs/Release/libobs.framework/libobs")
+    set(OBS_FRONTEND_PATH "${OBS_BUILD_DIR}/frontend/api/Release/obs-frontend-api.dylib")
+  elseif(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/libobs.dylib")
+    # Unix Makefiles build structure
+    set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build_macos")
+    set(OBS_LIBOBS_PATH "${OBS_BUILD_DIR}/libobs/libobs.dylib")
+    set(OBS_FRONTEND_PATH "${OBS_BUILD_DIR}/frontend-api/libobs-frontend-api.dylib")
   elseif(EXISTS "${OBS_ROOT_DIR}/build/libobs/libobs.dylib")
     set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build")
+    set(OBS_LIBOBS_PATH "${OBS_BUILD_DIR}/libobs/libobs.dylib")
+    set(OBS_FRONTEND_PATH "${OBS_BUILD_DIR}/frontend-api/libobs-frontend-api.dylib")
   endif()
   
   if(NOT OBS_BUILD_DIR)
     message(FATAL_ERROR "OBS Studio build not found. Please build OBS Studio first:\n"
       "cd ${OBS_ROOT_DIR}\n"
-      "cmake -B build_macos -S . -DCMAKE_PREFIX_PATH=\"/opt/homebrew\"\n"
+      "cmake -B build_macos -S . -G Xcode -DCMAKE_PREFIX_PATH=\"/opt/homebrew\"\n"
       "cmake --build build_macos\n"
       "\n"
       "IMPORTANT: macOS requires the full Xcode app (not just Command Line Tools):\n"
@@ -94,8 +112,8 @@ elseif(APPLE)
 
   # OBS libraries - link against OBS build output
   set(OBS_LIBRARIES
-    "${OBS_BUILD_DIR}/libobs/libobs.dylib"
-    "${OBS_BUILD_DIR}/frontend-api/libobs-frontend-api.dylib"
+    "${OBS_LIBOBS_PATH}"
+    "${OBS_FRONTEND_PATH}"
   )
 
   # Find FFmpeg via pkg-config (system libraries on macOS)
