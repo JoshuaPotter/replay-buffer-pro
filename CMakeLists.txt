@@ -70,7 +70,13 @@ elseif(APPLE)
       "cd ${OBS_ROOT_DIR}\n"
       "cmake -B build_macos -S . -DCMAKE_PREFIX_PATH=\"/opt/homebrew\"\n"
       "cmake --build build_macos\n"
-      "Note: You may need to install dependencies first: brew install qt6 ffmpeg simde pkg-config")
+      "\n"
+      "IMPORTANT: macOS requires the full Xcode app (not just Command Line Tools):\n"
+      "1. Install Xcode from the App Store\n"
+      "2. Run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer\n"
+      "3. Accept license: sudo xcodebuild -license accept\n"
+      "\n"
+      "Dependencies: brew install qt6 ffmpeg simde pkg-config")
   endif()
 
   # Check for obsconfig.h in build directory

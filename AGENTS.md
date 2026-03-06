@@ -57,7 +57,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Supports Windows (x64), Linux (x86_64), and macOS (Intel + Apple Silicon).
 - Windows: builds against a sibling `obs-studio` source checkout and its bundled `.deps/` FFmpeg.
 - Linux: uses `find_package(libobs)` + `find_package(obs-frontend-api)` CMake targets and system FFmpeg via `pkg_check_modules`.
-- macOS: similar to Windows - builds against sibling `obs-studio` checkout, requires OBS build first (not just source), links against `libobs.dylib` and `libobs-frontend-api.dylib` from OBS build directory, uses Homebrew FFmpeg via `pkg_check_modules`.
+- macOS: similar to Windows - builds against sibling `obs-studio` checkout, requires **full Xcode app** (Xcode generator required by OBS), requires OBS build first (not just source), links against `libobs.dylib` and `libobs-frontend-api.dylib` from OBS build directory, uses Homebrew FFmpeg via `pkg_check_modules`.
 - Requires `simde` package on macOS (`brew install simde`) for OBS headers.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 

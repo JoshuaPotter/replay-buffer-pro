@@ -21,6 +21,7 @@ This document describes how the plugin is built, packaged, and localized.
 
 ### macOS build
 - Similar to Windows - requires OBS Studio built from source.
+- **Requires full Xcode application** (not just Command Line Tools) - OBS requires Xcode generator.
 - Requires OBS Studio source at `../obs-studio` (clone from https://github.com/obsproject/obs-studio).
 - Looks for OBS build in `build_macos/` or `build/` directory.
 - Uses OBS source headers from `../obs-studio/libobs` and `../obs-studio/frontend/api`.
@@ -35,14 +36,15 @@ This document describes how the plugin is built, packaged, and localized.
 #### macOS Build Steps
 
 ```bash
-# 1. Install dependencies
+# 1. Install full Xcode from App Store, then:
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 brew install pkg-config ffmpeg simde cmake qt6
 
 # 2. Clone OBS Studio source
 cd ..
 git clone --depth 1 https://github.com/obsproject/obs-studio.git
 
-# 3. Build OBS Studio
+# 3. Build OBS Studio (requires Xcode generator)
 cd obs-studio
 cmake -B build_macos -S . -DCMAKE_PREFIX_PATH="/opt/homebrew"
 cmake --build build_macos
@@ -56,6 +58,8 @@ cmake --build .
 # 5. Install to OBS plugins folder
 cmake --install . --prefix "$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro"
 ```
+
+**Important:** OBS Studio on macOS requires the **Xcode generator**, which only works with the full Xcode application from the App Store or Apple Developer. Command Line Tools alone are not sufficient.
 
 ## Install and packaging
 - `cmake --install` installs the plugin binary and data files on all platforms.
