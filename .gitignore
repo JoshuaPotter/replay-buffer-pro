@@ -9,10 +9,13 @@ build_x86_64/*
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
-*.cmake
-!CMakeLists.txt
 cmake_install.cmake
 install_manifest.txt
+# Exclude generated cmake files but keep source modules
+**/CMakeFiles/*.cmake
+**/cmake_install.cmake
+!cmake/**/*.cmake
+!CMakeLists.txt
 
 # Visual Studio files
 .vs/
