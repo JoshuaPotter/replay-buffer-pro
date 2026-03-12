@@ -1,0 +1,154 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'pages/**'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'pages/**'
+  release:
+    types: [ created ]
+
+jobs:
+  # Apple Silicon build (macos-14 is arm64)
+  build-arm64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install cmake qt6 ffmpeg simde pkg-config
+
+      - name: Verify Xcode
+        run: |
+          xcode-select -p
+          /usr/bin/xcodebuild -version
+
+      - name: Clone OBS Studio
+        run: |
+          cd ..
+          git clone --recursive --depth 1 https://github.com/obsproject/obs-studio.git
+
+      - name: Build OBS Studio
+        run: |
+          cd ../obs-studio
+          cmake -B build_macos -S . -G Xcode \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+            -DENABLE_UI=OFF \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DCMAKE_INSTALL_PREFIX="${HOME}/obs-install"
+          cmake --build build_macos --config Release
+          cmake --install build_macos --config Release
+
+      - name: Configure Plugin
+        run: |
+          export HOMEBREW_PREFIX="$(brew --prefix)"
+          cmake -B build -G Xcode \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" \
+            -DOBS_SOURCE_DIR="${{ github.workspace }}/../obs-studio" \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Plugin
+        run: |
+          cmake --build build --config Release
+
+      - name: Create Release Package
+        run: |
+          cmake --build build --config Release --target prepare_release
+          ls -la build/releases/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64-release
+          path: build/releases/*/replay-buffer-pro-macos-arm64.zip
+
+      - name: Upload to Release (if tagged)
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/releases/*/replay-buffer-pro-macos-arm64.zip
+          asset_name: replay-buffer-pro-macos-arm64.zip
+          asset_content_type: application/zip
+
+  # Intel build (macos-13 is x86_64)
+  build-x86_64:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install cmake qt6 ffmpeg simde pkg-config
+
+      - name: Verify Xcode
+        run: |
+          xcode-select -p
+          /usr/bin/xcodebuild -version
+
+      - name: Clone OBS Studio
+        run: |
+          cd ..
+          git clone --recursive --depth 1 https://github.com/obsproject/obs-studio.git
+
+      - name: Build OBS Studio
+        run: |
+          cd ../obs-studio
+          cmake -B build_macos -S . -G Xcode \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+            -DENABLE_UI=OFF \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+            -DCMAKE_INSTALL_PREFIX="${HOME}/obs-install"
+          cmake --build build_macos --config Release
+          cmake --install build_macos --config Release
+
+      - name: Configure Plugin
+        run: |
+          export HOMEBREW_PREFIX="$(brew --prefix)"
+          cmake -B build -G Xcode \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" \
+            -DOBS_SOURCE_DIR="${{ github.workspace }}/../obs-studio" \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Plugin
+        run: |
+          cmake --build build --config Release
+
+      - name: Create Release Package
+        run: |
+          cmake --build build --config Release --target prepare_release
+          ls -la build/releases/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86_64-release
+          path: build/releases/*/replay-buffer-pro-macos-x86_64.zip
+
+      - name: Upload to Release (if tagged)
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/releases/*/replay-buffer-pro-macos-x86_64.zip
+          asset_name: replay-buffer-pro-macos-x86_64.zip
+          asset_content_type: application/zip
