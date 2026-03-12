@@ -1,4 +1,29 @@
 cmake_minimum_required(VERSION 3.16)
+
+# On macOS, pull in prebuilt obs-deps (Qt6, FFmpeg, OBS) before project() so
+# that find_package() can locate them via CMAKE_PREFIX_PATH.
+if(APPLE)
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/common"
+                                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos")
+
+  # Default install prefix: OBS user plugins directory
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX
+      "$ENV{HOME}/Library/Application Support/obs-studio/plugins"
+      CACHE STRING "Default plugin installation directory" FORCE)
+  endif()
+
+  # Use RPATH from bundle layout so Qt resolves from OBS Frameworks/
+  set(CMAKE_MACOSX_RPATH TRUE)
+  set(CMAKE_SKIP_RPATH FALSE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
+  # Download prebuilt obs-deps, Qt6, and OBS Studio source/build at configure time
+  include(buildspec)
+endif()
+
 project(replay-buffer-pro VERSION 1.3.0)
 
 # Find Qt
@@ -50,145 +75,20 @@ if(WIN32)
     "${OBS_DEPS_DIR}/lib/avutil.lib"
   )
 elseif(APPLE)
-  # macOS: Robust build support for Apple Silicon and Intel
-  
-  # Detect Homebrew prefix automatically (Apple Silicon vs Intel)
-  # Check environment variable first, then common locations
-  if(DEFINED ENV{HOMEBREW_PREFIX})
-    set(HOMEBREW_PREFIX "$ENV{HOMEBREW_PREFIX}")
-  elseif(EXISTS "/opt/homebrew")
-    set(HOMEBREW_PREFIX "/opt/homebrew")
-  elseif(EXISTS "/usr/local")
-    set(HOMEBREW_PREFIX "/usr/local")
-  else()
-    message(FATAL_ERROR "Could not find Homebrew installation. "
-      "Please install Homebrew from https://brew.sh/\n"
-      "Or set HOMEBREW_PREFIX environment variable:
-"
-      "export HOMEBREW_PREFIX=/path/to/homebrew")
-  endif()
-  message(STATUS "Using Homebrew prefix: ${HOMEBREW_PREFIX}")
-  
-  # Allow user to override OBS source directory
-  set(OBS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../obs-studio" CACHE PATH "Path to OBS Studio source directory")
-  get_filename_component(OBS_ROOT_DIR "${OBS_SOURCE_DIR}" ABSOLUTE)
-  
-  if(NOT EXISTS "${OBS_ROOT_DIR}")
-    message(FATAL_ERROR 
-      "OBS Studio source not found at ${OBS_ROOT_DIR}.\n\n"
-      "Please clone obs-studio repository as a sibling of this plugin:\n"
-      "  git clone --recursive https://github.com/obsproject/obs-studio.git ../obs-studio\n\n"
-      "Or set OBS_SOURCE_DIR when configuring:\n"
-      "  cmake -B build -DOBS_SOURCE_DIR=/path/to/obs-studio ...")
-  endif()
-  message(STATUS "OBS Studio source: ${OBS_ROOT_DIR}")
+  # macOS: Use prebuilt obs-deps (downloaded at configure time via buildspec.cmake).
+  # OBS and Qt6 are found via CMAKE_PREFIX_PATH set by buildspec.cmake.
+  find_package(libobs REQUIRED)
+  find_package(obs-frontend-api REQUIRED)
 
-  # Find OBS build directory with support for multiple configs
-  # OBS typically uses Xcode generator on macOS, creating config subdirectories
-  set(OBS_BUILD_DIR "")
-  set(OBS_LIBOBS_PATH "")
-  set(OBS_FRONTEND_PATH "")
-  
-  # Function to check OBS build paths with a given config name
-  function(CHECK_OBS_BUILD_CONFIG CONFIG_NAME)
-    if(OBS_BUILD_DIR)
-      return() # Already found
-    endif()
-    
-    # Xcode-style framework build (Debug/Release/RelWithDebInfo)
-    if(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/${CONFIG_NAME}/libobs.framework/libobs")
-      set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build_macos" PARENT_SCOPE)
-      set(OBS_LIBOBS_PATH "${OBS_ROOT_DIR}/build_macos/libobs/${CONFIG_NAME}/libobs.framework/libobs" PARENT_SCOPE)
-      set(OBS_FRONTEND_PATH "${OBS_ROOT_DIR}/build_macos/frontend/api/${CONFIG_NAME}/obs-frontend-api.dylib" PARENT_SCOPE)
-    # Unix Makefiles style
-    elseif(EXISTS "${OBS_ROOT_DIR}/build_macos/libobs/libobs.dylib")
-      set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build_macos" PARENT_SCOPE)
-      set(OBS_LIBOBS_PATH "${OBS_ROOT_DIR}/build_macos/libobs/libobs.dylib" PARENT_SCOPE)
-      set(OBS_FRONTEND_PATH "${OBS_ROOT_DIR}/build_macos/frontend-api/libobs-frontend-api.dylib" PARENT_SCOPE)
-    elseif(EXISTS "${OBS_ROOT_DIR}/build/libobs/libobs.dylib")
-      set(OBS_BUILD_DIR "${OBS_ROOT_DIR}/build" PARENT_SCOPE)
-      set(OBS_LIBOBS_PATH "${OBS_ROOT_DIR}/build/libobs/libobs.dylib" PARENT_SCOPE)
-      set(OBS_FRONTEND_PATH "${OBS_ROOT_DIR}/build/frontend-api/libobs-frontend-api.dylib" PARENT_SCOPE)
-    endif()
-  endfunction()
-  
-  # Check for OBS build in order of preference
-  CHECK_OBS_BUILD_CONFIG("RelWithDebInfo")  # OBS default for release builds
-  CHECK_OBS_BUILD_CONFIG("Release")
-  CHECK_OBS_BUILD_CONFIG("Debug")
-  
-  if(NOT OBS_BUILD_DIR)
-    message(FATAL_ERROR 
-      "OBS Studio build not found. Please build OBS Studio first.\n\n"
-      "Build commands:\n"
-      "  cd ${OBS_ROOT_DIR}\n"
-      "  cmake -B build_macos -S . -G Xcode \\n"
-      "    -DCMAKE_PREFIX_PATH=\"${HOMEBREW_PREFIX}\" \\n"
-      "    -DCMAKE_OSX_ARCHITECTURES=\"${CMAKE_OSX_ARCHITECTURES}\"\n"
-      "  cmake --build build_macos\n\n"
-      "IMPORTANT: macOS requires the full Xcode app (not just Command Line Tools):\n"
-      "  1. Install Xcode from the App Store or Apple Developer\n"
-      "  2. Run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer\n"
-      "  3. Accept license: sudo xcodebuild -license accept\n\n"
-      "Dependencies (install via Homebrew):\n"
-      "  brew install qt6 ffmpeg simde pkg-config cmake")
-  endif()
-  message(STATUS "OBS Studio build: ${OBS_BUILD_DIR}")
-
-  # Verify obsconfig.h exists
-  if(NOT EXISTS "${OBS_BUILD_DIR}/config/obsconfig.h")
-    message(FATAL_ERROR 
-      "obsconfig.h not found in ${OBS_BUILD_DIR}/config/\n"
-      "Please ensure OBS Studio build completed successfully.")
-  endif()
-
-  # Verify OBS libraries exist
-  if(NOT EXISTS "${OBS_LIBOBS_PATH}")
-    message(FATAL_ERROR 
-      "libobs not found at: ${OBS_LIBOBS_PATH}\n"
-      "Please rebuild OBS Studio with the selected configuration.")
-  endif()
-  
-  if(NOT EXISTS "${OBS_FRONTEND_PATH}")
-    message(FATAL_ERROR 
-      "obs-frontend-api not found at: ${OBS_FRONTEND_PATH}\n"
-      "Please ensure OBS Studio was built with the frontend API enabled.")
-  endif()
-
-  set(obs_INCLUDE_DIRS
-    "${OBS_ROOT_DIR}/libobs"
-    "${OBS_ROOT_DIR}/frontend/api"
-    "${OBS_BUILD_DIR}/config"
-    "${HOMEBREW_PREFIX}/include"  # simde and other Homebrew headers
-  )
-
-  # OBS libraries - link against OBS build output
-  set(OBS_LIBRARIES
-    "${OBS_LIBOBS_PATH}"
-    "${OBS_FRONTEND_PATH}"
-  )
-  
-  message(STATUS "Using libobs: ${OBS_LIBOBS_PATH}")
-  message(STATUS "Using obs-frontend-api: ${OBS_FRONTEND_PATH}")
-
-  # Find FFmpeg via pkg-config (Homebrew on macOS)
-  find_package(PkgConfig REQUIRED)
-  
-  # Ensure pkg-config can find Homebrew packages
-  set(ENV{PKG_CONFIG_PATH} "${HOMEBREW_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
-  
-  pkg_check_modules(LIBAV REQUIRED libavformat libavcodec libavutil)
-  
-  if(NOT LIBAV_FOUND)
-    message(FATAL_ERROR 
-      "FFmpeg libraries not found via pkg-config.\n\n"
-      "Please install FFmpeg via Homebrew:\n"
-      "  brew install ffmpeg\n\n"
-      "And ensure pkg-config path includes Homebrew:\n"
-      "  export PKG_CONFIG_PATH=\"${HOMEBREW_PREFIX}/lib/pkgconfig:\$PKG_CONFIG_PATH\"")
-  endif()
-  
-  message(STATUS "FFmpeg libraries found: ${LIBAV_LIBRARIES}")
+  # FFmpeg: prebuilt obs-deps ships dylibs but no .pc / CMake config files.
+  # Locate them directly inside .deps using find_library.
+  set(_deps_dir "${CMAKE_CURRENT_SOURCE_DIR}/.deps/obs-deps-2025-07-11-universal")
+  find_library(AVFORMAT_LIB avformat HINTS "${_deps_dir}/lib" REQUIRED)
+  find_library(AVCODEC_LIB  avcodec  HINTS "${_deps_dir}/lib" REQUIRED)
+  find_library(AVUTIL_LIB   avutil   HINTS "${_deps_dir}/lib" REQUIRED)
+  set(FFMPEG_LIBRARIES ${AVFORMAT_LIB} ${AVCODEC_LIB} ${AVUTIL_LIB})
+  set(FFMPEG_INCLUDE_DIRS "${_deps_dir}/include")
+  message(STATUS "Using prebuilt FFmpeg: ${AVFORMAT_LIB}")
 else()
   # Linux: Find OBS via CMake package config (installed via cmake --install or distro package).
   # OBS 28+ ships libobs and obs-frontend-api as separate CMake packages.
@@ -232,25 +132,32 @@ if(WIN32)
   target_include_directories(${PROJECT_NAME} PRIVATE ${obs_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} PRIVATE ${OBS_LIBRARIES})
 elseif(APPLE)
-  target_include_directories(${PROJECT_NAME} PRIVATE ${obs_INCLUDE_DIRS} ${LIBAV_INCLUDE_DIRS})
-  target_link_libraries(${PROJECT_NAME} PRIVATE 
+  target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    OBS::libobs
+    OBS::obs-frontend-api
     Qt6::Widgets
     Qt6::Core
-    ${OBS_LIBRARIES}
+    ${FFMPEG_LIBRARIES}
   )
-  # Link FFmpeg using pkg-config linker flags
-  target_link_options(${PROJECT_NAME} PRIVATE ${LIBAV_LDFLAGS})
+  # AGL stub framework (created by buildspec.cmake) is added to CMAKE_FRAMEWORK_PATH
+  # so the linker resolves -framework AGL from Qt6 against the stub, not the SDK.
+  target_link_options(${PROJECT_NAME} PRIVATE
+    -F${CMAKE_BINARY_DIR}/stub-frameworks
+  )
 else()
   target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} PRIVATE OBS::libobs OBS::obs-frontend-api)
 endif()
 
-# Link common libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  Qt6::Widgets
-  Qt6::Core
-  ${FFMPEG_LIBRARIES}
-)
+# Link common libraries (Windows/Linux only — macOS links in the platform block above)
+if(NOT APPLE)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    Qt6::Widgets
+    Qt6::Core
+    ${FFMPEG_LIBRARIES}
+  )
+endif()
 
 # Regular installation (for development)
 if(WIN32)
