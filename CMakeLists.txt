@@ -263,11 +263,11 @@ if(WIN32)
   set(PLUGIN_DEST "obs-plugins/64bit")
   set(DATA_DEST "data/obs-plugins/${PROJECT_NAME}")
 elseif(APPLE)
-  # macOS: OBS expects plugins under <prefix>/obs-plugins and data under
-  # <prefix>/data/obs-plugins/<name>.  The typical user install prefix is
-  # ~/Library/Application Support/obs-studio/plugins/<name>, but when
-  # building against a system/Homebrew OBS the prefix is set by the caller.
-  set(PLUGIN_DEST "obs-plugins")
+  # macOS: OBS user plugins expect the layout:
+  #   <prefix>/bin/<plugin>.so
+  #   <prefix>/data/obs-plugins/<name>/
+  # Set CMAKE_INSTALL_PREFIX to ~/Library/Application Support/obs-studio/plugins/<name>
+  set(PLUGIN_DEST "bin")
   set(DATA_DEST "data/obs-plugins/${PROJECT_NAME}")
 else()
   # Linux: standard FHS paths used by system-installed OBS.
@@ -290,21 +290,26 @@ install(DIRECTORY data/
 if(WIN32)
   set(RELEASE_PLATFORM "windows-x64")
   set(RELEASE_PLUGIN_SUBDIR "obs-plugins/64bit")
+elseif(APPLE)
+  # macOS release package mirrors the user plugin install layout:
+  #   <name>/bin/<plugin>.so
+  #   <name>/data/obs-plugins/<name>/
+  set(RELEASE_PLUGIN_SUBDIR "${PROJECT_NAME}/bin")
+  string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _arch)
+  set(RELEASE_PLATFORM "macos-${_arch}")
 else()
-  # Linux and macOS share the same plugin subdirectory layout
-  set(RELEASE_PLUGIN_SUBDIR "obs-plugins")
-  if(APPLE)
-    # Detect Apple Silicon vs Intel at configure time via CMAKE_SYSTEM_PROCESSOR.
-    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _arch)
-    set(RELEASE_PLATFORM "macos-${_arch}")
-  else()
-    set(RELEASE_PLATFORM "linux-x86_64")
-  endif()
+  set(RELEASE_PLUGIN_SUBDIR "lib/obs-plugins")
+  set(RELEASE_PLATFORM "linux-x86_64")
 endif()
 
 set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-staging")
 set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/${RELEASE_PLUGIN_SUBDIR}")
-set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
+# macOS data lives under <name>/data/..., other platforms at root data/...
+if(APPLE)
+  set(RELEASE_DATA_DIR "${RELEASE_DIR}/${PROJECT_NAME}/data/obs-plugins/${PROJECT_NAME}")
+else()
+  set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
+endif()
 set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
 set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${PROJECT_NAME}-${RELEASE_PLATFORM}.zip")
 

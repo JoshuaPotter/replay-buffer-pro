@@ -65,29 +65,24 @@ obs-studio/
 
 1. Close OBS Studio completely
 2. Extract the downloaded ZIP file
-3. Copy the plugin files to your OBS plugins directory:
+3. Copy the `replay-buffer-pro` folder into your OBS user plugins directory:
 
-**For Intel Macs:**
 ```bash
-# Copy to system OBS (if installed via installer)
-cp -r obs-studio/* "/Applications/OBS.app/Contents/Resources/"
-
-# Or copy to user plugins directory
 mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
-cp -r obs-studio/* "$HOME/Library/Application Support/obs-studio/plugins/"
+cp -r replay-buffer-pro "$HOME/Library/Application Support/obs-studio/plugins/"
 ```
 
-**For Apple Silicon Macs:**
-```bash
-# Copy to system OBS (if installed via installer)
-cp -r obs-studio/* "/Applications/OBS.app/Contents/Resources/"
-
-# Or copy to user plugins directory
-mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
-cp -r obs-studio/* "$HOME/Library/Application Support/obs-studio/plugins/"
+Final structure:
+```
+~/Library/Application Support/obs-studio/plugins/replay-buffer-pro/
+├── bin/
+│   └── libreplay-buffer-pro.so
+└── data/obs-plugins/replay-buffer-pro/
+    └── locale/
+        └── en-US.ini
 ```
 
-**Note:** The plugin files must be placed in the correct architecture-specific location. macOS will show an error if you try to use the wrong architecture.
+**Note:** Download the correct architecture for your Mac. macOS will fail to load the plugin if the wrong architecture is installed.
 
 #### Linux
 
