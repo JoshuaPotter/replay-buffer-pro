@@ -1,4 +1,10 @@
 build/*
+build_macos/*
+build_x64/*
+build_x86_64/*
+
+# Downloaded build dependencies (auto-fetched at configure time via buildspec.json)
+.deps/
 
 # CMake generated files
 CMakeCache.txt
