@@ -40,10 +40,12 @@ The project website is currently hosted via GitHub Pages.
 
 ### From Release
 
-1. Download latest release
-2. Extract and merge the folder `obs-studio` with your OBS Studio installation
+#### Windows
 
-Final file structure should look like this:
+1. Download the latest release for Windows (`replay-buffer-pro-windows-x64.zip`)
+2. Extract and merge the folder `obs-studio` with your OBS Studio installation (typically `C:\Program Files\obs-studio\`)
+
+Final file structure:
 ```
 obs-studio/
 ├── obs-plugins/
@@ -55,6 +57,41 @@ obs-studio/
             └── locale/
                 └── en-US.ini
 ```
+
+#### macOS
+
+**For Intel Macs:** Download `replay-buffer-pro-macos-x86_64.zip`  
+**For Apple Silicon Macs (M1/M2/M3/M4):** Download `replay-buffer-pro-macos-arm64.zip`
+
+1. Close OBS Studio completely
+2. Extract the downloaded ZIP file
+3. Copy the plugin files to your OBS plugins directory:
+
+**For Intel Macs:**
+```bash
+# Copy to system OBS (if installed via installer)
+cp -r obs-studio/* "/Applications/OBS.app/Contents/Resources/"
+
+# Or copy to user plugins directory
+mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
+cp -r obs-studio/* "$HOME/Library/Application Support/obs-studio/plugins/"
+```
+
+**For Apple Silicon Macs:**
+```bash
+# Copy to system OBS (if installed via installer)
+cp -r obs-studio/* "/Applications/OBS.app/Contents/Resources/"
+
+# Or copy to user plugins directory
+mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
+cp -r obs-studio/* "$HOME/Library/Application Support/obs-studio/plugins/"
+```
+
+**Note:** The plugin files must be placed in the correct architecture-specific location. macOS will show an error if you try to use the wrong architecture.
+
+#### Linux
+
+See the [Building from Source](#building-from-source) section below. Prebuilt binaries are not provided for Linux due to distribution differences.
 
 ### From Source
 
@@ -166,31 +203,87 @@ cmake --install build
 ### macOS
 
 **Additional requirements:**
-- macOS 11+ with Apple Silicon (M1/M2/M3) or Intel
+- macOS 11+ with Apple Silicon (M1/M2/M3/M4) or Intel
 - **Full Xcode app** (not just Command Line Tools) - download from App Store or Apple Developer
 - OBS Studio 30.0.0+ 
-- Qt6, FFmpeg, and simde via Homebrew: `brew install qt6 ffmpeg simde pkg-config cmake`
+- Homebrew dependencies: `brew install qt6 ffmpeg simde pkg-config cmake`
 - OBS Studio built from source at `../obs-studio`
 
-#### 1. Install dependencies
+#### 1. Install Xcode and Homebrew dependencies
 
 ```bash
 # Install full Xcode from App Store first, then:
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license accept
+
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install dependencies
 brew install cmake qt6 ffmpeg simde pkg-config
 ```
+
+**Note:** The plugin build system automatically detects your Homebrew prefix (`/opt/homebrew` for Apple Silicon, `/usr/local` for Intel). You can override this with the `HOMEBREW_PREFIX` environment variable.
 
 #### 2. Clone and Build OBS Studio
 
 ```bash
-# From your project parent directory
-git clone --depth 1 https://github.com/obsproject/obs-studio.git
+# From your project parent directory (same level as this plugin)
+git clone --recursive --depth 1 https://github.com/obsproject/obs-studio.git
 cd obs-studio
-cmake -B build_macos -S . -DCMAKE_PREFIX_PATH="/opt/homebrew"
+
+# Configure OBS build
+# For Apple Silicon (M1/M2/M3/M4):
+cmake -B build_macos -S . -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="arm64" \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"
+
+# For Intel Macs:
+cmake -B build_macos -S . -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"
+
+# Build OBS (this may take 15-30 minutes)
 cmake --build build_macos
 ```
 
 **Note:** OBS requires the **Xcode generator** on macOS, which requires the full Xcode application. Command Line Tools alone are not sufficient.
+
+#### 3. Build the Plugin
+
+```bash
+# Go back to the plugin directory
+cd ../replay-buffer-pro
+
+# Configure the plugin (automatically detects OBS and Homebrew)
+# For Apple Silicon:
+cmake -B build -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="arm64"
+
+# For Intel Macs:
+cmake -B build -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="x86_64"
+
+# Build the plugin
+cmake --build build
+
+# Install to OBS plugins folder
+cmake --install build --prefix "$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro"
+```
+
+#### 4. Create Release Package (Optional)
+
+To create a distributable ZIP file:
+
+```bash
+cmake --build build --target prepare_release
+```
+
+The release package will be created at `build/releases/<version>/replay-buffer-pro-macos-<arch>.zip`.
 
 ---
 
@@ -204,7 +297,12 @@ cmake -B build   # re-run configure to pick up the new version
 cmake --build build --target prepare_release
 ```
 
-The output zip will be placed at `build/releases/<version>/replay-buffer-pro-<platform>.zip` (e.g. `windows-x64`, `linux-x86_64`, `macos-arm64`).
+The output zip will be placed at `build/releases/<version>/replay-buffer-pro-<platform>.zip`:
+
+- `windows-x64` - Windows 10/11 64-bit
+- `linux-x86_64` - Linux 64-bit
+- `macos-arm64` - macOS Apple Silicon (M1/M2/M3/M4)
+- `macos-x86_64` - macOS Intel
 
 ## Project Structure
 
@@ -225,15 +323,46 @@ replay-buffer-pro/
 
 ## Troubleshooting
 
-- Verify plugin DLL location
-- Check OBS logs for errors
-- For trimming issues:
-  - Check disk space
-  - Check write permissions in output directory
-- When building from source
-  - Ensure Qt6 and OBS paths are correct in CMake
-  - If building OBS on Windows, ensure `-DDepsPath` points to your obs-deps directory
-  - Run install command in a terminal with admin privileges
+### Plugin Not Loading
+
+**Windows:**
+- Verify `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- Check OBS logs (`Help → Log Files → View Current Log`) for load errors
+
+**macOS:**
+- Verify the correct architecture: Apple Silicon Macs need `arm64` build, Intel Macs need `x86_64`
+- Check plugin location: `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro/obs-plugins/replay-buffer-pro.so`
+- If you see "cannot be opened because the developer cannot be verified", you may need to allow it in System Settings → Privacy & Security
+
+**Linux:**
+- Verify `replay-buffer-pro.so` is in the correct OBS plugins directory (varies by distribution)
+- Check OBS logs for linker errors
+
+### Build Issues
+
+**macOS specific:**
+- "OBS Studio source not found": Ensure OBS is cloned as a sibling directory (`../obs-studio`)
+- "obsconfig.h not found": OBS build may have failed; rebuild OBS with `cmake --build build_macos`
+- "Could not find Homebrew": Install Homebrew from https://brew.sh/
+- Xcode errors: Ensure full Xcode is installed (not just Command Line Tools):
+  ```bash
+  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+  sudo xcodebuild -license accept
+  ```
+
+**Windows specific:**
+- Ensure `-DDepsPath` points to your obs-deps directory when building OBS
+- Run install command in a terminal with admin privileges
+
+**All platforms:**
+- Ensure Qt6 and OBS paths are correct in CMake
+- Check that FFmpeg libraries are available (via pkg-config on macOS/Linux)
+
+### Trimming Issues
+
+- Check disk space availability
+- Verify write permissions in the output directory
+- Check OBS logs for FFmpeg/libavformat errors
 
 ## Third-Party Software
 
