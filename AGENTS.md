@@ -55,10 +55,26 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ## Build and localization
 - Built via CMake; links OBS, Qt6, and FFmpeg libs.
 - Supports Windows (x64), Linux (x86_64), and macOS (Intel + Apple Silicon).
-- Windows: builds against a sibling `obs-studio` source checkout and its bundled `.deps/` FFmpeg.
-- Linux: uses `find_package(libobs)` + `find_package(obs-frontend-api)` CMake targets and system FFmpeg via `pkg_check_modules`.
-- macOS: similar to Windows - builds against sibling `obs-studio` checkout, requires **full Xcode app** (Xcode generator required by OBS), requires OBS build first (not just source), links against `libobs.dylib` and `libobs-frontend-api.dylib` from OBS build directory, uses Homebrew FFmpeg via `pkg_check_modules`.
-- Requires `simde` package on macOS (`brew install simde`) for OBS headers.
+
+### Platform-specific build notes
+
+**Windows**: builds against a sibling `obs-studio` source checkout and its bundled `.deps/` FFmpeg.
+
+**Linux**: uses `find_package(libobs)` + `find_package(obs-frontend-api)` CMake targets and system FFmpeg via `pkg_check_modules`.
+
+**macOS**:
+- **Prebuilt binaries**: Available for both Apple Silicon (`arm64`) and Intel (`x86_64`) via GitHub releases
+- Release packages: `replay-buffer-pro-macos-arm64.zip` and `replay-buffer-pro-macos-x86_64.zip`
+- Build from source: requires sibling `obs-studio` checkout (or specify path via `OBS_SOURCE_DIR` CMake option)
+- **Full Xcode app required** (not just Command Line Tools) - OBS requires Xcode generator
+- Requires OBS build first (not just source) - looks for `build_macos/` or `build/` directory
+- Automatic Homebrew detection: `/opt/homebrew` (Apple Silicon) or `/usr/local` (Intel), overridable via `HOMEBREW_PREFIX` env var
+- Supports Xcode configs: `Debug`, `Release`, `RelWithDebInfo` (prefers `RelWithDebInfo` if available)
+- Links against `libobs.framework/libobs` (Xcode builds) or `libobs.dylib` (Makefiles builds) and `obs-frontend-api.dylib`
+- Uses Homebrew FFmpeg via `pkg_check_modules` with automatic `PKG_CONFIG_PATH` setup
+- Requires `simde` package (`brew install simde`) for OBS headers
+- CI/CD: GitHub Actions builds for both architectures (`.github/workflows/macos.yml`)
+
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 
 ## Not present
