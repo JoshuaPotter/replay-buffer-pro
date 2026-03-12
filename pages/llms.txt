@@ -37,9 +37,10 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 ## Installation
 
-### Windows (Quick Install)
+### Windows
 
 1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest
+   - File: `replay-buffer-pro-windows-x64.zip`
 2. Close OBS Studio completely
 3. Extract the ZIP file
 4. Merge the `obs-studio` folder into your OBS Studio installation directory (typically `C:\Program Files\obs-studio\`)
@@ -50,7 +51,67 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 **Note**: Administrator privileges may be required to copy files to Program Files.
 
-### Linux / macOS (Build from Source)
+### macOS
+
+**Prebuilt binaries are now available!** No need to build from source unless you prefer to.
+
+1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest
+   - **Apple Silicon (M1/M2/M3/M4)**: `replay-buffer-pro-macos-arm64.zip`
+   - **Intel Macs**: `replay-buffer-pro-macos-x86_64.zip`
+2. Close OBS Studio completely
+3. Extract the ZIP file
+4. Install the plugin files:
+
+```bash
+# Option 1: Install to OBS application bundle
+cp -r obs-studio/* "/Applications/OBS.app/Contents/Resources/"
+
+# Option 2: Install to user plugins directory
+mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
+cp -r obs-studio/* "$HOME/Library/Application Support/obs-studio/plugins/"
+```
+
+5. Verify installation:
+   - Plugin location: `obs-studio/obs-plugins/replay-buffer-pro.so`
+   - Data location: `obs-studio/data/obs-plugins/replay-buffer-pro/locale/en-US.ini`
+6. Open OBS Studio
+
+**Important**: Download the correct architecture for your Mac. Apple Silicon Macs require the `arm64` build, while Intel Macs require the `x86_64` build. The wrong architecture will not load in OBS.
+
+**Security Note**: If macOS shows "cannot be opened because the developer cannot be verified", go to System Settings → Privacy & Security and allow the plugin, or build from source.
+
+### macOS Build from Source
+
+If you prefer to build from source or need to modify the plugin:
+
+```bash
+# 1. Install Xcode and Homebrew dependencies
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license accept
+brew install cmake qt6 ffmpeg simde pkg-config
+
+# 2. Clone OBS Studio (as sibling directory)
+git clone --recursive --depth 1 https://github.com/obsproject/obs-studio.git ../obs-studio
+
+# 3. Build OBS Studio
+cd ../obs-studio
+cmake -B build_macos -S . -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="arm64"  # or "x86_64" for Intel
+cmake --build build_macos
+
+# 4. Build the plugin
+cd ../replay-buffer-pro
+cmake -B build -G Xcode \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)" \
+  -DCMAKE_OSX_ARCHITECTURES="arm64"  # or "x86_64" for Intel
+cmake --build build
+
+# 5. Install
+cmake --install build --prefix "$HOME/Library/Application Support/obs-studio/plugins/replay-buffer-pro"
+```
+
+### Linux (Build from Source)
 
 See the full build instructions in the README: https://github.com/JoshuaPotter/replay-buffer-pro#building-from-source
 
@@ -108,15 +169,23 @@ A: Yes. Use the Customize button in the Save Clips section to set each button's 
 A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
 
 **Q: What platforms are supported?**
-A: Windows 10/11 (64-bit), Linux (x86_64), and macOS (Intel + Apple Silicon). Windows has a pre-built release download; Linux and macOS require building from source.
+A: Windows 10/11 (64-bit), Linux (x86_64), and macOS (Intel + Apple Silicon). Prebuilt binaries are available for Windows and macOS. Linux requires building from source.
 
 ## Troubleshooting
 
 **Plugin Not Loading**
-- Windows: ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
-- Linux/macOS: ensure the plugin `.so` is in the correct OBS plugins directory
+- **Windows**: ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- **macOS**: ensure the correct architecture is downloaded (arm64 for Apple Silicon, x86_64 for Intel)
+  - Check plugin location: `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro/`
+  - If macOS shows "cannot be verified", allow in System Settings → Privacy & Security, or build from source
+- **Linux**: ensure the plugin `.so` is in the correct OBS plugins directory
 - Restart OBS Studio after placing the file
 - Check OBS logs for "Replay Buffer Pro" entries
+
+**macOS Architecture Mismatch**
+- If OBS shows an error about architecture mismatch, you downloaded the wrong build
+- Apple Silicon (M1/M2/M3/M4): use `replay-buffer-pro-macos-arm64.zip`
+- Intel Macs: use `replay-buffer-pro-macos-x86_64.zip`
 
 **Trimming Fails**
 - Confirm locale files exist at `obs-studio/data/obs-plugins/replay-buffer-pro/locale/`
@@ -133,7 +202,7 @@ A: Windows 10/11 (64-bit), Linux (x86_64), and macOS (Intel + Apple Silicon). Wi
 - CMake 3.16+
 - Qt6 (Widgets + Core)
 - FFmpeg (libavformat, libavcodec, libavutil)
-- OBS Studio 30.0.0+ (source checkout on Windows; CMake package config install on Linux/macOS)
+- OBS Studio 30.0.0+ (source checkout on Windows; CMake package config install on Linux; source or Homebrew on macOS)
 
 ### Windows
 - Visual Studio 2022+ with C++ Desktop Development
@@ -160,17 +229,8 @@ cmake --build build
 sudo cmake --install build
 ```
 
-### macOS
-```bash
-brew install cmake qt6 ffmpeg
-git clone https://github.com/joshuapotter/replay-buffer-pro.git
-cd replay-buffer-pro
-cmake -B build -DCMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-cmake --build build
-cmake --install build
-```
-
-Full instructions (including OBS source build steps): https://github.com/JoshuaPotter/replay-buffer-pro#building-from-source
+### macOS (Build from Source)
+See the detailed macOS build instructions in the Installation section above, or the full README.
 
 ## Links
 
@@ -190,6 +250,5 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2026-02-27
+Last Updated: 2025-03-11
 Version: 1.3.0
-

@@ -532,8 +532,12 @@
             <div class="step-card">
               <div class="step-badge">3</div>
               <div class="step-content">
-                <h4 class="step-title">Extract & Merge Files</h4>
-                <p class="step-description">Extract the ZIP and merge its contents into your OBS Studio installation directory. On Windows this is typically <code>C:\Program Files\obs-studio\</code>. On Linux/macOS, run <code>cmake --install</code> after building from source.</p>
+                <h4 class="step-title">Extract & Install</h4>
+                <p class="step-description">
+                  <strong>Windows:</strong> Extract and merge into <code>C:\Program Files\obs-studio\</code><br>
+                  <strong>macOS:</strong> Copy <code>obs-studio</code> folder into OBS app bundle or user plugins folder<br>
+                  <strong>Linux:</strong> Build from source and run <code>cmake --install</code> — see README for instructions
+                </p>
               </div>
               <div class="step-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -548,15 +552,15 @@
               <div class="step-content">
                 <h4 class="step-title">Verify Installation</h4>
                 <p class="step-description">Verify the final installation structure matches the expected layout:</p>
-                <pre class="code-block"><code>obs-studio/
-├── obs-plugins/
-│   └── 64bit/
-│       └── replay-buffer-pro.dll
-└── data/
-    └── obs-plugins/
-        └── replay-buffer-pro/
-            └── locale/
-                └── en-US.ini</code></pre>
+                <pre class="code-block"><code># Windows
+obs-studio/
+├── obs-plugins/64bit/replay-buffer-pro.dll
+└── data/obs-plugins/replay-buffer-pro/locale/en-US.ini
+
+# macOS
+obs-studio/
+├── obs-plugins/replay-buffer-pro.so
+└── data/obs-plugins/replay-buffer-pro/locale/en-US.ini</code></pre>
               </div>
               <div class="step-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -572,7 +576,7 @@
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
               <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <span><strong>Note:</strong> On Windows you may need administrator privileges to copy files into Program Files. Linux and macOS users should build from source — see the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#building-from-source" rel="noopener" target="_blank">README</a> for instructions.</span>
+            <span><strong>Note:</strong> Download the correct macOS release for your Mac: <code>arm64</code> for Apple Silicon (M1/M2/M3/M4) or <code>x86_64</code> for Intel. Windows users may need administrator privileges to copy files into Program Files. Linux users should build from source — see the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#building-from-source" rel="noopener" target="_blank">README</a> for instructions.</span>
           </div>
         </div>
       </section>
@@ -714,7 +718,7 @@
               </div>
               <div class="troubleshoot-content">
                 <strong>Plugin Not Loading</strong>
-                <p>Ensure the plugin binary (<code>replay-buffer-pro.dll</code> on Windows, <code>replay-buffer-pro.so</code> on Linux/macOS) is in the correct OBS plugins directory. Restart OBS Studio after placing the file.</p>
+                <p>Ensure the plugin binary is in the correct OBS plugins directory and restart OBS Studio. <strong>Windows:</strong> <code>replay-buffer-pro.dll</code>. <strong>macOS:</strong> Download the correct architecture (arm64 for Apple Silicon, x86_64 for Intel). <strong>Linux:</strong> <code>replay-buffer-pro.so</code>.</p>
               </div>
             </div>
             
