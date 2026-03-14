@@ -15,6 +15,37 @@
       }
     },
     {
+      "name": "macos",
+      "displayName": "macOS Universal",
+      "description": "Build for macOS 12.0+ (Universal binary)",
+      "inherits": ["template"],
+      "binaryDir": "${sourceDir}/build_macos",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "generator": "Xcode",
+      "warnings": {"dev": true, "deprecated": true},
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0",
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "CODESIGN_IDENTITY": "$penv{CODESIGN_IDENT}",
+        "CODESIGN_TEAM": "$penv{CODESIGN_TEAM}"
+      }
+    },
+    {
+      "name": "macos-ci",
+      "inherits": ["macos"],
+      "displayName": "macOS Universal CI build",
+      "description": "Build for macOS 12.0+ (Universal binary) for CI",
+      "generator": "Xcode",
+      "cacheVariables": {
+        "CMAKE_COMPILE_WARNING_AS_ERROR": true,
+        "ENABLE_CCACHE": true
+      }
+    },
+    {
       "name": "windows-x64",
       "displayName": "Windows x64",
       "description": "Build for Windows x64",
@@ -40,6 +71,20 @@
     }
   ],
   "buildPresets": [
+    {
+      "name": "macos",
+      "configurePreset": "macos",
+      "displayName": "macOS Universal",
+      "description": "macOS build for Universal architectures",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "macos-ci",
+      "configurePreset": "macos-ci",
+      "displayName": "macOS Universal CI",
+      "description": "macOS CI build for Universal architectures",
+      "configuration": "RelWithDebInfo"
+    },
     {
       "name": "windows-x64",
       "configurePreset": "windows-x64",

@@ -79,33 +79,35 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
 
-# Release package configuration
-set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package/obs-studio")
-set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
-set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}")
-set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
-set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${CMAKE_PROJECT_NAME}-windows-x64.zip")
+# Release package configuration (Windows only)
+if(OS_WINDOWS)
+  set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package/obs-studio")
+  set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
+  set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}")
+  set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
+  set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${CMAKE_PROJECT_NAME}-windows-x64.zip")
 
-add_custom_target(prepare_release
-  DEPENDS ${CMAKE_PROJECT_NAME}
-  # Create directory structure
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
+  add_custom_target(prepare_release
+    DEPENDS ${CMAKE_PROJECT_NAME}
+    # Create directory structure
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
 
-  # Copy plugin DLL
-  COMMAND ${CMAKE_COMMAND} -E copy
-    "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>"
-    "${RELEASE_PLUGIN_DIR}/"
+    # Copy plugin DLL
+    COMMAND ${CMAKE_COMMAND} -E copy
+      "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>"
+      "${RELEASE_PLUGIN_DIR}/"
 
-  # Copy data files (locale)
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/data"
-    "${RELEASE_DATA_DIR}"
+    # Copy data files (locale)
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_SOURCE_DIR}/data"
+      "${RELEASE_DATA_DIR}"
 
-  # Create ZIP file
-  COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
-    "${RELEASE_DIR}/"
+    # Create ZIP file
+    COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
+      "${RELEASE_DIR}/"
 
-  COMMENT "Creating release package..."
-)
+    COMMENT "Creating release package..."
+  )
+endif()
