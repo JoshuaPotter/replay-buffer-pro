@@ -18,7 +18,8 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`
 - Config constants: `src/config/config.hpp`
 - Localization: `data/locale/en-US.ini`
-- Build system: `CMakeLists.txt`
+- Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
+- CI/CD: `.github/workflows/`, `.github/actions/`, `.github/scripts/`
 
 ## Core runtime flows
 ### Buffer length update
@@ -53,8 +54,25 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Custom save button durations are stored in `save_button_settings.json` under the module config path.
 
 ## Build and localization
-- Built via CMake; links OBS, Qt6, and FFmpeg libs.
+- Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
+- Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
+- `CMakePresets.json` defines `windows-x64` configure/build presets (Visual Studio 17 2022).
+- Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
+- OBS (libobs + obs-frontend-api) is built from source during configure.
+- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
+- CMake modules live in `cmake/common/` (cross-platform) and `cmake/windows/` (MSVC-specific).
+- Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
+- Post-build rundir at `build_x64/rundir/<config>/` for quick testing.
+- `prepare_release` custom target creates a zip package.
+- GitHub Actions CI: builds on push/PR, creates draft releases on semver tag push.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
+
+### Build commands (Windows)
+```bash
+cmake --preset windows-x64          # Configure (downloads deps on first run)
+cmake --build --preset windows-x64  # Build
+cmake --install build_x64 --config RelWithDebInfo  # Install
+```
 
 ## Not present
 - No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs.

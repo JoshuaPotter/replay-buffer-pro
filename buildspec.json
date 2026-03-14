@@ -1,0 +1,39 @@
+{
+    "dependencies": {
+        "obs-studio": {
+            "version": "31.1.1",
+            "baseUrl": "https://github.com/obsproject/obs-studio/archive/refs/tags",
+            "label": "OBS sources",
+            "hashes": {
+                "windows-x64": "2c8427c10b55ac6d68008df2e9a3e82f4647aaad18f105e30d4713c2de678ccf"
+            }
+        },
+        "prebuilt": {
+            "version": "2025-07-11",
+            "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
+            "label": "Pre-Built obs-deps",
+            "hashes": {
+                "windows-x64": "c8c642c1070dc31ce9a0f1e4cef5bb992f4bff4882255788b5da12129e85caa7"
+            }
+        },
+        "qt6": {
+            "version": "2025-07-11",
+            "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
+            "label": "Pre-Built Qt6",
+            "hashes": {
+                "windows-x64": "0e76bf0555dd5382838850b748d3dcfab44a1e1058441309ab54e1a65b156d0a"
+            }
+        }
+    },
+    "platformConfig": {
+        "macos": {
+            "bundleId": "com.replay-buffer-pro.obs"
+        }
+    },
+    "name": "replay-buffer-pro",
+    "displayName": "Replay Buffer Pro",
+    "version": "1.4.0",
+    "author": "Replay Buffer Pro Contributors",
+    "website": "https://replaybufferpro.com",
+    "email": "support@replaybufferpro.com"
+}

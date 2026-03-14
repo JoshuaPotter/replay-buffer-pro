@@ -1,0 +1,16 @@
+name: Pull Request
+run-name: ${{ github.head_ref }} pull request run
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+permissions:
+  contents: read
+jobs:
+  build-project:
+    name: Build Project
+    uses: ./.github/workflows/build-project.yaml
+    secrets: inherit
+    permissions:
+      contents: read

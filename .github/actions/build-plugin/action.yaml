@@ -1,0 +1,28 @@
+name: Set up and build plugin
+description: Builds the plugin for specified architecture and build config
+inputs:
+  target:
+    description: Target architecture for dependencies
+    required: true
+  config:
+    description: Build configuration
+    required: false
+    default: RelWithDebInfo
+runs:
+  using: composite
+  steps:
+    - name: Run Windows Build
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Run Windows Build
+        if ( $Env:RUNNER_DEBUG -ne $null ) {
+          Set-PSDebug -Trace 1
+        }
+
+        $BuildArgs = @{
+          Target = '${{ inputs.target }}'
+          Configuration = '${{ inputs.config }}'
+        }
+
+        .github/scripts/Build-Windows.ps1 @BuildArgs

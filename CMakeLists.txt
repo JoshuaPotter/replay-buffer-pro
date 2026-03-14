@@ -1,143 +1,111 @@
-cmake_minimum_required(VERSION 3.16)
-project(replay-buffer-pro VERSION 1.4.0)
+cmake_minimum_required(VERSION 3.28...3.30)
 
-# Find Qt
-set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCOPE)
 
-# Find OBS
-if(WIN32)
-  get_filename_component(OBS_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../obs-studio" ABSOLUTE)
+project(${_name} VERSION ${_version})
 
-  if(NOT EXISTS "${OBS_ROOT_DIR}")
-    message(FATAL_ERROR "OBS Studio source not found at ${OBS_ROOT_DIR}. Please clone obs-studio repository at the same level as this plugin.")
-  endif()
+option(ENABLE_FRONTEND_API "Use obs-frontend-api for UI functionality" ON)
+option(ENABLE_QT "Use Qt functionality" ON)
 
-  # Find OBS deps directory that contains FFmpeg libraries
-  file(GLOB OBS_DEPS_DIRS "${OBS_ROOT_DIR}/.deps/obs-deps-*")
-  set(OBS_DEPS_DIR "")
-  
-  # Look for a deps directory that has FFmpeg libraries
-  foreach(DEPS_DIR ${OBS_DEPS_DIRS})
-    if(EXISTS "${DEPS_DIR}/lib/avformat.lib")
-      set(OBS_DEPS_DIR "${DEPS_DIR}")
-      break()
-    endif()
-  endforeach()
-  
-  if(NOT OBS_DEPS_DIR)
-    message(FATAL_ERROR "OBS deps with FFmpeg libraries not found. Expected directory like ${OBS_ROOT_DIR}/.deps/obs-deps-* with avformat.lib")
-  endif()
-  
-  message(STATUS "Using OBS deps with FFmpeg: ${OBS_DEPS_DIR}")
+include(compilerconfig)
+include(defaults)
+include(helpers)
 
-  set(obs_INCLUDE_DIRS
-    "${OBS_ROOT_DIR}/libobs"
-    "${OBS_ROOT_DIR}/frontend/api"
-    "${OBS_ROOT_DIR}/build/config"
-    "${OBS_DEPS_DIR}/include"  # FFmpeg headers from OBS deps
-  )
+add_library(${CMAKE_PROJECT_NAME} MODULE)
 
-  set(OBS_LIBRARIES
-    "${OBS_ROOT_DIR}/build/libobs/$<CONFIG>/obs.lib"
-    "${OBS_ROOT_DIR}/build/frontend/api/$<CONFIG>/obs-frontend-api.lib"
-  )
+find_package(libobs REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 
-  # FFmpeg libraries from OBS dependencies
-  set(FFMPEG_LIBRARIES
-    "${OBS_DEPS_DIR}/lib/avformat.lib"
-    "${OBS_DEPS_DIR}/lib/avcodec.lib"
-    "${OBS_DEPS_DIR}/lib/avutil.lib"
-  )
-else()
-  find_package(LibObs REQUIRED)
-  # For Linux/Mac, use system FFmpeg or find FFmpeg from OBS installation
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LIBAV REQUIRED libavformat libavcodec libavutil)
-  set(FFMPEG_LIBRARIES ${LIBAV_LIBRARIES})
+if(ENABLE_FRONTEND_API)
+  find_package(obs-frontend-api REQUIRED)
+  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Add source files
-set(SOURCES
-  src/main.cpp
-  src/plugin/plugin.cpp
-  src/utils/obs-utils.cpp
-  src/utils/duration-format.cpp
-  src/utils/video-trimmer.cpp
-  src/ui/ui-components.cpp
-  src/managers/settings-manager.cpp
-  src/managers/save-button-settings.cpp
-  src/managers/replay-buffer-manager.cpp
-  src/managers/hotkey-manager.cpp
-)
-
-add_library(${PROJECT_NAME} MODULE ${SOURCES})
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-  ${obs_INCLUDE_DIRS}
-  ${Qt6Widgets_INCLUDE_DIRS}
-  src
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${OBS_LIBRARIES}
-  ${FFMPEG_LIBRARIES}
-  Qt6::Widgets
-  Qt6::Core
-)
-
-# Regular installation (for development)
-if(WIN32)
-  set(PLUGIN_DEST "C:/Program Files/obs-studio/obs-plugins/64bit")
-  set(DATA_DEST "C:/Program Files/obs-studio/data/obs-plugins/${PROJECT_NAME}")
-
-  # Install plugin binary
-  install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION ${PLUGIN_DEST}
-    RUNTIME DESTINATION ${PLUGIN_DEST}
+if(ENABLE_QT)
+  find_package(Qt6 REQUIRED COMPONENTS Widgets Core)
+  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets)
+  target_compile_options(
+    ${CMAKE_PROJECT_NAME}
+    PRIVATE $<$<C_COMPILER_ID:Clang,AppleClang>:-Wno-quoted-include-in-framework-header -Wno-comma>
   )
-
-  # Install data files
-  install(DIRECTORY data/
-    DESTINATION ${DATA_DEST}
+  set_target_properties(
+    ${CMAKE_PROJECT_NAME}
+    PROPERTIES AUTOMOC ON AUTOUIC ON AUTORCC ON
   )
-else()
-  # Linux/Mac paths
-  set(PLUGIN_DEST "${CMAKE_INSTALL_PREFIX}/lib/obs-plugins")
-  set(DATA_DEST "${CMAKE_INSTALL_PREFIX}/share/obs/obs-plugins/${PROJECT_NAME}")
 endif()
+
+# FFmpeg libraries (from prebuilt obs-deps)
+find_path(AVFORMAT_INCLUDE_DIR libavformat/avformat.h)
+find_library(AVFORMAT_LIBRARY NAMES avformat)
+find_library(AVCODEC_LIBRARY NAMES avcodec)
+find_library(AVUTIL_LIBRARY NAMES avutil)
+
+if(NOT AVFORMAT_LIBRARY OR NOT AVCODEC_LIBRARY OR NOT AVUTIL_LIBRARY)
+  message(FATAL_ERROR "FFmpeg libraries (avformat, avcodec, avutil) not found in CMAKE_PREFIX_PATH. "
+    "These are required for video trimming functionality.")
+endif()
+
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_INCLUDE_DIR})
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY})
+
+# Plugin sources
+target_sources(
+  ${CMAKE_PROJECT_NAME}
+  PRIVATE
+    src/main.cpp
+    src/plugin/plugin.cpp
+    src/plugin/plugin.hpp
+    src/utils/obs-utils.cpp
+    src/utils/obs-utils.hpp
+    src/utils/duration-format.cpp
+    src/utils/duration-format.hpp
+    src/utils/video-trimmer.cpp
+    src/utils/video-trimmer.hpp
+    src/utils/logger.hpp
+    src/ui/ui-components.cpp
+    src/ui/ui-components.hpp
+    src/managers/settings-manager.cpp
+    src/managers/settings-manager.hpp
+    src/managers/save-button-settings.cpp
+    src/managers/save-button-settings.hpp
+    src/managers/replay-buffer-manager.cpp
+    src/managers/replay-buffer-manager.hpp
+    src/managers/hotkey-manager.cpp
+    src/managers/hotkey-manager.hpp
+    src/config/config.hpp
+)
+
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
+
+set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
 
 # Release package configuration
-set(RELEASE_DIR "${CMAKE_BINARY_DIR}/obs-studio")
+set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package/obs-studio")
 set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
-set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${PROJECT_NAME}")
+set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}")
 set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
-set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${PROJECT_NAME}-windows-x64.zip")
+set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${CMAKE_PROJECT_NAME}-windows-x64.zip")
 
-# Custom target that depends on the main target
 add_custom_target(prepare_release
-    DEPENDS ${PROJECT_NAME}
-    # Create directory structure
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
+  DEPENDS ${CMAKE_PROJECT_NAME}
+  # Create directory structure
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_ZIP_DIR}"
 
-    # Copy plugin DLL
-    COMMAND ${CMAKE_COMMAND} -E copy 
-        "$<TARGET_FILE:${PROJECT_NAME}>"
-        "${RELEASE_PLUGIN_DIR}/"
+  # Copy plugin DLL
+  COMMAND ${CMAKE_COMMAND} -E copy
+    "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>"
+    "${RELEASE_PLUGIN_DIR}/"
 
-    # Copy data files (locale)
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/data"
-        "${RELEASE_DATA_DIR}"
+  # Copy data files (locale)
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/data"
+    "${RELEASE_DATA_DIR}"
 
-    # Create ZIP file
-    COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
-        "${RELEASE_DIR}/"
+  # Create ZIP file
+  COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
+    "${RELEASE_DIR}/"
 
-    COMMENT "Creating release package..."
+  COMMENT "Creating release package..."
 )

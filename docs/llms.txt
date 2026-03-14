@@ -112,24 +112,24 @@ A: Currently Windows 10/11 (64-bit) only. macOS and Linux support is planned for
 
 ## Building from Source
 
+The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. All dependencies (OBS Studio source, prebuilt obs-deps with FFmpeg, Qt6) are automatically downloaded at configure time.
+
 ### Requirements
 - Visual Studio 2022+ with C++ Desktop Development
-- Qt6 (MSVC 2022 64-bit)
-- CMake 3.16+
-- OBS Studio 30.0.0+ source code
-- FFmpeg executable
+- CMake 3.28+
+
+No manual OBS clone, Qt6 install, or FFmpeg setup is needed.
 
 ### Build Steps
 ```bash
 git clone https://github.com/joshuapotter/replay-buffer-pro.git
 cd replay-buffer-pro
-mkdir build && cd build
-cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:/Qt/6.8.2/msvc2022_64" ..
-cmake --build . --config RelWithDebInfo
-cmake --install . --config RelWithDebInfo
+cmake --preset windows-x64
+cmake --build --preset windows-x64
+cmake --install build_x64 --config RelWithDebInfo
 ```
 
-**Note**: Ensure `obs-studio` repository is located as a sibling directory. Install command requires elevated privileges.
+**Note**: The first configure run downloads dependencies (~500MB) and builds OBS from source. Install command may require elevated privileges.
 
 ## Links
 
@@ -149,6 +149,6 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2025-10-15
-Version: 1.2.0
+Last Updated: 2026-03-13
+Version: 1.4.0
 
