@@ -5,7 +5,7 @@
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
-**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64).
+**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are available for Ubuntu 24.04+ (x86_64).
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
@@ -84,7 +84,12 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 - Xcode 16+ with macOS SDK 15.0+
 - CMake 3.28+
 
-No manual OBS clone, Qt6 install, or FFmpeg setup is needed on either platform — everything is fetched automatically.
+**Linux (Ubuntu):**
+- Ubuntu 24.04+ (or compatible)
+- CMake 3.28+, Ninja, pkg-config
+- OBS Studio and FFmpeg installed from the OBS PPA
+
+No manual OBS clone, Qt6 install, or FFmpeg setup is needed on Windows or macOS — everything is fetched automatically. On Linux, OBS and FFmpeg are installed from the system package manager.
 
 ### Build (Windows)
 
@@ -122,6 +127,24 @@ cmake --install build_macos --config RelWithDebInfo
 
 The install target places the `.plugin` bundle in `~/Library/Application Support/obs-studio/plugins/`. After building, a rundir is also available at `build_macos/rundir/RelWithDebInfo/` for quick testing.
 
+### Build (Linux)
+
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+
+# Configure (uses system OBS and FFmpeg from apt)
+cmake --preset ubuntu-x86_64
+
+# Build the plugin
+cmake --build --preset ubuntu-x86_64
+
+# Install (close OBS first)
+cmake --install build_x86_64 --config RelWithDebInfo
+```
+
+The install target places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and data files in `/usr/share/obs/obs-plugins/replay-buffer-pro/`. After building, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
+
 ### Release (Windows)
 
 Update the version in `buildspec.json`, then run:
@@ -133,16 +156,16 @@ This creates `build_x64/releases/<version>/replay-buffer-pro-windows-x64.zip`.
 
 ### CI / GitHub Actions
 
-Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for both Windows and macOS and creates a draft GitHub release with all artifacts attached.
+Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS, and Linux, and creates a draft GitHub release with all artifacts attached.
 
 ### Project Structure
 
 ```
 replay-buffer-pro/
 ├── buildspec.json       # Plugin metadata + dependency versions (Windows + macOS)
-├── CMakePresets.json    # Build presets (windows-x64, macos)
+├── CMakePresets.json    # Build presets (windows-x64, macos, ubuntu-x86_64)
 ├── CMakeLists.txt       # Main build configuration
-├── cmake/               # CMake modules (common + windows + macos)
+├── cmake/               # CMake modules (common + windows + macos + linux)
 ├── data/               
 │   └── locale/          # Translations
 ├── src/                 # Source files (fully cross-platform)
@@ -151,7 +174,7 @@ replay-buffer-pro/
 │   ├── plugin/          # Main plugin implementation
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
-├── .github/             # CI workflows, actions, scripts (Windows + macOS)
+├── .github/             # CI workflows, actions, scripts (Windows + macOS + Linux)
 ├── docs/                # Project website source
 ├── reference/           # Developer documentation
 └── README.md
@@ -159,7 +182,7 @@ replay-buffer-pro/
 
 ## Troubleshooting
 
-- Verify plugin file location (`.dll` on Windows, `.plugin` bundle on macOS)
+- Verify plugin file location (`.dll` on Windows, `.plugin` bundle on macOS, `.so` on Linux)
 - Check OBS logs for errors
 - For trimming issues:
   - Check disk space
@@ -167,8 +190,10 @@ replay-buffer-pro/
 - When building from source:
   - **Windows**: Ensure Visual Studio 2022+ and CMake 3.28+ are installed
   - **macOS**: Ensure Xcode 16+ (with macOS SDK 15.0+) and CMake 3.28+ are installed; run `xcode-select --install` if needed
-  - First configure run downloads ~500MB of dependencies — ensure network access
+  - **Linux**: Ensure OBS Studio is installed from the OBS PPA (`sudo add-apt-repository ppa:obsproject/obs-studio`)
+  - First configure run downloads ~500MB of dependencies on Windows/macOS — ensure network access
   - **Windows**: Run install command in a terminal with admin privileges if installing to a protected directory
+  - **Linux**: Install may require `sudo` for system-wide installation to `/usr`
 
 ## Third-Party Software
 
