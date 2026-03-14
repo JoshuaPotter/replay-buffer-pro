@@ -4,12 +4,12 @@ This folder documents the Replay Buffer Pro OBS Studio plugin. The plugin adds a
 
 ## Architecture map
 If you are new to the plugin, read in order:
-1. Module entry + OBS integration: `docs/architecture/module-and-obs-integration.md`
-2. UI layer (dock + widgets): `docs/architecture/ui-layer.md`
-3. Replay buffer flow (save + trim): `docs/architecture/replay-buffer-flow.md`
-4. Settings + hotkeys: `docs/architecture/settings-and-hotkeys.md`
-5. Utilities + shared helpers: `docs/architecture/utilities.md`
-6. Build + localization: `docs/architecture/build-and-localization.md`
+1. Module entry + OBS integration: `reference/architecture/module-and-obs-integration.md`
+2. UI layer (dock + widgets): `reference/architecture/ui-layer.md`
+3. Replay buffer flow (save + trim): `reference/architecture/replay-buffer-flow.md`
+4. Settings + hotkeys: `reference/architecture/settings-and-hotkeys.md`
+5. Utilities + shared helpers: `reference/architecture/utilities.md`
+6. Build + localization: `reference/architecture/build-and-localization.md`
 
 ## Runtime overview
 1. OBS loads the module and registers the dock widget.

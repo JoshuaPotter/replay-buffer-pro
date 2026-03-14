@@ -24,7 +24,7 @@ if(APPLE)
   include(buildspec)
 endif()
 
-project(replay-buffer-pro VERSION 1.3.0)
+project(replay-buffer-pro VERSION 1.4.0)
 
 # Find Qt
 set(CMAKE_AUTOMOC ON)
