@@ -63,11 +63,12 @@ jobs:
           root_dir="$(pwd)"
           commit_hash="${GITHUB_SHA:0:9}"
 
-          # Collect Windows and macOS artifacts
+          # Collect Windows, macOS, and Linux artifacts
           windows_candidates=(*-windows-x64-${commit_hash}/*.@(zip))
           macos_candidates=(*-macos-universal-${commit_hash}/*.@(tar.xz|pkg))
+          ubuntu_candidates=(*-ubuntu-*-${commit_hash}/*.@(tar.xz|deb))
 
-          for candidate in "${windows_candidates[@]}" "${macos_candidates[@]}"; do
+          for candidate in "${windows_candidates[@]}" "${macos_candidates[@]}" "${ubuntu_candidates[@]}"; do
             mv "${candidate}" "${root_dir}"
           done
 
@@ -79,7 +80,7 @@ jobs:
           shopt -s extglob
 
           echo "### Checksums" > ${{ github.workspace }}/CHECKSUMS.txt
-          for file in ${{ github.workspace }}/@(*.zip|*.tar.xz|*.pkg); do
+          for file in ${{ github.workspace }}/@(*.zip|*.tar.xz|*.pkg|*.deb); do
             echo "    ${file##*/}: $(sha256sum "${file}" | cut -d " " -f 1)" >> ${{ github.workspace }}/CHECKSUMS.txt
           done
 
@@ -97,3 +98,4 @@ jobs:
             ${{ github.workspace }}/*.zip
             ${{ github.workspace }}/*.tar.xz
             ${{ github.workspace }}/*.pkg
+            ${{ github.workspace }}/*.deb

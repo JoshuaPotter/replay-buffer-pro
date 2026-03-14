@@ -68,6 +68,35 @@
       "cacheVariables": {
         "CMAKE_COMPILE_WARNING_AS_ERROR": true
       }
+    },
+    {
+      "name": "ubuntu-x86_64",
+      "displayName": "Ubuntu x86_64",
+      "description": "Build for Ubuntu x86_64",
+      "inherits": ["template"],
+      "binaryDir": "${sourceDir}/build_x86_64",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "generator": "Ninja",
+      "warnings": {"dev": true, "deprecated": true},
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_INSTALL_LIBDIR": "lib/CMAKE_SYSTEM_PROCESSOR-linux-gnu"
+      }
+    },
+    {
+      "name": "ubuntu-ci-x86_64",
+      "inherits": ["ubuntu-x86_64"],
+      "displayName": "Ubuntu x86_64 CI build",
+      "description": "Build for Ubuntu x86_64 on CI",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_COMPILE_WARNING_AS_ERROR": true,
+        "ENABLE_CCACHE": true
+      }
     }
   ],
   "buildPresets": [
@@ -97,6 +126,20 @@
       "configurePreset": "windows-ci-x64",
       "displayName": "Windows x64 CI",
       "description": "Windows CI build for x64 (RelWithDebInfo configuration)",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "ubuntu-x86_64",
+      "configurePreset": "ubuntu-x86_64",
+      "displayName": "Ubuntu x86_64",
+      "description": "Ubuntu build for x86_64",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "ubuntu-ci-x86_64",
+      "configurePreset": "ubuntu-ci-x86_64",
+      "displayName": "Ubuntu x86_64 CI",
+      "description": "Ubuntu CI build for x86_64",
       "configuration": "RelWithDebInfo"
     }
   ]
