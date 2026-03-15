@@ -3,8 +3,8 @@ run-name: ${{ github.head_ref }} pull request run
 on:
   pull_request:
     branches:
-      - master
       - main
+      - develop
 permissions:
   contents: read
 jobs:
