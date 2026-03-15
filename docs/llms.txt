@@ -11,7 +11,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 ## Technical Specifications
 
 - **Type**: OBS Studio Dock Plugin
-- **Platform**: Windows 10/11 (64-bit only)
+- **Platform**: Windows 10/11 (64-bit), macOS 12.0+
 - **Requirements**: OBS Studio 30.0.0+
 - **Programming Language**: C++ with Qt6
 - **Video Processing**: libavformat with stream copy (no re-encoding)
@@ -92,7 +92,7 @@ A: Yes. Use the Customize button in the Save Clips section to set each button's 
 A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
 
 **Q: What platforms are supported?**
-A: Currently Windows 10/11 (64-bit) only. macOS and Linux support is planned for future releases.
+A: Windows 10/11 (64-bit) and macOS 12.0+.
 
 ## Troubleshooting
 
