@@ -21,7 +21,7 @@ if ( ! ( [System.Environment]::Is64BitOperatingSystem ) ) {
     throw "A 64-bit system is required to build the project."
 }
 
-if ( $PSVersionTable.PSVersion -lt '7.2.0' ) {
+if ( $PSVersionTable.PSVersion -lt ([version]'7.2.0') ) {
     Write-Warning 'The build script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
     exit 2
 }
