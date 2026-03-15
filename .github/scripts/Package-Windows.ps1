@@ -21,7 +21,7 @@ if ( ! ( [System.Environment]::Is64BitOperatingSystem ) ) {
     throw "Packaging script requires a 64-bit system to build and run."
 }
 
-if ( $PSVersionTable.PSVersion -lt '7.2.0' ) {
+if ( $PSVersionTable.PSVersion -lt ([version]'7.2.0') ) {
     Write-Warning 'The packaging script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
     exit 2
 }

@@ -21,6 +21,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Validate buildspec.json
+        run: |
+          : Validate buildspec.json
+          if [[ "${RUNNER_DEBUG}" ]]; then set -x; fi
+          
+          if [[ ! -f "buildspec.json" ]]; then
+            echo "ERROR: buildspec.json not found"
+            exit 1
+          fi
+          
+          if ! jq empty buildspec.json 2>/dev/null; then
+            echo "ERROR: buildspec.json is not valid JSON"
+            exit 1
+          fi
+          
+          required_fields=("name" "version" "author" "website" "dependencies")
+          for field in "${required_fields[@]}"; do
+            if [[ -z "$(jq -r ".${field} // empty" buildspec.json)" ]]; then
+              echo "ERROR: Required field '${field}' missing or empty in buildspec.json"
+              exit 1
+            fi
+          done
+          
+          echo "buildspec.json validation passed"
+
       - name: Check Event Data
         id: setup
         env:
