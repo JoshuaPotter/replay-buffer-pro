@@ -2,6 +2,8 @@
 
 This file is a concise handoff for agents working in the Replay Buffer Pro OBS plugin.
 
+> **Current branch:** `chore/cmake-macos` — implements macOS build infrastructure. Target merge into `chore/cmake` when complete.
+
 ## Project summary
 - Adds a dockable OBS UI for replay buffer controls.
 - Lets users adjust replay buffer length and save clips of customizable durations.
@@ -56,22 +58,31 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
 - Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
-- `CMakePresets.json` defines `windows-x64` configure/build presets (Visual Studio 17 2022).
+- `CMakePresets.json` defines `windows-x64` and `macos` (universal) configure/build presets.
 - Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
 - OBS (libobs + obs-frontend-api) is built from source during configure.
 - FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
-- CMake modules live in `cmake/common/` (cross-platform) and `cmake/windows/` (MSVC-specific).
+- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), and `cmake/macos/` (Xcode/macOS-specific).
 - Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
-- Post-build rundir at `build_x64/rundir/<config>/` for quick testing.
-- `prepare_release` custom target creates a zip package.
-- GitHub Actions CI: builds on push/PR, creates draft releases on semver tag push.
+- macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
+- Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
+- `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
+- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
+- C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
 
 ### Build commands (Windows)
 ```bash
 cmake --preset windows-x64          # Configure (downloads deps on first run)
 cmake --build --preset windows-x64  # Build
 cmake --install build_x64 --config RelWithDebInfo  # Install
+```
+
+### Build commands (macOS)
+```bash
+cmake --preset macos                 # Configure (downloads deps on first run; requires Xcode 16+)
+cmake --build --preset macos         # Build
+cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
 ```
 
 ## Not present
