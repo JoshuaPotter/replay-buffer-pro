@@ -61,6 +61,17 @@ runs:
 
         .github/scripts/Build-Windows.ps1 @BuildArgs
 
+    - name: Run Linux Build
+      if: runner.os == 'Linux'
+      shell: bash
+      env:
+        CCACHE_DIR: ${{ inputs.workingDirectory }}/.ccache
+      run: |
+        # Run Linux Build
+        if [[ "${RUNNER_DEBUG}" ]]; then set -x; fi
+
+        .github/scripts/build-ubuntu --target ubuntu-${{ inputs.target }} --config ${{ inputs.config }}
+
     - name: Create Summary 📊
       if: contains(fromJSON('["Linux", "macOS"]'),runner.os)
       shell: zsh --no-rcs --errexit --pipefail {0}

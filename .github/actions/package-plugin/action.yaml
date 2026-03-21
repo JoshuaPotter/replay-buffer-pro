@@ -84,3 +84,19 @@ runs:
         }
 
         .github/scripts/Package-Windows.ps1 @PackageArgs
+
+    - name: Run Linux Packaging
+      if: runner.os == 'Linux'
+      shell: bash
+      working-directory: ${{ inputs.workingDirectory }}
+      run: |
+        # Run Linux Packaging
+        if [[ "${RUNNER_DEBUG}" ]]; then set -x; fi
+
+        local -a package_args=(--target ubuntu-${{ inputs.target }} --config ${{ inputs.config }})
+
+        if [[ '${{ inputs.package }}' == 'true' ]]; then
+          package_args+=(--package)
+        fi
+
+        .github/scripts/package-ubuntu "${package_args[@]}"

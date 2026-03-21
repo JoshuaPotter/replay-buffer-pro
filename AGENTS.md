@@ -2,7 +2,7 @@
 
 This file is a concise handoff for agents working in the Replay Buffer Pro OBS plugin.
 
-> **Current branch:** `chore/cmake-macos` — implements macOS build infrastructure. Target merge into `chore/cmake` when complete.
+> **Current branch:** `chore/cmake-linux` — implements Linux (Ubuntu) build infrastructure. Target merge into `develop` when complete.
 
 ## Project summary
 - Adds a dockable OBS UI for replay buffer controls.
@@ -58,16 +58,17 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
 - Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
-- `CMakePresets.json` defines `windows-x64` and `macos` (universal) configure/build presets.
-- Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
-- OBS (libobs + obs-frontend-api) is built from source during configure.
-- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
-- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), and `cmake/macos/` (Xcode/macOS-specific).
+- `CMakePresets.json` defines `windows-x64`, `macos` (universal), and `ubuntu-x86_64` configure/build presets.
+- On Windows and macOS: OBS source, prebuilt obs-deps (with FFmpeg), and Qt6 are auto-downloaded into `.deps/` at configure time.
+- On Linux: OBS, Qt6, and FFmpeg are installed from the system via apt and the OBS PPA; no deps are downloaded by CMake.
+- FFmpeg on Windows/macOS comes from the prebuilt obs-deps archive. On Linux, FFmpeg is found via `pkg-config` (system packages).
+- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), `cmake/macos/` (Xcode/macOS-specific), and `cmake/linux/` (GCC/Clang Linux-specific).
 - Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
-- Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
-- `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
-- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push.
+- Linux builds install to `/usr/lib/<arch>-linux-gnu/obs-plugins/` and `/usr/share/obs/obs-plugins/`; packaging produces a `.deb` via CPack.
+- Post-build rundir at `build_x64/rundir/<config>/` (Windows), `build_macos/rundir/<config>/` (macOS), or `build_x86_64/rundir/<config>/` (Linux) for quick testing.
+- `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS and Linux packaging are handled by CI scripts).
+- GitHub Actions CI: builds on push/PR for Windows, macOS, and Ubuntu 24.04; creates draft releases on semver tag push.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 - C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
 
@@ -83,6 +84,21 @@ cmake --install build_x64 --config RelWithDebInfo  # Install
 cmake --preset macos                 # Configure (downloads deps on first run; requires Xcode 16+)
 cmake --build --preset macos         # Build
 cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
+```
+
+### Build commands (Linux / Ubuntu)
+```bash
+# Install system dependencies first (requires OBS PPA):
+sudo add-apt-repository ppa:obsproject/obs-studio
+sudo apt update
+sudo apt install build-essential cmake ninja-build pkg-config ccache \
+  libavformat-dev libavcodec-dev libavutil-dev \
+  obs-studio qt6-base-dev qt6-base-private-dev libqt6svg6-dev \
+  libgles2-mesa-dev libsimde-dev
+
+cmake --preset ubuntu-x86_64         # Configure
+cmake --build --preset ubuntu-x86_64 # Build
+cmake --install build_x86_64 --prefix /usr  # Install
 ```
 
 ## Not present
