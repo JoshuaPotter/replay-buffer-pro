@@ -15,8 +15,8 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 
 | File | Purpose |
 |---|---|
-| `buildspec.json` | Plugin metadata (name, version, author) and pinned dependency versions with SHA256 hashes (Windows + macOS) |
-| `CMakePresets.json` | Configure/build presets for Windows x64 and macOS universal (local and CI) |
+| `buildspec.json` | Plugin metadata (name, version, author) and pinned dependency versions with SHA256 hashes (Windows + macOS; Linux uses system packages) |
+| `CMakePresets.json` | Configure/build presets for Windows x64, macOS universal, and Ubuntu x86_64 (local and CI) |
 | `CMakeLists.txt` | Main build file — follows the template pattern |
 | `cmake/common/bootstrap.cmake` | Entry point: reads `buildspec.json`, sets plugin variables, blocks in-source builds |
 | `cmake/common/osconfig.cmake` | OS detection, sets `OS_WINDOWS`/`OS_MACOS`, adds platform-specific module path |
@@ -39,6 +39,9 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 | `cmake/macos/resources/create-package.cmake.in` | CMake install script that runs `pkgbuild` + `productbuild` to produce a `.pkg` |
 | `cmake/macos/resources/ccache-launcher-c.in` | Shell wrapper to invoke ccache for C compilation in Xcode |
 | `cmake/macos/resources/ccache-launcher-cxx.in` | Shell wrapper to invoke ccache for C++ compilation in Xcode |
+| `cmake/linux/compilerconfig.cmake` | GCC/Clang-specific compiler flags (`-fopenmp-simd`, version-gated warnings) |
+| `cmake/linux/defaults.cmake` | `GNUInstallDirs`, CPack DEB config, system `find_package(libobs)` fallback |
+| `cmake/linux/helpers.cmake` | `set_target_properties_plugin()`: install rules, rundir copy, target resources |
 
 ### Dependency management
 
@@ -48,6 +51,14 @@ Dependencies are auto-downloaded at CMake configure time into `.deps/`:
 - **Prebuilt Qt6** — pre-compiled Qt6 for MSVC
 
 Versions and SHA256 hashes are pinned in `buildspec.json` under `dependencies.<name>.hashes` for both `windows-x64` and `macos`. The `cmake/common/buildspec_common.cmake` module handles downloading, hash verification, extraction, and building OBS.
+
+**Linux (Ubuntu) uses system packages instead:**
+- **OBS Studio** — installed from the OBS PPA via apt (`obs-studio` package)
+- **Qt6** — installed from system packages (`qt6-base-dev`, `libqt6svg6-dev`, etc.)
+- **FFmpeg** — installed from system packages (`libavformat-dev`, `libavcodec-dev`, `libavutil-dev`)
+- **Build tools** — `build-essential`, `cmake`, `ninja-build`, `pkg-config`, `ccache`
+
+No dependencies are downloaded into `.deps/` on Linux; everything comes from the system package manager.
 
 ### Windows build
 
@@ -88,11 +99,39 @@ The configure step is identical in structure to Windows: downloads obs-deps, Qt6
 
 The build produces a `.plugin` bundle at `build_macos/rundir/<config>/replay-buffer-pro.plugin` for quick testing.
 
+### Linux (Ubuntu) build
+
+Requires Ubuntu 22.04+ or compatible distro with OBS PPA access.
+
+```bash
+# Install system dependencies
+sudo add-apt-repository ppa:obsproject/obs-studio
+sudo apt update
+sudo apt install build-essential cmake ninja-build pkg-config ccache \
+  libavformat-dev libavcodec-dev libavutil-dev \
+  obs-studio qt6-base-dev qt6-base-private-dev libqt6svg6-dev \
+  libgles2-mesa-dev libsimde-dev
+
+# Configure
+cmake --preset ubuntu-x86_64
+
+# Build (x86_64 binary)
+cmake --build --preset ubuntu-x86_64
+
+# Install to system paths
+sudo cmake --install build_x86_64 --prefix /usr --config RelWithDebInfo
+```
+
+The configure step finds OBS and FFmpeg via `pkg-config` and system CMake modules. No dependencies are downloaded.
+
+The build produces a `.so` shared object at `build_x86_64/rundir/<config>/replay-buffer-pro.so` for quick testing.
+
 ### Post-build rundir
 
 After building, output is automatically copied to:
 - **Windows**: `build_x64/rundir/<config>/`
 - **macOS**: `build_macos/rundir/<config>/`
+- **Linux**: `build_x86_64/rundir/<config>/`
 
 ### Windows resource file
 
@@ -104,10 +143,11 @@ The plugin DLL embeds a VERSIONINFO resource (`cmake/windows/resources/resource.
 
 - **Windows**: `cmake --install build_x64` installs to `%ALLUSERSPROFILE%/obs-studio/plugins/<plugin-name>/bin/64bit/` and `<plugin-name>/data/`.
 - **macOS**: `cmake --install build_macos` installs the `.plugin` bundle to `~/Library/Application Support/obs-studio/plugins/` and also runs `pkgbuild`/`productbuild` to produce a `.pkg` installer.
+- **Linux**: `cmake --install build_x86_64 --prefix /usr` installs the `.so` to `/usr/lib/x86_64-linux-gnu/obs-plugins/` and data files to `/usr/share/obs/obs-plugins/<plugin-name>/`. CPack produces a `.deb` package.
 
 ### prepare_release target (Windows only)
 
-`cmake --build build_x64 --target prepare_release --config RelWithDebInfo` creates a release zip at `build_x64/releases/<version>/replay-buffer-pro-windows-x64.zip` with the standard OBS plugin directory structure. This target is Windows-only; macOS packaging is handled by the CI `package-macos` script.
+`cmake --build build_x64 --target prepare_release --config RelWithDebInfo` creates a release zip at `build_x64/releases/<version>/replay-buffer-pro-windows-x64.zip` with the standard OBS plugin directory structure. This target is Windows-only; macOS and Linux packaging are handled by CI scripts (`package-macos` and `package-ubuntu`).
 
 ### macOS packaging
 
@@ -117,25 +157,36 @@ macOS packaging is performed by `.github/scripts/package-macos` (CI only). It pr
 
 Codesigning and notarization are supported via `--codesign` and `--notarize` flags using `CODESIGN_IDENT`, `CODESIGN_IDENT_INSTALLER`, and notarytool credentials.
 
+### Linux packaging
+
+Linux packaging is performed by `.github/scripts/package-ubuntu` (CI only). It produces:
+- `replay-buffer-pro-<version>-<os>-x86_64-gnu.tar.xz` — the `.so` and data files archive
+- `replay-buffer-pro_<version>-<arch>.deb` — Debian package (when `--package` is passed, via CPack)
+
+Debug symbol packages (`.ddeb`) are also produced when packaging.
+
 ### CI / GitHub Actions
 
-- **Push to main/master**: Triggers build for both Windows and macOS, uploads artifacts.
-- **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with Windows zip, macOS `.tar.xz`, and macOS `.pkg` attached with checksums.
-- **Pull requests**: Triggers build for both platforms to validate the PR.
+- **Push to main/master**: Triggers build for Windows, macOS, and Ubuntu 24.04; uploads artifacts.
+- **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with Windows zip, macOS `.tar.xz`, macOS `.pkg`, and Linux `.tar.xz`/`.deb` attached with checksums.
+- **Pull requests**: Triggers build for all platforms to validate the PR.
 
 Workflow files:
 - `.github/workflows/push.yaml` — push and tag triggers
 - `.github/workflows/pr-pull.yaml` — PR triggers
-- `.github/workflows/build-project.yaml` — reusable build workflow (Windows + macOS jobs)
-- `.github/actions/build-plugin/action.yaml` — composite build action (Windows + macOS)
-- `.github/actions/package-plugin/action.yaml` — composite packaging action (Windows + macOS)
+- `.github/workflows/build-project.yaml` — reusable build workflow (Windows, macOS, and Ubuntu jobs)
+- `.github/actions/build-plugin/action.yaml` — composite build action (Windows, macOS, Linux)
+- `.github/actions/package-plugin/action.yaml` — composite packaging action (Windows, macOS, Linux)
 - `.github/actions/setup-macos-codesigning/action.yaml` — keychain + certificate setup for macOS codesigning
 - `.github/scripts/Build-Windows.ps1` — PowerShell build script
 - `.github/scripts/Package-Windows.ps1` — PowerShell packaging script
 - `.github/scripts/build-macos` — Zsh build script (configures with `macos-ci` preset, builds via xcodebuild)
 - `.github/scripts/package-macos` — Zsh packaging script (tar.xz archive or .pkg installer)
 - `.github/scripts/.Brewfile` — Homebrew dependencies for macOS CI runner (ccache, cmake, jq, xcbeautify)
-- `.github/scripts/utils.zsh/` — Zsh autoload functions shared by macOS CI scripts
+- `.github/scripts/build-ubuntu` — Zsh build script for Ubuntu (configures with `ubuntu-ci-x86_64` preset)
+- `.github/scripts/package-ubuntu` — Zsh packaging script for Ubuntu (tar.xz archive or .deb package)
+- `.github/scripts/.Aptfile` — APT dependencies for Ubuntu CI runner (cmake, ccache, git, jq, ninja-build, pkg-config)
+- `.github/scripts/utils.zsh/` — Zsh autoload functions shared by macOS and Ubuntu CI scripts
 
 #### macOS CI secrets (required for codesigning)
 

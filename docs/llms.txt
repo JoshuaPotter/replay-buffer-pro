@@ -11,7 +11,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 ## Technical Specifications
 
 - **Type**: OBS Studio Dock Plugin
-- **Platform**: Windows 10/11 (64-bit), macOS 12.0+
+- **Platform**: Windows 10/11 (64-bit), macOS 12.0+, Ubuntu 22.04+ (x86_64)
 - **Requirements**: OBS Studio 30.0.0+
 - **Programming Language**: C++ with Qt6
 - **Video Processing**: libavformat with stream copy (no re-encoding)
@@ -49,6 +49,18 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 6. Open OBS Studio
 
 **Note**: Administrator privileges may be required to copy files to Program Files.
+
+### Install (Linux / Ubuntu)
+
+Install from the GitHub release DEB package or build from source (see Building from Source below).
+
+For DEB package install:
+```bash
+sudo dpkg -i replay-buffer-pro_<version>_amd64.deb
+sudo apt-get install -f  # Fix any dependency issues
+```
+
+The plugin installs to `/usr/lib/x86_64-linux-gnu/obs-plugins/` and data files to `/usr/share/obs/obs-plugins/replay-buffer-pro/`.
 
 ## Usage
 
@@ -92,12 +104,14 @@ A: Yes. Use the Customize button in the Save Clips section to set each button's 
 A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
 
 **Q: What platforms are supported?**
-A: Windows 10/11 (64-bit) and macOS 12.0+.
+A: Windows 10/11 (64-bit), macOS 12.0+, and Ubuntu 22.04+ (x86_64).
 
 ## Troubleshooting
 
 **Plugin Not Loading**
-- Ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- Windows: Ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- macOS: Ensure `replay-buffer-pro.plugin` is in `~/Library/Application Support/obs-studio/plugins/`
+- Linux: Ensure `replay-buffer-pro.so` is in `/usr/lib/x86_64-linux-gnu/obs-plugins/` (or equivalent for your architecture)
 - Restart OBS Studio after placing the file
 - Check OBS logs for "Replay Buffer Pro" entries
 
@@ -112,15 +126,27 @@ A: Windows 10/11 (64-bit) and macOS 12.0+.
 
 ## Building from Source
 
-The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. All dependencies (OBS Studio source, prebuilt obs-deps with FFmpeg, Qt6) are automatically downloaded at configure time.
+The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. On **Windows and macOS**, all dependencies (OBS Studio source, prebuilt obs-deps with FFmpeg, Qt6) are automatically downloaded at configure time. On **Linux**, dependencies come from system packages.
 
 ### Requirements
+
+**Windows:**
 - Visual Studio 2022+ with C++ Desktop Development
 - CMake 3.28+
 
-No manual OBS clone, Qt6 install, or FFmpeg setup is needed.
+**macOS:**
+- Xcode 16+ with macOS SDK 15.0+
+- CMake 3.28+
 
-### Build Steps
+**Linux (Ubuntu):**
+- Ubuntu 22.04+ or compatible distro
+- GCC or Clang compiler
+- CMake 3.28+, Ninja build system
+- System packages: OBS Studio, Qt6, FFmpeg (via apt)
+
+No manual OBS clone, Qt6 install, or FFmpeg setup is needed on Windows or macOS — everything is fetched automatically. On Linux, install dependencies via apt.
+
+### Build Steps (Windows)
 ```bash
 git clone https://github.com/joshuapotter/replay-buffer-pro.git
 cd replay-buffer-pro
@@ -129,7 +155,35 @@ cmake --build --preset windows-x64
 cmake --install build_x64 --config RelWithDebInfo
 ```
 
-**Note**: The first configure run downloads dependencies (~500MB) and builds OBS from source. Install command may require elevated privileges.
+### Build Steps (macOS)
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+cmake --preset macos
+cmake --build --preset macos
+cmake --install build_macos --config RelWithDebInfo
+```
+
+### Build Steps (Linux / Ubuntu)
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+
+# Install system dependencies
+sudo add-apt-repository ppa:obsproject/obs-studio
+sudo apt update
+sudo apt install build-essential cmake ninja-build pkg-config ccache \
+  libavformat-dev libavcodec-dev libavutil-dev \
+  obs-studio qt6-base-dev qt6-base-private-dev libqt6svg6-dev \
+  libgles2-mesa-dev libsimde-dev
+
+# Configure and build
+cmake --preset ubuntu-x86_64
+cmake --build --preset ubuntu-x86_64
+sudo cmake --install build_x86_64 --prefix /usr --config RelWithDebInfo
+```
+
+**Note**: The first configure run downloads dependencies (~500MB) and builds OBS from source on Windows/macOS. Install command may require elevated privileges (sudo on Linux/macOS, admin on Windows).
 
 ## Links
 
@@ -141,7 +195,7 @@ cmake --install build_x64 --config RelWithDebInfo
 
 ## Third-Party Software
 
-This plugin uses OBS Studio's built-in FFmpeg libraries (libavformat) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
+This plugin uses FFmpeg libraries (libavformat) for video trimming functionality. On **Windows and macOS**, FFmpeg comes from OBS Studio's bundled libraries. On **Linux**, FFmpeg is provided by system packages. FFmpeg is licensed under the LGPL v2.1+ license.
 
 ## Disclaimer
 
@@ -149,6 +203,6 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2026-03-14
+Last Updated: 2026-03-21
 Version: 1.4.0
 
