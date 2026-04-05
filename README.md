@@ -41,20 +41,24 @@ The project website is currently hosted via GitHub Pages.
 ### From Release
 
 1. Download latest release
-2. Extract and merge the folder `obs-studio` with your OBS Studio installation
+2. Extract the ZIP file
+3. Copy the `obs-studio` folder to your OBS plugins directory:
+   - **Windows:** `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
 
 Final file structure should look like this:
 ```
 obs-studio/
-├── obs-plugins/
-│   └── 64bit/
-│       └── replay-buffer-pro.dll
-└── data/
-    └── obs-plugins/
-        └── replay-buffer-pro/
+└── plugins/
+    └── replay-buffer-pro/
+        ├── bin/
+        │   └── 64bit/
+        │       └── replay-buffer-pro.dll
+        └── data/
             └── locale/
                 └── en-US.ini
 ```
+
+**Note:** The `%ALLUSERSPROFILE%` environment variable typically resolves to `C:\ProgramData`. You can type this directly into File Explorer's address bar.
 
 ### From Source 
 

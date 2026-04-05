@@ -180,8 +180,9 @@
           {
             "@type": "HowToStep",
             "position": 3,
-            "name": "Extract and Merge Files",
-            "text": "Extract the ZIP and merge the obs-studio folder into your OBS Studio installation directory (typically C:\\Program Files\\obs-studio\\)."
+            "name": "Extract and Copy Files",
+            "text": "Extract the ZIP and copy the obs-studio folder to your OBS plugins directory (typically C:\\ProgramData\\obs-studio\\plugins\\).",
+            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
           },
           {
             "@type": "HowToStep",
@@ -538,8 +539,8 @@
             <div class="step-card">
               <div class="step-badge">3</div>
               <div class="step-content">
-                <h4 class="step-title">Extract & Merge Files</h4>
-                <p class="step-description">Extract the ZIP and merge the <code>obs-studio</code> folder into your OBS Studio installation directory (typically <code>C:\Program Files\obs-studio\</code>).</p>
+                <h4 class="step-title">Extract & Copy Files</h4>
+                <p class="step-description">Extract the ZIP and copy the <code>obs-studio</code> folder to your OBS plugins directory (<code>%ALLUSERSPROFILE%\obs-studio\plugins\</code>, typically <code>C:\ProgramData\obs-studio\plugins\</code>).</p>
               </div>
               <div class="step-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -555,12 +556,12 @@
                 <h4 class="step-title">Verify Installation</h4>
                 <p class="step-description">Verify the final installation structure matches the expected layout:</p>
                 <pre class="code-block"><code>obs-studio/
-├── obs-plugins/
-│   └── 64bit/
-│       └── replay-buffer-pro.dll
-└── data/
-    └── obs-plugins/
-        └── replay-buffer-pro/
+└── plugins/
+    └── replay-buffer-pro/
+        ├── bin/
+        │   └── 64bit/
+        │       └── replay-buffer-pro.dll
+        └── data/
             └── locale/
                 └── en-US.ini</code></pre>
               </div>
@@ -578,7 +579,7 @@
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
               <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <span><strong>Note:</strong> For Windows, you may need administrator privileges to copy files into Program Files.</span>
+            <span><strong>Note:</strong> The <code>%ALLUSERSPROFILE%</code> environment variable typically resolves to <code>C:\ProgramData</code>. You can type this directly into File Explorer's address bar.</span>
           </div>
         </div>
       </section>
