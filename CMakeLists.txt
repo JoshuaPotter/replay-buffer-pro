@@ -105,8 +105,8 @@ set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_nam
 # Release package configuration (Windows only)
 if(OS_WINDOWS)
   set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package/obs-studio")
-  set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/obs-plugins/64bit")
-  set(RELEASE_DATA_DIR "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}")
+  set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/plugins/${CMAKE_PROJECT_NAME}/bin/64bit")
+  set(RELEASE_DATA_DIR "${RELEASE_DIR}/plugins/${CMAKE_PROJECT_NAME}/data")
   set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
   set(RELEASE_ZIP "${RELEASE_ZIP_DIR}/${CMAKE_PROJECT_NAME}-windows-x64.zip")
 
