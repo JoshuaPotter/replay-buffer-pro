@@ -42,13 +42,13 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip
 2. Close OBS Studio completely
 3. Extract the ZIP file
-4. Merge the `obs-studio` folder into your OBS Studio installation directory (typically `C:\Program Files\obs-studio\`)
+4. Copy the `obs-studio` folder to your OBS plugins directory: `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
 5. Verify installation:
-   - DLL location: `obs-studio/obs-plugins/64bit/replay-buffer-pro.dll`
-   - Data location: `obs-studio/data/obs-plugins/replay-buffer-pro/` (includes locale files)
+   - DLL location: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\replay-buffer-pro.dll`
+   - Data location: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\data\locale\` (includes `en-US.ini` and other locale files)
 6. Open OBS Studio
 
-**Note**: Administrator privileges may be required to copy files to Program Files.
+**Note**: The `%ALLUSERSPROFILE%` environment variable typically resolves to `C:\ProgramData`. You can type this directly into File Explorer's address bar.
 
 ## Usage
 
@@ -97,12 +97,12 @@ A: Windows 10/11 (64-bit) and macOS 12.0+.
 ## Troubleshooting
 
 **Plugin Not Loading**
-- Ensure `replay-buffer-pro.dll` is in `obs-studio/obs-plugins/64bit/`
+- Ensure `replay-buffer-pro.dll` is in `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\` (typically `C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\`)
 - Restart OBS Studio after placing the file
 - Check OBS logs for "Replay Buffer Pro" entries
 
 **Trimming Fails**
-- Confirm locale files exist at `obs-studio/data/obs-plugins/replay-buffer-pro/locale/`
+- Confirm locale files exist at `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\data\locale\`
 - Check disk space availability
 - Verify write permissions in output directory
 
