@@ -2,6 +2,7 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/joshuapotter/replay-buffer-pro)
 ![GitHub Release Date](https://img.shields.io/github/release-date/joshuapotter/replay-buffer-pro?display_date=published_at)](https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/JoshuaPotter/replay-buffer-pro)
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
