@@ -2,8 +2,6 @@
 
 This file is a concise handoff for agents working in the Replay Buffer Pro OBS plugin.
 
-> **Current branch:** `chore/cmake-macos` — implements macOS build infrastructure. Target merge into `chore/cmake` when complete.
-
 ## Project summary
 - Adds a dockable OBS UI for replay buffer controls.
 - Lets users adjust replay buffer length and save clips of customizable durations.
