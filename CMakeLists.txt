@@ -112,6 +112,8 @@ if(OS_WINDOWS)
 
   add_custom_target(prepare_release
     DEPENDS ${CMAKE_PROJECT_NAME}
+    # Wipe any stale staging files so the zip only contains the current layout
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/release-package"
     # Create directory structure
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
