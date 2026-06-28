@@ -48,7 +48,7 @@ namespace ReplayBufferPro
       saveHotkeys[i] = obs_hotkey_register_frontend(
         name.c_str(),
         description.c_str(),
-        [](void *data, obs_hotkey_id id, obs_hotkey_t *hotkey, bool pressed) {
+        [](void *data, obs_hotkey_id id, obs_hotkey_t *, bool pressed) {
           if (pressed) {
             auto self = static_cast<HotkeyManager *>(data);
             int duration = 0;

@@ -1,12 +1,17 @@
-build/*
+# Build directories
+build/
+build_*/
+release/
+
+# Dependencies (auto-downloaded by cmake)
+.deps/
 
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
-*.cmake
-!CMakeLists.txt
 cmake_install.cmake
 install_manifest.txt
+cmake/.CMakeBuildNumber
 
 # Visual Studio files
 .vs/
