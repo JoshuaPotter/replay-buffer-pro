@@ -148,7 +148,7 @@ namespace ReplayBufferPro
     ReplayBufferManager *replayManager; ///< Replay buffer manager
     HotkeyManager *hotkeyManager;       ///< Hotkey manager
     QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes
-    uint64_t lastKnownBufferLength;     ///< Last known buffer length from OBS settings
+    int lastKnownBufferLength;          ///< Last known buffer length from OBS settings
 
     //=========================================================================
     // INITIALIZATION
