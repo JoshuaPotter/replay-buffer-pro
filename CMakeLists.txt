@@ -104,7 +104,8 @@ set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_nam
 
 # Release package configuration (Windows only)
 if(OS_WINDOWS)
-  set(RELEASE_DIR "${CMAKE_BINARY_DIR}/release-package/obs-studio")
+  set(RELEASE_STAGING "${CMAKE_BINARY_DIR}/release-package")
+  set(RELEASE_DIR "${RELEASE_STAGING}/obs-studio")
   set(RELEASE_PLUGIN_DIR "${RELEASE_DIR}/plugins/${CMAKE_PROJECT_NAME}/bin/64bit")
   set(RELEASE_DATA_DIR "${RELEASE_DIR}/plugins/${CMAKE_PROJECT_NAME}/data")
   set(RELEASE_ZIP_DIR "${CMAKE_BINARY_DIR}/releases/${PROJECT_VERSION}")
@@ -113,7 +114,7 @@ if(OS_WINDOWS)
   add_custom_target(prepare_release
     DEPENDS ${CMAKE_PROJECT_NAME}
     # Wipe any stale staging files so the zip only contains the current layout
-    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/release-package"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${RELEASE_STAGING}"
     # Create directory structure
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_PLUGIN_DIR}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DATA_DIR}"
@@ -129,9 +130,11 @@ if(OS_WINDOWS)
       "${CMAKE_SOURCE_DIR}/data"
       "${RELEASE_DATA_DIR}"
 
-    # Create ZIP file
-    COMMAND ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
-      "${RELEASE_DIR}/"
+    # Create ZIP file (run from the staging root so the archive contains
+    # "obs-studio/..." at its top level, with no staging-dir wrapper)
+    COMMAND ${CMAKE_COMMAND} -E chdir "${RELEASE_STAGING}"
+      ${CMAKE_COMMAND} -E tar "cf" "${RELEASE_ZIP}" --format=zip
+      "obs-studio"
 
     COMMENT "Creating release package..."
   )
