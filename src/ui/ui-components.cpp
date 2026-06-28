@@ -193,8 +193,8 @@ namespace ReplayBufferPro
       QObject::connect(button, &QPushButton::clicked, [this, index = i]()
                        { onSaveSegment(saveButtonDurations[index]); });
 
-      int row = i / buttonsPerRow;
-      int col = i % buttonsPerRow;
+      int row = static_cast<int>(i) / buttonsPerRow;
+      int col = static_cast<int>(i) % buttonsPerRow;
       gridLayout->addWidget(button, row, col);
 
       saveButtons.push_back(button);
@@ -203,7 +203,7 @@ namespace ReplayBufferPro
     saveFullBufferBtn = new QPushButton(obs_module_text("SaveFull"));
     saveFullBufferBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    int lastRow = (saveButtons.size() - 1) / buttonsPerRow + 1;
+    int lastRow = static_cast<int>(saveButtons.size() - 1) / buttonsPerRow + 1;
     gridLayout->addWidget(saveFullBufferBtn, lastRow, 0, 1, buttonsPerRow);
 
     QObject::connect(saveFullBufferBtn, &QPushButton::clicked, onSaveFullBuffer);
