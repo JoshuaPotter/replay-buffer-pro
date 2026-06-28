@@ -34,6 +34,33 @@ export function applyDownloadUrls(elements, assets = []) {
   });
 }
 
+const OS_LABELS = {
+  windows: 'Download for Windows (x64)',
+  macos: 'Download for macOS',
+};
+
+// Best-effort detection of the visitor's desktop OS. There is no Linux build,
+// so anything that isn't macOS falls back to Windows.
+export function detectOS() {
+  const platform = navigator.userAgentData?.platform || navigator.platform || '';
+  const ua = navigator.userAgent || '';
+  if (/mac/i.test(platform) || /Mac OS X|Macintosh/i.test(ua)) return 'macos';
+  return 'windows';
+}
+
+// Point every [data-download-auto] element at the detected OS so its download
+// link resolves to that platform's asset. Elements also marked
+// [data-download-label] get their visible label set to match.
+export function applyDetectedOS(elements, os = detectOS()) {
+  if (!elements) return;
+  elements.forEach(el => {
+    el.dataset.download = os;
+    if (el.hasAttribute('data-download-label')) {
+      el.textContent = OS_LABELS[os] ?? 'Download';
+    }
+  });
+}
+
 export function updateYearByClass(yearEls = []) {
   yearEls.forEach(el => {
     el.textContent = new Date().getFullYear();
