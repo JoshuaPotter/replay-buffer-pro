@@ -44,6 +44,54 @@ ol { color: var(--muted); }
 .btn-primary:hover { box-shadow: 0 0.125rem 1rem rgba(107, 163, 255, .4); filter: brightness(1.05); }
 .btn-lg {padding: 0.625rem 1.25rem; font-weight: 600; }
 
+/* Split download button: main action + caret that opens a platform menu */
+.download-split { position: relative; display: inline-flex; align-items: stretch; }
+.download-split-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.download-split-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0.0625rem solid rgba(11, 13, 16, 0.25); /* divider bar */
+  cursor: pointer;
+  font: inherit;
+}
+.download-split-toggle .caret { transition: transform .15s ease; }
+.download-split-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.download-split-menu {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  right: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: #14181d;
+  border: 0.0625rem solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.375rem;
+  box-shadow: var(--shadow);
+  z-index: 50;
+}
+.download-split-menu[hidden] { display: none; }
+.download-split-menu a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.download-split-menu a:hover { background: rgba(255, 255, 255, 0.08); }
+.download-split-menu .dl-ext { color: var(--muted); font-weight: 500; margin-left: 0.25rem; }
+
 .badge { background: rgba(255,255,255,0.1); padding: 0.25rem 0.625rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 600; }
 
 .container {

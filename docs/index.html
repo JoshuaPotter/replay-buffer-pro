@@ -204,7 +204,7 @@
         <div class="brand">Replay Buffer Pro</div>
         <nav class="nav">
           <a class="btn btn-ghost" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View on GitHub</a>
-          <a id="download-top" class="btn btn-primary" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download (<span class="release-version" data-prefix="v">v1.4.1</span>)</a>
+          <a id="download-top" class="btn btn-primary" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download (<span class="release-version" data-prefix="v">v1.4.1</span>)</a>
         </nav>
       </div>
     </header>
@@ -221,8 +221,16 @@
             <h1>Replay Buffer Pro</h1>
             <p class="lead">Save the last moments of your stream or recording with one click.</p>
             <div class="cta-row">
-              <a id="download-cta" class="btn btn-primary btn-lg" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for Windows (x64)</a>
-              <a id="download-cta-macos" class="btn btn-primary btn-lg" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for macOS</a>
+              <div class="download-split" data-download-split>
+                <a id="download-cta" class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+                <button type="button" class="btn btn-primary btn-lg download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <ul class="download-split-menu" role="menu" hidden>
+                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+                </ul>
+              </div>
               <div id="release-meta" class="subtext"><span class="release-version" data-prefix="v">v1.4.1</span> • Requires OBS Studio 30.0.0+</div>
             </div>
           </div>
@@ -474,8 +482,16 @@
           <div class="section-header">
             <h2>Installation</h2>
             <div class="section-actions">
-              <a id="download-secondary" class="btn btn-primary" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for Windows (x64)</a>
-              <a id="download-secondary-macos" class="btn btn-primary" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for macOS</a>
+              <div class="download-split" data-download-split>
+                <a id="download-secondary" class="btn btn-primary download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+                <button type="button" class="btn btn-primary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <ul class="download-split-menu" role="menu" hidden>
+                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+                </ul>
+              </div>
             </div>
           </div>
           
@@ -803,7 +819,7 @@
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an Issue<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
             </ul>
-            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" class="footer-download-btn" data-download="windows" rel="noopener" target="_blank">
+            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" class="footer-download-btn" data-download-auto data-download="windows" rel="noopener" target="_blank">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
