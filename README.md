@@ -41,10 +41,10 @@ The project website is currently hosted via GitHub Pages.
 
 ### From Release
 
-1. Download latest release
+**Windows:**
+1. Download the latest `.zip` release
 2. Extract the ZIP file
-3. Copy the `obs-studio` folder to your OBS plugins directory:
-   - **Windows:** `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
+3. Copy the `obs-studio` folder to `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
 
 Final file structure should look like this:
 ```
@@ -61,17 +61,25 @@ obs-studio/
 
 **Note:** The `%ALLUSERSPROFILE%` environment variable typically resolves to `C:\ProgramData`. You can type this directly into File Explorer's address bar.
 
+**macOS:**
+1. Download the latest `.pkg` release (universal: arm64 + x86_64)
+2. Open the downloaded `.pkg` and follow the installer
+3. The installer places the plugin at `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` automatically
+
+**Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
+
 ### From Source 
 
 See below for instructions to build from source.
 
 After building, use `cmake --install` to automatically install the plugin, or manually copy the compiled files:
-1. Copy compiled plugin:
-   - `replay-buffer-pro.dll` to your OBS plugins directory
+1. Copy the compiled plugin:
+   - **Windows:** `replay-buffer-pro.dll` to your OBS plugins directory
+   - **macOS:** `replay-buffer-pro.plugin` bundle to your OBS plugins directory
 2. Copy from source `data` directory:
    - Data files to your OBS data path for the plugin
 
-Note: Close OBS before installing or copying the DLL.
+Note: Close OBS before installing or copying the plugin.
 
 ## Building from Source
 
@@ -136,9 +144,13 @@ cmake --build build_x64 --config RelWithDebInfo --target prepare_release
 ```
 This creates `build_x64/releases/<version>/replay-buffer-pro-windows-x64.zip`.
 
+### Release (macOS)
+
+There is no local one-command release target for macOS. Packaging (codesigning, notarization, and `.pkg` creation via `.github/scripts/package-macos`) requires CI credentials and only runs in GitHub Actions — see CI / GitHub Actions below.
+
 ### CI / GitHub Actions
 
-Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for both Windows and macOS and creates a draft GitHub release with all artifacts attached.
+Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for both Windows and macOS and creates a draft GitHub release with all artifacts attached (Windows `.zip` and macOS `.pkg`).
 
 ### Project Structure
 

@@ -89,4 +89,4 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 ## Documentation upkeep
 - More documentation is available in `reference/` and README.md.
 - Project website source lives in `docs/` and should be updated when relevant.
-- Any changes to the project should be reflected in `reference/` for developers, `docs/` for plugin users and distribution, README.md for project introduction and setup, and this `AGENTS.md` file for agentic coding assistance.
+- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `reference/`, `docs/`, and this file in sync with project changes.
