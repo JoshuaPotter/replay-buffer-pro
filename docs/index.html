@@ -71,7 +71,7 @@
           "price": "0",
           "priceCurrency": "USD"
         },
-        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip",
+        "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest",
         "softwareRequirements": "OBS Studio 30.0.0+",
         "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
         "screenshot": "https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png"
@@ -169,7 +169,7 @@
             "position": 1,
             "name": "Download Plugin",
             "text": "Download the latest release of Replay Buffer Pro from the link above.",
-            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest"
           },
           {
             "@type": "HowToStep",
@@ -182,7 +182,7 @@
             "position": 3,
             "name": "Extract and Copy Files",
             "text": "Extract the ZIP and copy the obs-studio folder to your OBS plugins directory (typically C:\\ProgramData\\obs-studio\\plugins\\).",
-            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip"
+            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest"
           },
           {
             "@type": "HowToStep",
@@ -204,7 +204,7 @@
         <div class="brand">Replay Buffer Pro</div>
         <nav class="nav">
           <a class="btn btn-ghost" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View on GitHub</a>
-          <a id="download-top" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download (<span class="release-version" data-prefix"v">v1.4.1</span>)</a>
+          <a id="download-top" class="btn btn-primary" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download (<span class="release-version" data-prefix="v">v1.4.1</span>)</a>
         </nav>
       </div>
     </header>
@@ -221,8 +221,9 @@
             <h1>Replay Buffer Pro</h1>
             <p class="lead">Save the last moments of your stream or recording with one click.</p>
             <div class="cta-row">
-              <a id="download-cta" class="btn btn-primary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
-              <div id="release-meta" class="subtext"><span class="release-version" data-prefix"v">v1.4.1</span> • Requires OBS Studio 30.0.0+</div>
+              <a id="download-cta" class="btn btn-primary btn-lg" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for Windows (x64)</a>
+              <a id="download-cta-macos" class="btn btn-primary btn-lg" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for macOS</a>
+              <div id="release-meta" class="subtext"><span class="release-version" data-prefix="v">v1.4.1</span> • Requires OBS Studio 30.0.0+</div>
             </div>
           </div>
           <div class="hero-media">
@@ -473,7 +474,8 @@
           <div class="section-header">
             <h2>Installation</h2>
             <div class="section-actions">
-              <a id="download-secondary" class="btn btn-primary" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip">Download for Windows (x64)</a>
+              <a id="download-secondary" class="btn btn-primary" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for Windows (x64)</a>
+              <a id="download-secondary-macos" class="btn btn-primary" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download for macOS</a>
             </div>
           </div>
           
@@ -801,13 +803,13 @@
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an Issue<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
               <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
             </ul>
-            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest/download/replay-buffer-pro-windows-x64.zip" class="footer-download-btn" rel="noopener" target="_blank">
+            <a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" class="footer-download-btn" data-download="windows" rel="noopener" target="_blank">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              Download (<span class="release-version" data-prefix"v">v1.4.1</span>)
+              Download (<span class="release-version" data-prefix="v">v1.4.1</span>)
             </a>
           </div>
         </div>
