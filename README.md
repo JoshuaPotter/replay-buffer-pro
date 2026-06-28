@@ -68,19 +68,6 @@ obs-studio/
 
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
-### From Source 
-
-See below for instructions to build from source.
-
-After building, use `cmake --install` to automatically install the plugin, or manually copy the compiled files:
-1. Copy the compiled plugin:
-   - **Windows:** `replay-buffer-pro.dll` to your OBS plugins directory
-   - **macOS:** `replay-buffer-pro.plugin` bundle to your OBS plugins directory
-2. Copy from source `data` directory:
-   - Data files to your OBS data path for the plugin
-
-Note: Close OBS before installing or copying the plugin.
-
 ## Building from Source
 
 The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. All dependencies (OBS Studio source, prebuilt obs-deps, Qt6) are **automatically downloaded** at configure time.
