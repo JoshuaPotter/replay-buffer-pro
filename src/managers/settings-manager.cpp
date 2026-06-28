@@ -37,7 +37,7 @@ namespace ReplayBufferPro
     {
       ConfigContext ctx = getConfigContext();
 
-      if (config_get_uint(ctx.config, ctx.section, Config::REPLAY_BUFFER_LENGTH_KEY) == seconds)
+      if (config_get_uint(ctx.config, ctx.section, Config::REPLAY_BUFFER_LENGTH_KEY) == static_cast<uint64_t>(seconds))
       {
         return;
       }
