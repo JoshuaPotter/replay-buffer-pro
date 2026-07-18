@@ -31,6 +31,10 @@ This document explains how the plugin saves replay buffer content and trims it t
   - Calls `VideoTrimmer::trimToLastSeconds(...)`.
   - Deletes the original file with `os_unlink(...)` on success.
 
+## Third-party compatibility
+- [Smart Replay Mover](https://github.com/SlonickLab/Smart-Replay-Mover) (SlonickLab) is a third-party OBS Lua script that waits for this plugin to finish trimming, then moves the final `_trimmed` file into per-game folders. See [issue #23](https://github.com/JoshuaPotter/replay-buffer-pro/issues/23).
+- If the `_trimmed` suffix, the original-file deletion, or the timing of when the final file appears changes, open an issue at https://github.com/SlonickLab/Smart-Replay-Mover so they can update their compatibility handling.
+
 ## Error handling
 - UI warnings show when the replay buffer is inactive or the requested duration is too long.
 - Trimming errors are logged via `Logger::error(...)` but do not raise UI alerts.
