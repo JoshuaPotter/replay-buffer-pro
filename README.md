@@ -81,7 +81,7 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 
 **macOS:**
 - macOS 12.0+ (builds target macOS 12.0+; universal binary: arm64 + x86_64)
-- Xcode 16+ with macOS SDK 15.0+
+- Xcode 26.5+ with macOS SDK 26.5+
 - CMake 3.28+
 
 No manual OBS clone, Qt6 install, or FFmpeg setup is needed on either platform — everything is fetched automatically.
@@ -170,7 +170,7 @@ replay-buffer-pro/
   - Check write permissions in output directory
 - When building from source:
   - **Windows**: Ensure Visual Studio 2022+ and CMake 3.28+ are installed
-  - **macOS**: Ensure Xcode 16+ (with macOS SDK 15.0+) and CMake 3.28+ are installed; run `xcode-select --install` if needed
+  - **macOS**: Ensure Xcode 26.5+ (with macOS SDK 26.5+) and CMake 3.28+ are installed; run `xcode-select --install` if needed
   - First configure run downloads ~500MB of dependencies — ensure network access
   - **Windows**: Run install command in a terminal with admin privileges if installing to a protected directory
 

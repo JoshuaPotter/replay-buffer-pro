@@ -31,7 +31,7 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 | `cmake/windows/helpers.cmake` | `set_target_properties_plugin()`: install rules, rundir post-build copy, `.rc` resource |
 | `cmake/windows/resources/resource.rc.in` | Windows VERSIONINFO resource template embedded in the DLL |
 | `cmake/macos/buildspec.cmake` | macOS platform slice: sets `arch=universal`, `platform=macos`, calls `_check_dependencies_macos()`, clears quarantine |
-| `cmake/macos/compilerconfig.cmake` | Requires Xcode generator, checks SDK ≥ 15.0 / Xcode ≥ 16.0, sets dSYM release flags |
+| `cmake/macos/compilerconfig.cmake` | Requires Xcode generator, checks SDK ≥ 26.5 / Xcode ≥ 26.5, sets dSYM release flags |
 | `cmake/macos/defaults.cmake` | Sets install prefix to `~/Library/Application Support/obs-studio/plugins`, RPATH settings |
 | `cmake/macos/helpers.cmake` | `set_target_properties_plugin()`: bundle properties, Xcode attributes, rundir copy, pkgbuild/productbuild packaging |
 | `cmake/macos/xcode.cmake` | Full Xcode attribute configuration: ccache wrappers, codesigning, hardened runtime, dSYM, warning flags |
@@ -71,7 +71,7 @@ The configure step:
 
 ### macOS build
 
-Requires Xcode 16+ and macOS SDK 15.0+.
+Requires Xcode 26.5+ and macOS SDK 26.5+.
 
 ```bash
 # Configure (first run downloads deps and builds OBS — takes a few minutes)

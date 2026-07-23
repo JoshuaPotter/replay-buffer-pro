@@ -78,7 +78,7 @@ cmake --install build_x64 --config RelWithDebInfo  # Install
 
 ### Build commands (macOS)
 ```bash
-cmake --preset macos                 # Configure (downloads deps on first run; requires Xcode 16+)
+cmake --preset macos                 # Configure (downloads deps on first run; requires Xcode 26.5+)
 cmake --build --preset macos         # Build
 cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
 ```
