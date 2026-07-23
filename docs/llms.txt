@@ -12,7 +12,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 - **Type**: OBS Studio Dock Plugin
 - **Platform**: Windows 10/11 (64-bit), macOS 12.0+
-- **Requirements**: OBS Studio 31.0.0+
+- **Requirements**: OBS Studio 32.2.0+
 - **Programming Language**: C++ with Qt6
 - **Video Processing**: libavformat with stream copy (no re-encoding)
 - **License**: GPL v2 or later (Open Source)
@@ -143,12 +143,14 @@ cmake --install build_x64 --config RelWithDebInfo
 
 This plugin uses OBS Studio's built-in FFmpeg libraries (libavformat) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
 
+Because the plugin links against OBS's bundled FFmpeg libraries by soname, each release is built against a specific OBS version's FFmpeg major version and is not binary-compatible with OBS versions that ship a different FFmpeg major (this caused v1.5.0 to fail to load on OBS 32.2 with a missing-DLL error). Always use the plugin release matching your OBS Studio version's minimum requirement.
+
 ## Disclaimer
 
 Replay Buffer Pro is an independent project and is not affiliated with, endorsed, or sponsored by OBS Studio or its developers. All product names, trademarks, and registered trademarks are property of their respective owners.
 
 ---
 
-Last Updated: 2026-04-05
-Version: 1.4.1
+Last Updated: 2026-07-22
+Version: 1.5.1
 

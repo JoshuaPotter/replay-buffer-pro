@@ -178,6 +178,8 @@ replay-buffer-pro/
 
 This plugin uses OBS Studio's built-in FFmpeg libraries (libavformat) for video trimming functionality. FFmpeg is licensed under the LGPL v2.1+ license.
 
+Because the plugin links against OBS's bundled FFmpeg libraries by soname, each release is built against a specific OBS version's FFmpeg major version and is not binary-compatible with OBS versions that ship a different FFmpeg major. Always use the plugin release matching your OBS Studio version's minimum requirement.
+
 ## License
 
 GPL v2 or later. See LICENSE file for details. 
