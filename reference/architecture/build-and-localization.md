@@ -24,21 +24,19 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 | `cmake/common/compiler_common.cmake` | C/C++17 standard, visibility presets, clang/AppleClang warning flags |
 | `cmake/common/buildspec_common.cmake` | Generic dependency downloader: fetches/extracts archives, builds OBS from source (Windows and macOS paths) |
 | `cmake/common/helpers_common.cmake` | Shared helper functions |
-| `cmake/common/ccache.cmake` | Optional ccache support for CI (includes ObjC/ObjC++ launchers for macOS) |
+| `cmake/common/ccache.cmake` | Generic ccache support module (currently unused — macOS CI uses Xcode's built-in compilation cache instead; see below) |
 | `cmake/windows/buildspec.cmake` | Windows platform slice for dependency setup |
 | `cmake/windows/compilerconfig.cmake` | MSVC-specific compiler flags (`/W3`, `/utf-8`, `/permissive-`, LTO) |
 | `cmake/windows/defaults.cmake` | Sets install prefix to `%ALLUSERSPROFILE%/obs-studio/plugins` |
 | `cmake/windows/helpers.cmake` | `set_target_properties_plugin()`: install rules, rundir post-build copy, `.rc` resource |
 | `cmake/windows/resources/resource.rc.in` | Windows VERSIONINFO resource template embedded in the DLL |
 | `cmake/macos/buildspec.cmake` | macOS platform slice: sets `arch=universal`, `platform=macos`, calls `_check_dependencies_macos()`, clears quarantine |
-| `cmake/macos/compilerconfig.cmake` | Requires Xcode generator, checks SDK ≥ 15.0 / Xcode ≥ 16.0, sets dSYM release flags |
+| `cmake/macos/compilerconfig.cmake` | Requires Xcode generator, checks SDK ≥ 26.5 / Xcode ≥ 26.5, sets dSYM release flags |
 | `cmake/macos/defaults.cmake` | Sets install prefix to `~/Library/Application Support/obs-studio/plugins`, RPATH settings |
 | `cmake/macos/helpers.cmake` | `set_target_properties_plugin()`: bundle properties, Xcode attributes, rundir copy, pkgbuild/productbuild packaging |
-| `cmake/macos/xcode.cmake` | Full Xcode attribute configuration: ccache wrappers, codesigning, hardened runtime, dSYM, warning flags |
+| `cmake/macos/xcode.cmake` | Full Xcode attribute configuration: codesigning, hardened runtime, dSYM, warning flags |
 | `cmake/macos/resources/distribution.in` | XML installer distribution definition for `productbuild` |
 | `cmake/macos/resources/create-package.cmake.in` | CMake install script that runs `pkgbuild` + `productbuild` to produce a `.pkg` |
-| `cmake/macos/resources/ccache-launcher-c.in` | Shell wrapper to invoke ccache for C compilation in Xcode |
-| `cmake/macos/resources/ccache-launcher-cxx.in` | Shell wrapper to invoke ccache for C++ compilation in Xcode |
 
 ### Dependency management
 
@@ -71,7 +69,7 @@ The configure step:
 
 ### macOS build
 
-Requires Xcode 16+ and macOS SDK 15.0+.
+Requires Xcode 26.5+ and macOS SDK 26.5+.
 
 ```bash
 # Configure (first run downloads deps and builds OBS — takes a few minutes)
@@ -123,6 +121,14 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 - **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with Windows zip, macOS `.tar.xz`, and macOS `.pkg` attached with checksums.
 - **Pull requests**: Triggers build for both platforms to validate the PR.
 
+macOS CI does not use ccache: Xcode 26 injects deployment-target environment variables into
+shell-wrapped compiler invocations, and a ccache launcher script triggers a `conflicting deployment
+targets` error from clang (see [ccache/ccache#1670](https://github.com/ccache/ccache/discussions/1670)).
+Instead, the `macos-ci` preset enables Xcode's built-in compilation cache
+(`CMAKE_XCODE_ATTRIBUTE_COMPILATION_CACHE_ENABLE_CACHING` / `_CAS_PATH`), and the CI workflow caches
+the CAS directory (`~/Library/Developer/Xcode/DerivedData/CompilationCache.noindex`, passed via the
+`XCODE_CAS_PATH` env var) across runs instead of `.ccache`.
+
 Workflow files:
 - `.github/workflows/push.yaml` — push and tag triggers
 - `.github/workflows/pr-pull.yaml` — PR triggers
@@ -134,7 +140,7 @@ Workflow files:
 - `.github/scripts/Package-Windows.ps1` — PowerShell packaging script
 - `.github/scripts/build-macos` — Zsh build script (configures with `macos-ci` preset, builds via xcodebuild)
 - `.github/scripts/package-macos` — Zsh packaging script (tar.xz archive or .pkg installer)
-- `.github/scripts/.Brewfile` — Homebrew dependencies for macOS CI runner (ccache, cmake, jq, xcbeautify)
+- `.github/scripts/.Brewfile` — Homebrew dependencies for macOS CI runner (coreutils, cmake, jq, xcbeautify)
 - `.github/scripts/utils.zsh/` — Zsh autoload functions shared by macOS CI scripts
 
 #### macOS CI secrets (required for codesigning)
