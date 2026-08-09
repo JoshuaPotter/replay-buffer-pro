@@ -84,6 +84,8 @@ target_sources(
     src/utils/duration-format.hpp
     src/utils/video-trimmer.cpp
     src/utils/video-trimmer.hpp
+    src/utils/status-reporter.cpp
+    src/utils/status-reporter.hpp
     src/utils/logger.hpp
     src/ui/ui-components.cpp
     src/ui/ui-components.hpp
