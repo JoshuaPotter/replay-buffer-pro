@@ -143,13 +143,9 @@ namespace ReplayBufferPro
   // REQUEST TRACKING
   //=============================================================================
 
-  void ReplayBufferManager::enqueueRequest(int duration)
+  void ReplayBufferManager::expireStaleRequestsLocked(uint64_t now)
   {
-    const uint64_t now = os_gettime_ns();
     const uint64_t timeoutNs = static_cast<uint64_t>(Config::TRIM_REQUEST_TIMEOUT_MS) * 1000000ULL;
-    const uint64_t coalesceNs = static_cast<uint64_t>(Config::TRIM_REQUEST_COALESCE_MS) * 1000000ULL;
-
-    std::lock_guard<std::mutex> lock(pendingMutex);
 
     while (!pendingSaves.empty() && now - pendingSaves.front().requestedAtNs > timeoutNs)
     {
@@ -157,6 +153,16 @@ namespace ReplayBufferPro
                       pendingSaves.front().duration);
       pendingSaves.pop_front();
     }
+  }
+
+  void ReplayBufferManager::enqueueRequest(int duration)
+  {
+    const uint64_t now = os_gettime_ns();
+    const uint64_t coalesceNs = static_cast<uint64_t>(Config::TRIM_REQUEST_COALESCE_MS) * 1000000ULL;
+
+    std::lock_guard<std::mutex> lock(pendingMutex);
+
+    expireStaleRequestsLocked(now);
 
     // OBS tracks a single pending save timestamp, so two requests landing inside
     // one frame interval produce only one file. Collapsing them here keeps the
@@ -176,16 +182,10 @@ namespace ReplayBufferPro
   std::optional<ReplayBufferManager::PendingSave> ReplayBufferManager::takeNextPendingSave()
   {
     const uint64_t now = os_gettime_ns();
-    const uint64_t timeoutNs = static_cast<uint64_t>(Config::TRIM_REQUEST_TIMEOUT_MS) * 1000000ULL;
 
     std::lock_guard<std::mutex> lock(pendingMutex);
 
-    while (!pendingSaves.empty() && now - pendingSaves.front().requestedAtNs > timeoutNs)
-    {
-      Logger::warning("Discarding save request for %ds that OBS never completed",
-                      pendingSaves.front().duration);
-      pendingSaves.pop_front();
-    }
+    expireStaleRequestsLocked(now);
 
     if (pendingSaves.empty())
     {

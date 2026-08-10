@@ -143,25 +143,8 @@ TrimResult VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             return failure(result, "stream-info-failed", av_error_string(ret));
         }
 
-        // Get total duration (prefer input context if available)
-        double totalDuration = -1.0;
-        if (inputCtx->duration != AV_NOPTS_VALUE) {
-            totalDuration = static_cast<double>(inputCtx->duration) / AV_TIME_BASE;
-        } else {
-            // Try to get duration from the longest stream
-            for (unsigned int i = 0; i < inputCtx->nb_streams; i++) {
-                AVStream* stream = inputCtx->streams[i];
-                if (stream->duration != AV_NOPTS_VALUE) {
-                    double streamDuration = static_cast<double>(stream->duration) * av_q2d(stream->time_base);
-                    totalDuration = std::max(totalDuration, streamDuration);
-                }
-            }
-        }
-
-        if (totalDuration <= 0) {
-            Logger::warning("Input context duration unavailable, falling back to duration probe");
-            totalDuration = getVideoDuration(inputPath, inputCtx);
-        }
+        // Get total duration
+        double totalDuration = getVideoDuration(inputPath, inputCtx);
         if (totalDuration <= 0) {
             Logger::error("Could not determine video duration or file is empty");
             avformat_close_input(&inputCtx);
@@ -465,8 +448,8 @@ void VideoTrimmer::initializeFFmpeg() {
 }
 
 double VideoTrimmer::getVideoDuration(const std::string& inputPath, AVFormatContext* inputCtx) {
-    // If context is provided, try to extract duration from it first
-    // (though this is unlikely to help since we already tried this inline)
+    // If a context is already open, read duration from it directly instead of
+    // reopening the file
     AVFormatContext* ctx = inputCtx;
     bool shouldClose = false;
 

@@ -122,6 +122,13 @@ namespace ReplayBufferPro
      */
     std::optional<PendingSave> takeNextPendingSave();
 
+    /**
+     * @brief Pops requests OBS never honored off the front of pendingSaves
+     * @param now Current timestamp, as returned by os_gettime_ns()
+     * @pre pendingMutex is held by the caller
+     */
+    void expireStaleRequestsLocked(uint64_t now);
+
     //=========================================================================
     // TRIMMING
     //=========================================================================
