@@ -83,8 +83,27 @@ namespace ReplayBufferPro
 
   QWidget *UIComponents::createUI()
   {
-    QWidget *container = new QWidget();
+    // Wrap content in a QFrame matching OBS's own native-dock pattern
+    // (e.g. controlsFrame/scenesFrame), so the dock gets the same boxed,
+    // padded look as native docks. The background/border is drawn
+    // explicitly here (rather than relying on OBS's theme QSS, which
+    // targets its own dock widgets by name and doesn't reliably paint on
+    // a plain QWidget) using palette-relative colors so it still adapts
+    // to light/dark OBS themes.
+    QFrame *container = new QFrame();
+    container->setObjectName("replayBufferProFrame");
+    container->setFrameShape(QFrame::NoFrame);
+    container->setStyleSheet(
+      "QFrame#replayBufferProFrame {"
+      "  background: palette(base);"
+      "  border: 1px solid palette(mid);"
+      "  border-top: none;"
+      "  border-bottom-left-radius: 4px;"
+      "  border-bottom-right-radius: 4px;"
+      "}"
+    );
     QVBoxLayout *mainLayout = new QVBoxLayout(container);
+    mainLayout->setContentsMargins(8, 8, 8, 8);
 
     // Add the configuration title as a subtitle
     QLabel* subtitle = new QLabel(obs_module_text("WidgetTitle"), container);
