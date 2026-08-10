@@ -9,7 +9,7 @@ This document describes the dockable UI panel and the widget components that con
 - Periodically reload buffer length from OBS settings.
 
 ## UI composition
-The dock assembles a vertical layout that includes:
+The dock content is wrapped in a padded `QFrame` (`replayBufferProFrame`, `NoFrame` shape), mirroring the `controlsFrame`/`scenesFrame` pattern native OBS docks use to get a consistent gutter between the dock's border and its content. Inside it, the dock assembles a vertical layout that includes:
 - Subtitle label (`WidgetTitle`).
 - Buffer length header with a label and seconds input (`QSpinBox`).
 - Buffer length slider (`QSlider`).
