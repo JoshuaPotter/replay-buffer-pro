@@ -10,7 +10,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ## Architecture map (start here)
 - Module entry + OBS integration: `src/main.cpp`
 - Dock widget + UI orchestration: `src/plugin/plugin.hpp`, `src/plugin/plugin.cpp`
-- UI components + tick labels: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
+- UI components: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
 - Save button settings: `src/managers/save-button-settings.hpp`, `src/managers/save-button-settings.cpp`
@@ -23,7 +23,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 
 ## Core runtime flows
 ### Buffer length update
-1. Slider/spinbox/tick label changes value in the dock.
+1. User steps or types a new value into the buffer length spinbox in the dock.
 2. Debounce timer expires.
 3. `SettingsManager::updateBufferLengthSettings(...)` writes `RecRBTime` into OBS profile config.
 4. If a replay output exists, updates `max_time_sec` and calls `obs_output_update(...)`.
