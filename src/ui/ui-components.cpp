@@ -117,7 +117,7 @@ namespace ReplayBufferPro
     
     // Buffer length seconds input box
     secondsEdit = new QSpinBox(container);
-    secondsEdit->setFixedWidth(80);
+    secondsEdit->setFixedWidth(104);
     secondsEdit->setAlignment(Qt::AlignRight);
     secondsEdit->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
     secondsEdit->setSuffix(" sec");
