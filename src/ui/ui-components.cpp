@@ -96,7 +96,7 @@ namespace ReplayBufferPro
     container->setStyleSheet(
       "QFrame#replayBufferProFrame {"
       "  background: palette(base);"
-      "  border: 1px solid palette(mid);"
+      "  border: 1px solid palette(button);"
       "  border-top: none;"
       "  border-bottom-left-radius: 4px;"
       "  border-bottom-right-radius: 4px;"
