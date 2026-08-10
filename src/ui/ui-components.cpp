@@ -127,7 +127,7 @@ namespace ReplayBufferPro
     secondsEdit->setContentsMargins(2, 2, 2, 2);
     headerLayout->addWidget(secondsEdit);
     mainLayout->addLayout(headerLayout);
-    mainLayout->addSpacing(24); // Space before save clip section
+    mainLayout->addSpacing(12); // Space before save clip section
 
     // Save clip label + customize button
     QHBoxLayout *saveClipHeaderLayout = new QHBoxLayout();
