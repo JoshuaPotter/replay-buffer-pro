@@ -13,7 +13,7 @@ If you are new to the plugin, read in order:
 
 ## Runtime overview
 1. OBS loads the module and registers the dock widget.
-2. The dock creates UI controls (slider, spinbox, save buttons, tick labels).
+2. The dock creates UI controls (buffer length spinbox, save buttons).
 3. Buffer length changes update OBS profile config and replay output settings.
 4. Save actions trigger OBS replay buffer save.
 5. When OBS emits the saved event, the plugin trims the saved file in a background thread.

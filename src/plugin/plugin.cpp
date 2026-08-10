@@ -116,13 +116,10 @@ namespace ReplayBufferPro
 
 	void Plugin::initSignals()
 	{
-		// Both slider and spinbox changes will trigger handleSliderChanged
-		connect(ui->getSlider(), &QSlider::valueChanged, this, &Plugin::handleSliderChanged);
-		connect(ui->getSecondsEdit(), QOverload<int>::of(&QSpinBox::valueChanged), 
-				this, &Plugin::handleSliderChanged);  // Use same handler
-		
-		// Single debounce timer for both controls
-		connect(ui->getSliderDebounceTimer(), &QTimer::timeout, this, &Plugin::handleSliderFinished);
+		connect(ui->getSecondsEdit(), QOverload<int>::of(&QSpinBox::valueChanged),
+				this, &Plugin::handleBufferLengthChanged);
+
+		connect(ui->getBufferLengthDebounceTimer(), &QTimer::timeout, this, &Plugin::handleBufferLengthFinished);
 	}
 
 	//=============================================================================
@@ -160,20 +157,20 @@ namespace ReplayBufferPro
 		}
 	}
 
-	void Plugin::handleSliderChanged(int value)
+	void Plugin::handleBufferLengthChanged(int value)
 	{
 		// Only update the UI components, don't trigger settings update yet
 		ui->updateBufferLengthValue(value);
-		
+
 		// Restart the debounce timer
-		ui->getSliderDebounceTimer()->start();
+		ui->getBufferLengthDebounceTimer()->start();
 	}
 
-	void Plugin::handleSliderFinished()
+	void Plugin::handleBufferLengthFinished()
 	{
-		// Get the final slider value
-		int value = ui->getSlider()->value();
-		
+		// Get the final spinbox value
+		int value = ui->getSecondsEdit()->value();
+
 		// Only update settings if the value has actually changed
 		if (value != lastKnownBufferLength)
 		{
@@ -184,23 +181,6 @@ namespace ReplayBufferPro
 				QMessageBox::warning(this, obs_module_text("Error"),
 									QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
 			}
-		}
-	}
-
-	void Plugin::handleBufferLengthInput(int value)
-	{
-		if (value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH)
-		{
-			ui->updateBufferLengthValue(ui->getSlider()->value());
-			return;
-		}
-
-		ui->getSlider()->setValue(value);
-		try {
-			settingsManager->updateBufferLengthSettings(value);
-		} catch (const std::exception &e) {
-			QMessageBox::warning(this, obs_module_text("Error"),
-								QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
 		}
 	}
 

@@ -27,8 +27,8 @@ namespace ReplayBufferPro
     constexpr const char *HOTKEY_BINDINGS_KEY = "HotkeyBindings";
 
     // Timer intervals
-    constexpr int SETTINGS_MONITOR_INTERVAL = 1000; // 1 second
-    constexpr int SLIDER_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
+    constexpr int SETTINGS_MONITOR_INTERVAL = 1000;       // 1 second
+    constexpr int BUFFER_LENGTH_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
 
     // File paths
     constexpr const char *TEMP_FILE_SUFFIX = "tmp";

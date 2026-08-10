@@ -24,7 +24,7 @@ This document covers how the plugin integrates with OBS, how the module lifecycl
 When the dock widget is constructed:
 1. Managers are created (`ReplayBufferManager`, `SettingsManager`).
 2. UI components are created and mounted in a `QVBoxLayout`.
-3. Slider and spinbox signals are connected with a shared debounce timer.
+3. Buffer length spinbox signals are connected with a debounce timer.
 4. Current buffer length is loaded from OBS settings.
 5. OBS frontend event callback is registered.
 6. Hotkeys are registered.
