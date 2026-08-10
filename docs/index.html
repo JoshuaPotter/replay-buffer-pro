@@ -704,8 +704,10 @@
                 </svg>
               </div>
               <div class="troubleshoot-content">
-                <strong>Trimming Fails</strong>
-                <p>Check disk space and write permissions in the output directory.</p>
+                <strong>A Clip Wasn't Trimmed</strong>
+                <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help &rarr; Log Files &rarr; Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip &mdash; the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
+                <p><code>skipped reason=no-pending-request</code> means the save came from outside the plugin &mdash; OBS's own <strong>Save Replay</strong> hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action. Those save the full buffer. Bind a <em>Replay Buffer Pro: Save&hellip;</em> hotkey instead so the plugin knows which duration you wanted.</p>
+                <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings &rarr; Output &rarr; Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
               </div>
             </div>
             
