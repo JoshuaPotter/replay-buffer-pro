@@ -80,31 +80,22 @@ namespace ReplayBufferPro
     // EVENT HANDLERS
     //=========================================================================
     /**
-     * @brief Updates UI and starts debounce timer when slider value changes
+     * @brief Updates UI and starts debounce timer when the buffer length spinbox changes
      * @param value New buffer length in seconds
-     * 
+     *
      * Updates UI immediately and starts debounce timer for OBS settings update.
-     * Prevents rapid OBS settings updates during slider movement.
+     * Prevents rapid OBS settings updates while the value is still being adjusted.
      */
-    void handleSliderChanged(int value);
+    void handleBufferLengthChanged(int value);
 
     /**
-     * @brief Updates OBS settings after slider movement ends
-     * 
-     * Called after slider movement stops and debounce period expires.
-     * Updates OBS settings with the final slider value.
+     * @brief Updates OBS settings after the buffer length value settles
+     *
+     * Called after the debounce period expires following a spinbox change.
+     * Updates OBS settings with the final value.
      * Shows error message if update fails.
      */
-    void handleSliderFinished();
-
-    /**
-     * @brief Validates and applies manual buffer length input
-     * 
-     * Ensures input is within valid range (10s to 6h) and updates settings.
-     * Reverts to previous value if input is invalid.
-     * Shows error message if update fails.
-     */
-    void handleBufferLengthInput(int value);
+    void handleBufferLengthFinished();
 
     /**
      * @brief Updates UI state based on replay buffer activity
@@ -157,7 +148,7 @@ namespace ReplayBufferPro
      * @brief Sets up signal/slot connections
      * 
      * Sets up all event handling connections:
-     * - Slider value changes (with debouncing)
+     * - Buffer length spinbox changes (with debouncing)
      * - Text input validation
      * - Save button clicks
      */

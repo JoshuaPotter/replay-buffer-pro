@@ -268,34 +268,31 @@
                 <div class="plugin-section">
                   <h3 class="plugin-section-title">Replay Buffer Settings</h3>
                   
-                  <div class="slider-container">
-                    <label class="slider-label">
-                      <span>Maximum Replay Buffer Length</span>
-                      <span class="slider-value-wrapper">
-                        <input type="number" class="slider-value-input" id="slider-value-input" value="7200" min="1" max="21600" step="1">
-                        <span class="slider-value-unit">sec</span>
-                      </span>
-                    </label>
-                    <div class="slider-wrapper">
-                      <input 
-                        type="range" 
-                        class="buffer-slider" 
-                        id="buffer-slider"
-                        min="1" 
-                        max="21600" 
-                        value="7200" 
+                  <div class="buffer-length-container">
+                    <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
+                    <div class="buffer-number-input" id="buffer-number-input">
+                      <input
+                        type="number"
+                        class="buffer-length-value-input"
+                        id="buffer-length-input"
+                        value="7200"
+                        min="1"
+                        max="21600"
                         step="1"
-                      />
-                      <div class="slider-track-fill" id="slider-fill"></div>
-                    </div>
-                    <div class="slider-markers">
-                      <button type="button" class="slider-marker" data-value="300">5m</button>
-                      <button type="button" class="slider-marker" data-value="3600">1h</button>
-                      <button type="button" class="slider-marker" data-value="7200">2h</button>
-                      <button type="button" class="slider-marker" data-value="10800">3h</button>
-                      <button type="button" class="slider-marker" data-value="14400">4h</button>
-                      <button type="button" class="slider-marker" data-value="18000">5h</button>
-                      <button type="button" class="slider-marker" data-value="21600">6h</button>
+                      >
+                      <span class="buffer-length-unit">sec</span>
+                      <div class="buffer-number-steppers">
+                        <button type="button" class="buffer-number-step" id="buffer-step-up" aria-label="Increase buffer length">
+                          <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
+                            <path d="M1 4l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="buffer-number-step" id="buffer-step-down" aria-label="Decrease buffer length">
+                          <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
+                            <path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -580,7 +577,7 @@
               <div class="step-card">
                 <div class="step-badge">3</div>
                 <div class="step-content">
-                  <p>Adjust the Replay Buffer length using the slider.</p>
+                  <p>Adjust the Replay Buffer length using the numeric field.</p>
                 </div>
               </div>
               <div class="step-card">
@@ -631,7 +628,7 @@
                 </svg>
               </div>
               <h3>Adjusting Buffer Length</h3>
-              <p>Adjust the Replay Buffer length easily with the slider in the plugin UI, bypassing the settings menu.</p>
+              <p>Adjust the Replay Buffer length easily with the numeric field in the plugin UI, bypassing the settings menu.</p>
             </article>
 
             <article class="feature">

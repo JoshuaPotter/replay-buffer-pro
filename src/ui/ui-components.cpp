@@ -16,14 +16,12 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QSlider>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QSizePolicy>
 #include <QTimer>
 #include <QFrame>
-#include <QResizeEvent>
 #include <QMessageBox>
 
 // STL includes
@@ -57,12 +55,10 @@ namespace ReplayBufferPro
                              std::function<void(int)> saveSegmentCallback,
                              std::function<void()> saveFullBufferCallback,
                              std::function<void()> customizeSaveButtonsCallback)
-      : slider(nullptr),
-        secondsEdit(nullptr),
+      : secondsEdit(nullptr),
         saveFullBufferBtn(nullptr),
         customizeSaveButtonsBtn(nullptr),
-        sliderDebounceTimer(new QTimer(parent)),
-        tickWidget(nullptr),
+        bufferLengthDebounceTimer(new QTimer(parent)),
         onSaveSegment(saveSegmentCallback),
         onSaveFullBuffer(saveFullBufferCallback),
         onCustomizeSaveButtons(customizeSaveButtonsCallback)
@@ -71,9 +67,9 @@ namespace ReplayBufferPro
         qWarning("UIComponents: parent widget cannot be null");
         return;
     }
-    
-    sliderDebounceTimer->setSingleShot(true);
-    sliderDebounceTimer->setInterval(Config::SLIDER_DEBOUNCE_INTERVAL);
+
+    bufferLengthDebounceTimer->setSingleShot(true);
+    bufferLengthDebounceTimer->setInterval(Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL);
     saveButtonDurations = getDefaultSaveButtonDurations();
   }
 
@@ -121,45 +117,17 @@ namespace ReplayBufferPro
     
     // Buffer length seconds input box
     secondsEdit = new QSpinBox(container);
-    secondsEdit->setFixedWidth(80);
+    secondsEdit->setFixedWidth(104);
     secondsEdit->setAlignment(Qt::AlignRight);
     secondsEdit->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
     secondsEdit->setSuffix(" sec");
-    secondsEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
     secondsEdit->setCursor(Qt::PointingHandCursor);
     auto* secondsEditFilter = new BufferLengthEventFilter();
     secondsEdit->installEventFilter(secondsEditFilter);
     secondsEdit->setContentsMargins(2, 2, 2, 2);
     headerLayout->addWidget(secondsEdit);
     mainLayout->addLayout(headerLayout);
-    mainLayout->addSpacing(4);
-
-    // Buffer length slider
-    slider = new QSlider(Qt::Horizontal, container);
-    slider->setRange(Config::MIN_BUFFER_LENGTH, Config::MAX_BUFFER_LENGTH);
-    auto* sliderFilter = new BufferLengthEventFilter();
-    slider->installEventFilter(sliderFilter);
-    
-    // Create custom tick label widget
-    tickWidget = new TickLabelWidget(container, &isBufferActive);
-    tickWidget->setFixedHeight(20);
-    tickWidget->setValueCallback([this](int seconds) {
-        updateBufferLengthValue(seconds);
-    });
-    
-    mainLayout->addWidget(slider);
-    mainLayout->setSpacing(0);  // Reduce spacing between slider & ticks
-    mainLayout->addWidget(tickWidget);
-
-    mainLayout->addSpacing(18);  // Space before divider
-
-    // Add horizontal line divider
-    QFrame* line = new QFrame(container);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    mainLayout->addWidget(line);
-    
-    mainLayout->addSpacing(24); // Space after divider
+    mainLayout->addSpacing(12); // Space before save clip section
 
     // Save clip label + customize button
     QHBoxLayout *saveClipHeaderLayout = new QHBoxLayout();
@@ -236,7 +204,6 @@ namespace ReplayBufferPro
 
   void UIComponents::updateBufferLengthValue(int seconds)
   {
-    slider->setValue(seconds);
     secondsEdit->setValue(seconds);
 
     toggleSaveButtons(seconds);
@@ -245,7 +212,6 @@ namespace ReplayBufferPro
   void UIComponents::updateBufferLengthState(bool isActive)
   {
     isBufferActive = isActive;  // Store the active state
-    slider->setEnabled(!isActive);
     secondsEdit->setEnabled(!isActive);
   }
 
@@ -273,7 +239,7 @@ namespace ReplayBufferPro
     }
 
     updateSaveButtonLabels();
-    toggleSaveButtons(slider ? slider->value() : Config::DEFAULT_BUFFER_LENGTH);
+    toggleSaveButtons(secondsEdit ? secondsEdit->value() : Config::DEFAULT_BUFFER_LENGTH);
   }
 
   void UIComponents::updateSaveButtonLabels()
@@ -300,230 +266,4 @@ namespace ReplayBufferPro
     return defaults;
   }
 
-  //=============================================================================
-  // TickLabelWidget Implementation
-  //=============================================================================
-
-  TickLabelWidget::TickLabelWidget(QWidget* parent, bool* isBufferActive) 
-      : QWidget(parent), isBufferActive(isBufferActive) {
-      // Define all possible tick marks (in seconds) in order of priority
-      allTicks = {
-          // Primary tick marks - always shown when space permits
-          {21600, "6h"},   // 6 hours - maximum buffer length
-          {300, "5m"},     // 5 minutes - minimum meaningful segment
-          
-          // Hour markers - shown second if space allows
-          {3600, "1h"},    // 1 hour
-          {7200, "2h"},    // 2 hours  
-          {10800, "3h"},   // 3 hours
-          {14400, "4h"},   // 4 hours
-          {18000, "5h"},   // 5 hours
-          
-          // Half-hour markers - lowest priority, shown last
-          {1800, "30m"},   // 30 minutes
-          {5400, "1.5h"},  // 1.5 hours
-          {9000, "2.5h"},  // 2.5 hours
-          {12600, "3.5h"}, // 3.5 hours
-          {16200, "4.5h"}, // 4.5 hours
-          {19800, "5.5h"}, // 5.5 hours
-
-          // Minute markers - shown third if space allows
-          {2700, "45m"},   // 45 minutes
-          {900, "15m"},    // 15 minutes
-          {600, "10m"},    // 10 minutes
-      };
-
-      // Create all labels (initially hidden)
-      for (const auto& tick : allTicks) {
-          QLabel* label = new QLabel(tick.second, this);
-          label->setAlignment(Qt::AlignCenter);
-          label->adjustSize();
-          label->hide();
-          label->setCursor(Qt::PointingHandCursor); // Show hand cursor on hover
-          label->setStyleSheet("QLabel:hover { color: #999999; }"); // Optional: visual feedback on hover
-          
-          // Install event filter to handle clicks
-          label->installEventFilter(this);
-          labels.push_back(label);
-      }
-  }
-
-  bool TickLabelWidget::eventFilter(QObject* obj, QEvent* event) {
-      if (event->type() == QEvent::MouseButtonRelease) {
-          // Show error dialog if buffer is active
-          if (isBufferActive && *isBufferActive) {
-              QMessageBox::warning(
-                  this,
-                  obs_module_text("Warning"),
-                  obs_module_text("ReplayBufferActive"),
-                  QMessageBox::Ok
-              );
-              return QWidget::eventFilter(obj, event);
-          }
-
-          if (auto* label = qobject_cast<QLabel*>(obj)) {
-              for (size_t i = 0; i < labels.size(); i++) {
-                  if (labels[i] == label && onValueChanged) {
-                      onValueChanged(allTicks[i].first);
-                      break;
-                  }
-              }
-          }
-      }
-      return QWidget::eventFilter(obj, event);
-  }
-
-  void TickLabelWidget::resizeEvent(QResizeEvent* event) {
-      QWidget::resizeEvent(event);
-      updateVisibleTicks();
-      updateTickPositions();
-  }
-
-  void TickLabelWidget::setValueCallback(std::function<void(int)> callback) {
-      onValueChanged = callback;
-  }
-
-  void TickLabelWidget::showEvent(QShowEvent* event) {
-      QWidget::showEvent(event);
-      QTimer::singleShot(0, this, [this]() {
-          updateVisibleTicks();
-          updateTickPositions();
-      });
-  }
-
-  void TickLabelWidget::updateVisibleTicks() {
-      const int totalWidth = width();
-      const int minSpaceBetweenLabels = 50; // Minimum pixels between labels
-      
-      // Hide all labels first
-      for (auto* label : labels) {
-          label->hide();
-      }
-
-      // Always try to show highest priority ticks (6h and 5m) first
-      if (totalWidth >= minSpaceBetweenLabels * 2) {
-          labels[0]->show(); // 6h
-          labels[1]->show(); // 5m
-
-          // Create a list of visible labels to check spacing
-          std::vector<QLabel*> visibleLabels = {labels[0], labels[1]};
-
-          // Try to add hour markers (indices 2-6)
-          for (size_t i = 2; i <= 6; i++) {
-              labels[i]->show();
-              visibleLabels.push_back(labels[i]);
-              
-              // Sort by position
-              std::sort(visibleLabels.begin(), visibleLabels.end(),
-                  [this](QLabel* a, QLabel* b) {
-                      return getTickPosition(a) < getTickPosition(b);
-                  });
-
-              // Check spacing
-              bool hasEnoughSpace = true;
-              for (size_t j = 1; j < visibleLabels.size(); j++) {
-                  double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
-                  double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
-                  if (pos2 - pos1 < minSpaceBetweenLabels) {
-                      hasEnoughSpace = false;
-                      break;
-                  }
-              }
-
-              if (!hasEnoughSpace) {
-                  labels[i]->hide();
-                  visibleLabels.pop_back();
-              }
-          }
-
-          // Try to add minute markers (indices 7-9)
-          for (size_t i = 7; i <= 9; i++) {
-              labels[i]->show();
-              visibleLabels.push_back(labels[i]);
-              
-              std::sort(visibleLabels.begin(), visibleLabels.end(),
-                  [this](QLabel* a, QLabel* b) {
-                      return getTickPosition(a) < getTickPosition(b);
-                  });
-
-              bool hasEnoughSpace = true;
-              for (size_t j = 1; j < visibleLabels.size(); j++) {
-                  double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
-                  double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
-                  if (pos2 - pos1 < minSpaceBetweenLabels) {
-                      hasEnoughSpace = false;
-                      break;
-                  }
-              }
-
-              if (!hasEnoughSpace) {
-                  labels[i]->hide();
-                  visibleLabels.pop_back();
-              }
-          }
-
-          // Try to add half-hour markers (indices 10-15) last
-          for (size_t i = 10; i < labels.size(); i++) {
-              labels[i]->show();
-              visibleLabels.push_back(labels[i]);
-              
-              std::sort(visibleLabels.begin(), visibleLabels.end(),
-                  [this](QLabel* a, QLabel* b) {
-                      return getTickPosition(a) < getTickPosition(b);
-                  });
-
-              bool hasEnoughSpace = true;
-              for (size_t j = 1; j < visibleLabels.size(); j++) {
-                  double pos1 = getTickPosition(visibleLabels[j-1]) * totalWidth;
-                  double pos2 = getTickPosition(visibleLabels[j]) * totalWidth;
-                  if (pos2 - pos1 < minSpaceBetweenLabels) {
-                      hasEnoughSpace = false;
-                      break;
-                  }
-              }
-
-              if (!hasEnoughSpace) {
-                  labels[i]->hide();
-                  visibleLabels.pop_back();
-              }
-          }
-      }
-  }
-
-  void TickLabelWidget::updateTickPositions() {
-      const int totalWidth = width();
-      
-      for (size_t i = 0; i < labels.size(); i++) {
-          QLabel* label = labels[i];
-          if (!label->isVisible()) continue;
-
-          double position = static_cast<double>(allTicks[i].first - Config::MIN_BUFFER_LENGTH) / 
-                          (Config::MAX_BUFFER_LENGTH - Config::MIN_BUFFER_LENGTH);
-          
-          int labelWidth = label->sizeHint().width();
-          int x = static_cast<int>(position * totalWidth);
-          
-          // Special handling for 6h mark (first tick) and 5m mark (second tick)
-          if (i == 0) { // 6h mark
-              x = totalWidth - labelWidth; // Always align to far right
-          } else if (i == 1) { // 5m mark
-              x = 0; // Always align to far left
-          } else {
-              // Center all other labels
-              x = std::max(0, std::min(totalWidth - labelWidth, x - labelWidth / 2));
-          }
-          
-          label->move(x, 0);
-      }
-  }
-
-  double TickLabelWidget::getTickPosition(QLabel* label) {
-      for (size_t i = 0; i < labels.size(); i++) {
-          if (labels[i] == label) {
-              return static_cast<double>(allTicks[i].first - Config::MIN_BUFFER_LENGTH) / 
-                     (Config::MAX_BUFFER_LENGTH - Config::MIN_BUFFER_LENGTH);
-          }
-      }
-      return 0.0;
-  }
 } // namespace ReplayBufferPro

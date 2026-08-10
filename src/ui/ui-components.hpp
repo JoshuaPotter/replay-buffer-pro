@@ -11,7 +11,6 @@
 
 // Qt includes
 #include <QWidget>
-#include <QSlider>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QLabel>
@@ -20,10 +19,6 @@
 #include <QGridLayout>
 #include <QTimer>
 #include <QPaintEvent>
-#include <QResizeEvent>
-#include <QShowEvent>
-#include <QStyle>
-#include <QStyleOptionSlider>
 
 // STL includes
 #include <vector>
@@ -34,34 +29,12 @@
 
 namespace ReplayBufferPro
 {
-  // Add this before the UIComponents class
-  class TickLabelWidget : public QWidget {
-  public:
-    explicit TickLabelWidget(QWidget* parent = nullptr, bool* isBufferActive = nullptr);
-    void setValueCallback(std::function<void(int)> callback);
-
-  protected:
-    bool eventFilter(QObject* obj, QEvent* event) override;
-    void resizeEvent(QResizeEvent* event) override;
-    void showEvent(QShowEvent* event) override;
-
-  private:
-    void updateVisibleTicks();
-    void updateTickPositions();
-    double getTickPosition(QLabel* label);
-
-    std::vector<std::pair<int, QString>> allTicks;
-    std::vector<QLabel*> labels;
-    bool* isBufferActive;
-    std::function<void(int)> onValueChanged;
-  };
-
   /**
    * @class UIComponents
    * @brief Manages UI components for the Replay Buffer Pro plugin
    *
    * This class creates and manages the UI components used by the plugin,
-   * including the buffer length slider, text input, and save buttons.
+   * including the buffer length spinbox and save buttons.
    */
   class UIComponents
   {
@@ -88,12 +61,6 @@ namespace ReplayBufferPro
     //=========================================================================
     // GETTERS
     //=========================================================================
-    /**
-     * @brief Gets the buffer length slider
-     * @return Pointer to the buffer length slider
-     */
-    QSlider *getSlider() const { return slider; }
-
     /**
      * @brief Gets the buffer length text input
      * @return Pointer to the buffer length text input
@@ -125,10 +92,10 @@ namespace ReplayBufferPro
     QPushButton *getCustomizeSaveButtonsBtn() const { return customizeSaveButtonsBtn; }
 
     /**
-     * @brief Gets the slider debounce timer
-     * @return Pointer to the slider debounce timer
+     * @brief Gets the buffer length debounce timer
+     * @return Pointer to the buffer length debounce timer
      */
-    QTimer *getSliderDebounceTimer() const { return sliderDebounceTimer; }
+    QTimer *getBufferLengthDebounceTimer() const { return bufferLengthDebounceTimer; }
 
     //=========================================================================
     // UI CREATION
@@ -170,13 +137,11 @@ namespace ReplayBufferPro
     //=========================================================================
     // UI COMPONENTS
     //=========================================================================
-    QSlider *slider;                        ///< Buffer length control (10s to 6h)
-    QSpinBox *secondsEdit;                 ///< Manual buffer length input
+    QSpinBox *secondsEdit;                 ///< Buffer length control (1s to 6h)
     QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
     QPushButton *customizeSaveButtonsBtn;   ///< Customize save buttons trigger
     std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
-    QTimer *sliderDebounceTimer;            ///< Prevents rapid setting updates
-    TickLabelWidget* tickWidget;  // Now this will work
+    QTimer *bufferLengthDebounceTimer;      ///< Prevents rapid setting updates
     std::vector<int> saveButtonDurations;   ///< Durations for save buttons
 
     //=========================================================================
