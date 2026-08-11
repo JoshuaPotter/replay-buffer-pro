@@ -25,7 +25,6 @@
 #include <QPushButton>
 
 // STL includes
-#include <thread>
 #include <string>
 #include <vector>
 
@@ -116,13 +115,10 @@ namespace ReplayBufferPro
 
 	void Plugin::initSignals()
 	{
-		// Both slider and spinbox changes will trigger handleSliderChanged
-		connect(ui->getSlider(), &QSlider::valueChanged, this, &Plugin::handleSliderChanged);
-		connect(ui->getSecondsEdit(), QOverload<int>::of(&QSpinBox::valueChanged), 
-				this, &Plugin::handleSliderChanged);  // Use same handler
-		
-		// Single debounce timer for both controls
-		connect(ui->getSliderDebounceTimer(), &QTimer::timeout, this, &Plugin::handleSliderFinished);
+		connect(ui->getSecondsEdit(), QOverload<int>::of(&QSpinBox::valueChanged),
+				this, &Plugin::handleBufferLengthChanged);
+
+		connect(ui->getBufferLengthDebounceTimer(), &QTimer::timeout, this, &Plugin::handleBufferLengthFinished);
 	}
 
 	//=============================================================================
@@ -160,20 +156,20 @@ namespace ReplayBufferPro
 		}
 	}
 
-	void Plugin::handleSliderChanged(int value)
+	void Plugin::handleBufferLengthChanged(int value)
 	{
 		// Only update the UI components, don't trigger settings update yet
 		ui->updateBufferLengthValue(value);
-		
+
 		// Restart the debounce timer
-		ui->getSliderDebounceTimer()->start();
+		ui->getBufferLengthDebounceTimer()->start();
 	}
 
-	void Plugin::handleSliderFinished()
+	void Plugin::handleBufferLengthFinished()
 	{
-		// Get the final slider value
-		int value = ui->getSlider()->value();
-		
+		// Get the final spinbox value
+		int value = ui->getSecondsEdit()->value();
+
 		// Only update settings if the value has actually changed
 		if (value != lastKnownBufferLength)
 		{
@@ -187,23 +183,6 @@ namespace ReplayBufferPro
 		}
 	}
 
-	void Plugin::handleBufferLengthInput(int value)
-	{
-		if (value < Config::MIN_BUFFER_LENGTH || value > Config::MAX_BUFFER_LENGTH)
-		{
-			ui->updateBufferLengthValue(ui->getSlider()->value());
-			return;
-		}
-
-		ui->getSlider()->setValue(value);
-		try {
-			settingsManager->updateBufferLengthSettings(value);
-		} catch (const std::exception &e) {
-			QMessageBox::warning(this, obs_module_text("Error"),
-								QString(obs_module_text("FailedToUpdateLength")).arg(e.what()));
-		}
-	}
-
 	void Plugin::handleSaveFullBuffer()
 	{
 		replayManager->saveFullBuffer(this);
@@ -214,28 +193,19 @@ namespace ReplayBufferPro
 		replayManager->saveSegment(duration, this);
 	}
 
-	void Plugin::handleReplayBufferSaved() 
+	void Plugin::handleReplayBufferSaved()
 	{
-		// Consume the pending duration immediately (before spawning the thread) so that a
-		// rapid second save event sees 0 and does not attempt to double-trim.
-		int duration = replayManager->getPendingSaveDuration();
-		if (duration > 0) {
-			replayManager->clearPendingSaveDuration();
+		std::string savedPath;
 
-			const char* savedPath = obs_frontend_get_last_replay();
-			if (savedPath) {
-				std::string pathCopy(savedPath);
-				bfree((void*)savedPath);
-
-				// Offload trimming to background thread to avoid blocking OBS event thread.
-				// duration is captured by value; clearPendingSaveDuration has already been
-				// called above so the next save event can proceed independently.
-				auto *manager = replayManager;
-				std::thread([manager, path = std::move(pathCopy), duration]() {
-					manager->trimReplayBuffer(path.c_str(), duration);
-				}).detach();
-			}
+		if (const char* path = obs_frontend_get_last_replay()) {
+			savedPath = path;
+			bfree((void*)path);
 		}
+
+		// The manager matches this to the request that produced it, logs a verdict
+		// either way, and hands any trimming off to its own worker thread so the
+		// OBS event thread is never blocked.
+		replayManager->handleSaveCompleted(savedPath);
 	}
 
 	void Plugin::handleCustomizeSaveButtons()

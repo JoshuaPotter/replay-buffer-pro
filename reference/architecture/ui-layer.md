@@ -9,26 +9,17 @@ This document describes the dockable UI panel and the widget components that con
 - Periodically reload buffer length from OBS settings.
 
 ## UI composition
-The dock assembles a vertical layout that includes:
+The dock content is wrapped in a padded `QFrame` (`replayBufferProFrame`, `NoFrame` shape), mirroring the `controlsFrame`/`scenesFrame` pattern native OBS docks use to get a consistent gutter between the dock's border and its content. Inside it, the dock assembles a vertical layout that includes:
 - Subtitle label (`WidgetTitle`).
-- Buffer length header with a label and seconds input (`QSpinBox`).
-- Buffer length slider (`QSlider`).
-- Tick label widget for quick duration selection.
-- Divider line.
+- Buffer length header with a label and a seconds spinbox (`QSpinBox`, with its up/down step buttons enabled).
 - Save clip section title, customize button, and a grid of save buttons.
 
 ## UI controls and behavior
 ### Buffer length controls
-- `QSlider` and `QSpinBox` are bound to the same value.
-- A debounce timer (`Config::SLIDER_DEBOUNCE_INTERVAL`) prevents frequent OBS config updates.
-- When the replay buffer is active, the slider and spinbox are disabled.
-- Clicking disabled controls triggers a warning dialog via an event filter.
-
-### Tick label widget
-- `TickLabelWidget` renders time labels such as `5m`, `1h`, `6h` on the slider axis.
-- It dynamically shows or hides labels based on available width.
-- Labels are clickable and update the buffer length value.
-- When the replay buffer is active, clicking labels shows a warning and does not update settings.
+- A single `QSpinBox` is the buffer length control (no separate slider or tick-label row).
+- A debounce timer (`Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL`) prevents frequent OBS config updates while the value is being stepped/typed.
+- When the replay buffer is active, the spinbox is disabled.
+- Clicking or typing into the disabled spinbox triggers a warning dialog via an event filter.
 
 ### Save buttons
 - Save buttons are generated from the current customizable duration settings.
@@ -38,15 +29,15 @@ The dock assembles a vertical layout that includes:
 - A customize button opens a dialog to edit per-button durations.
 
 ## Event and state flow
-1. User adjusts slider/spinbox or clicks a tick label.
-2. `UIComponents::updateBufferLengthValue(...)` syncs slider and spinbox.
+1. User steps or types a new value into the buffer length spinbox.
+2. `UIComponents::updateBufferLengthValue(...)` updates the spinbox and save button enabled states.
 3. Dock restarts the debounce timer and waits for input to settle.
 4. On debounce timeout, `SettingsManager::updateBufferLengthSettings(...)` persists the value.
 5. OBS frontend events update UI enabled/disabled state and reload buffer length when needed.
 
 ## Configuration inputs
-- Slider range uses `Config::MIN_BUFFER_LENGTH` and `Config::MAX_BUFFER_LENGTH`.
-- Debounce interval uses `Config::SLIDER_DEBOUNCE_INTERVAL`.
+- Spinbox range uses `Config::MIN_BUFFER_LENGTH` and `Config::MAX_BUFFER_LENGTH`.
+- Debounce interval uses `Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL`.
 - Save buttons are generated from `SaveButtonSettings` and `Config::SAVE_BUTTON_COUNT`.
 
 ## Key classes and functions
@@ -54,7 +45,6 @@ The dock assembles a vertical layout that includes:
 - `ReplayBufferPro::UIComponents::createUI()`
 - `ReplayBufferPro::UIComponents::updateBufferLengthValue(...)`
 - `ReplayBufferPro::UIComponents::updateBufferLengthState(...)`
-- `ReplayBufferPro::TickLabelWidget` (event filter, resize and show events)
 
 ## Related code
 - `src/plugin/plugin.hpp`

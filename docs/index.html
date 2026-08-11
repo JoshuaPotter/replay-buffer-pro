@@ -60,7 +60,7 @@
         "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding. Perfect for streamers, gamers, and content creators.",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Windows 10/11 (64-bit), macOS 12.0+",
-        "softwareVersion": "1.5.1",
+        "softwareVersion": "1.6.0",
         "datePublished": "2024-01-01",
         "author": {
           "@type": "Person",
@@ -240,7 +240,7 @@
                   <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
                 </ul>
               </div>
-              <div id="release-meta" class="subtext"><span class="release-version" data-prefix="v">v1.5.1</span> • Requires OBS Studio 32.2.0+</div>
+              <div id="release-meta" class="subtext"><span class="release-version" data-prefix="v">v1.6.0</span> • Requires OBS Studio 32.2.0+</div>
             </div>
           </div>
           <div class="hero-media">
@@ -268,34 +268,31 @@
                 <div class="plugin-section">
                   <h3 class="plugin-section-title">Replay Buffer Settings</h3>
                   
-                  <div class="slider-container">
-                    <label class="slider-label">
-                      <span>Maximum Replay Buffer Length</span>
-                      <span class="slider-value-wrapper">
-                        <input type="number" class="slider-value-input" id="slider-value-input" value="7200" min="1" max="21600" step="1">
-                        <span class="slider-value-unit">sec</span>
-                      </span>
-                    </label>
-                    <div class="slider-wrapper">
-                      <input 
-                        type="range" 
-                        class="buffer-slider" 
-                        id="buffer-slider"
-                        min="1" 
-                        max="21600" 
-                        value="7200" 
+                  <div class="buffer-length-container">
+                    <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
+                    <div class="buffer-number-input" id="buffer-number-input">
+                      <input
+                        type="number"
+                        class="buffer-length-value-input"
+                        id="buffer-length-input"
+                        value="7200"
+                        min="1"
+                        max="21600"
                         step="1"
-                      />
-                      <div class="slider-track-fill" id="slider-fill"></div>
-                    </div>
-                    <div class="slider-markers">
-                      <button type="button" class="slider-marker" data-value="300">5m</button>
-                      <button type="button" class="slider-marker" data-value="3600">1h</button>
-                      <button type="button" class="slider-marker" data-value="7200">2h</button>
-                      <button type="button" class="slider-marker" data-value="10800">3h</button>
-                      <button type="button" class="slider-marker" data-value="14400">4h</button>
-                      <button type="button" class="slider-marker" data-value="18000">5h</button>
-                      <button type="button" class="slider-marker" data-value="21600">6h</button>
+                      >
+                      <span class="buffer-length-unit">sec</span>
+                      <div class="buffer-number-steppers">
+                        <button type="button" class="buffer-number-step" id="buffer-step-up" aria-label="Increase buffer length">
+                          <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
+                            <path d="M1 4l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                        <button type="button" class="buffer-number-step" id="buffer-step-down" aria-label="Decrease buffer length">
+                          <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
+                            <path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -580,7 +577,7 @@
               <div class="step-card">
                 <div class="step-badge">3</div>
                 <div class="step-content">
-                  <p>Adjust the Replay Buffer length using the slider.</p>
+                  <p>Adjust the Replay Buffer length using the numeric field.</p>
                 </div>
               </div>
               <div class="step-card">
@@ -631,7 +628,7 @@
                 </svg>
               </div>
               <h3>Adjusting Buffer Length</h3>
-              <p>Adjust the Replay Buffer length easily with the slider in the plugin UI, bypassing the settings menu.</p>
+              <p>Adjust the Replay Buffer length easily with the numeric field in the plugin UI, bypassing the settings menu.</p>
             </article>
 
             <article class="feature">
@@ -707,8 +704,10 @@
                 </svg>
               </div>
               <div class="troubleshoot-content">
-                <strong>Trimming Fails</strong>
-                <p>Check disk space and write permissions in the output directory.</p>
+                <strong>A Clip Wasn't Trimmed</strong>
+                <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help &rarr; Log Files &rarr; Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip &mdash; the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
+                <p><code>skipped reason=no-pending-request</code> means the save came from outside the plugin &mdash; OBS's own <strong>Save Replay</strong> hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action. Those save the full buffer. Bind a <em>Replay Buffer Pro: Save&hellip;</em> hotkey instead so the plugin knows which duration you wanted.</p>
+                <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings &rarr; Output &rarr; Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
               </div>
             </div>
             

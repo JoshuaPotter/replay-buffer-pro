@@ -125,9 +125,9 @@ function initializeCustomizeModal() {
 
     applyDurationsToButtons();
 
-    // Re-evaluate disabled states against the current slider value
-    const slider = document.getElementById('buffer-slider');
-    const bufferLength = slider ? parseInt(slider.value, 10) : 21600;
+    // Re-evaluate disabled states against the current buffer length value
+    const bufferInput = document.getElementById('buffer-length-input');
+    const bufferLength = bufferInput ? parseInt(bufferInput.value, 10) : 21600;
     updateClipButtonStates(bufferLength);
 
     closeModal();
@@ -161,98 +161,52 @@ function initializeCustomizeModal() {
 }
 
 /**
- * Initializes the plugin UI demo slider interactions
+ * Initializes the plugin UI demo buffer length number-input interactions
  */
-export function initializePluginSlider() {
-  const slider = document.getElementById('buffer-slider');
-  const sliderValueInput = document.getElementById('slider-value-input');
-  const sliderFill = document.getElementById('slider-fill');
-  const sliderMarkers = document.querySelectorAll('.slider-marker');
+export function initializePluginBufferInput() {
+  const bufferInput = document.getElementById('buffer-length-input');
+  const stepUpBtn = document.getElementById('buffer-step-up');
+  const stepDownBtn = document.getElementById('buffer-step-down');
 
-  if (!slider || !sliderValueInput || !sliderFill) return;
+  if (!bufferInput) return;
 
-  const min = parseInt(slider.min);
-  const max = parseInt(slider.max);
+  const min = parseInt(bufferInput.min);
+  const max = parseInt(bufferInput.max);
 
-  function updateFromSlider() {
-    const value = parseInt(slider.value);
-    
-    // Update input value
-    sliderValueInput.value = value;
-    
-    // Update fill width
-    const percentage = ((value - min) / (max - min)) * 100;
-    sliderFill.style.width = `${percentage}%`;
-  }
-
-  function updateFromInput() {
-    let value = parseInt(sliderValueInput.value);
-    
-    // Only update if value is valid and within range
-    if (!isNaN(value) && value >= min && value <= max) {
-      slider.value = value;
-      const percentage = ((value - min) / (max - min)) * 100;
-      sliderFill.style.width = `${percentage}%`;
-    }
+  function clampToRange(value) {
+    if (isNaN(value)) return min;
+    return Math.max(min, Math.min(max, value));
   }
 
   function validateAndClampInput() {
-    let value = parseInt(sliderValueInput.value);
-    
-    // Validate and clamp value
-    if (isNaN(value)) {
-      value = min;
-    } else if (value < min) {
-      value = min;
-    } else if (value > max) {
-      value = max;
-    }
-    
-    // Update input and slider
-    sliderValueInput.value = value;
-    slider.value = value;
-    
-    // Update fill width
-    const percentage = ((value - min) / (max - min)) * 100;
-    sliderFill.style.width = `${percentage}%`;
+    const value = clampToRange(parseInt(bufferInput.value));
+    bufferInput.value = value;
+    updateClipButtonStates(value);
   }
 
-  // Initialize on load
-  updateFromSlider();
+  function step(delta) {
+    const value = clampToRange(parseInt(bufferInput.value) + delta);
+    bufferInput.value = value;
+    updateClipButtonStates(value);
+  }
 
   // Apply initial button labels from currentDurations
   applyDurationsToButtons();
 
-  // Update on slider input
-  slider.addEventListener('input', updateFromSlider);
+  // Update button states as the user types (without clamping mid-edit)
+  bufferInput.addEventListener('input', () => {
+    updateClipButtonStates(parseInt(bufferInput.value));
+  });
 
-  // Update slider as user types (without clamping)
-  sliderValueInput.addEventListener('input', updateFromInput);
-  
   // Validate and clamp only when done editing
-  sliderValueInput.addEventListener('blur', validateAndClampInput);
+  bufferInput.addEventListener('blur', validateAndClampInput);
 
-  // Handle marker clicks
-  sliderMarkers.forEach(marker => {
-    marker.addEventListener('click', (e) => {
-      const value = parseInt(e.target.dataset.value);
-      slider.value = value;
-      updateFromSlider();
-      updateClipButtonStates(value);
-    });
-  });
+  // Wire the up/down step buttons
+  if (stepUpBtn) stepUpBtn.addEventListener('click', () => step(1));
+  if (stepDownBtn) stepDownBtn.addEventListener('click', () => step(-1));
 
-  // Update button states on slider change
-  slider.addEventListener('input', () => {
-    updateClipButtonStates(parseInt(slider.value));
-  });
-
-  sliderValueInput.addEventListener('blur', () => {
-    updateClipButtonStates(parseInt(sliderValueInput.value));
-  });
-
-  // Initialize button states based on current slider value
-  updateClipButtonStates(parseInt(slider.value));
+  // Initialize button states based on the current buffer length
+  updateClipButtonStates(parseInt(bufferInput.value));
 
   // Initialize customize modal
   initializeCustomizeModal();
