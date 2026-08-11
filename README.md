@@ -168,7 +168,7 @@ Every replay save writes one `TRIM VERDICT` line to the OBS log (**Help → Log 
 - `skipped reason=no-pending-request` — the save was triggered outside this plugin, so it was saved at full buffer length. OBS's own **Save Replay** hotkey, the tray menu item, and Stream Deck buttons using the official *OBS Studio* plugin's "Save Replay Buffer" action all take this path. Use one of Replay Buffer Pro's own **Save Clip** hotkeys (Settings → Hotkeys → *Replay Buffer Pro: Save ...*) so the plugin knows which duration you wanted.
 - `skipped reason=save-full-buffer` — this was a **Save Replay Buffer** click, which is intentionally untrimmed.
 - `failed reason=output-too-long` — your encoder's keyframe interval is too long for the clip length you asked for, so the cut could not land near the right place. Set **Settings → Output → Keyframe Interval** to 2 seconds.
-- `failed reason=open-input-failed` — something else was holding the file. If **Settings → Output → Automatically remux to mp4** is enabled, try turning it off; antivirus and cloud-sync folders can do the same.
+- `failed reason=open-input-failed` — something else was holding the file. If **Settings → Advanced → Automatically remux to mp4** is enabled, try turning it off; antivirus and cloud-sync folders can do the same.
 - Any other `failed reason=...` — check disk space and write permissions in the output directory, and include the line when reporting an issue.
 
 A failed trim always leaves your original full-length clip in place, so nothing is lost.

@@ -568,7 +568,7 @@ details p { color: var(--muted); margin: 0.5rem 0.125rem 0.25rem; }
   padding-top: 0.25rem;
 }
 
-.troubleshoot-content strong {
+.troubleshoot-content > strong {
   display: block;
   font-size: 1.0625rem;
   margin-bottom: 0.5rem;

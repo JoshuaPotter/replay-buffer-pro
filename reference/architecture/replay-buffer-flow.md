@@ -56,7 +56,7 @@ The cut can only ever land at or before the request, so a clip is never shorter 
 
 ### Contention for the saved file
 
-`OBSBasic::ReplayBufferSaved()` calls `AutoRemux(path)` immediately after firing the saved event, so when "Automatically remux to mp4" is enabled OBS is reading the same file the plugin is about to trim and delete. Antivirus and cloud-sync clients do the same to any newly written file. Both the input open and the original delete retry with backoff, and the AutoRemux setting is logged when a trim starts so the interaction is visible in the log.
+`OBSBasic::ReplayBufferSaved()` calls `AutoRemux(path)` immediately after firing the saved event, so when Settings → Advanced → "Automatically remux to mp4" is enabled OBS is reading the same file the plugin is about to trim and delete. Antivirus and cloud-sync clients do the same to any newly written file. Both the input open and the original delete retry with backoff, and the AutoRemux setting is logged when a trim starts so the interaction is visible in the log.
 
 ## Diagnostics
 
