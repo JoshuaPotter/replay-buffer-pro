@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Replay Buffer Pro - An OBS Studio Plugin</title>
     <meta name="description" content="An OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
     <link rel="stylesheet" href="styles.css">
     <script src="scripts/index.js" type="module" defer></script>
     <!-- Google Tag Manager -->
@@ -32,12 +35,13 @@
     <meta name="keywords" content="OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, twitch, youtube, instant replay, obs plugin, video clipping, content creation, gaming clips">
     <meta name="author" content="Joshua Potter">
     <meta name="application-name" content="Replay Buffer Pro">
-    <meta name="msapplication-TileColor" content="#6366f1">
-    <meta name="theme-color" content="#6366f1">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/">
-    
+
     <!-- LLM-optimized content -->
     <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-optimized documentation">
 
@@ -194,16 +198,36 @@
       }
     </script>
   </head>
-  <body>
+  <body id="top">
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKMH5L72"
       height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
     <header class="site-header">
       <div class="container header-inner">
-        <div class="brand">Replay Buffer Pro</div>
-        <nav class="nav">
-          <a class="btn btn-ghost" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View on GitHub</a>
+        <a class="brand" href="#top">
+          <svg class="brand-mark" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 1.5 18.5 17H1.5L10 1.5Z" fill="currentColor"/>
+          </svg>
+          <span class="brand-name">Replay Buffer Pro</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Sections">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#install">Install</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-secondary btn-icon-only" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank" aria-label="View on GitHub">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+            </svg>
+          </a>
           <div class="download-split" data-download-split>
             <a id="download-top" class="btn btn-primary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
             <button type="button" class="btn btn-primary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
@@ -214,21 +238,25 @@
               <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
             </ul>
           </div>
-        </nav>
+        </div>
       </div>
     </header>
 
-    <main>
+    <main id="main">
+      <!-- ============ HERO ============ -->
       <section class="hero">
         <div class="container hero-inner">
           <div class="hero-copy">
-            <div class="hero-badges">
-              <span class="badge">OBS Studio</span>
-              <span class="badge">Plugin</span>
-              <span class="badge">Clips</span>
-            </div>
-            <h1>Replay Buffer Pro</h1>
-            <p class="lead">Save the last moments of your stream or recording with one click.</p>
+            <a class="release-pill" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">
+              <span class="release-pill-tag">New</span>
+              <span class="release-version" data-prefix="v">v1.5.1</span>
+              <span class="release-pill-text">is out — now on macOS</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+            </a>
+
+            <h1>Save the moment you didn't know you'd need</h1>
+            <p class="hero-lead">Replay Buffer Pro adds a dock to OBS Studio for saving the last 15 seconds — or the last 30 minutes — of whatever just happened. Trimmed instantly, without re-encoding.</p>
+
             <div class="cta-row">
               <div class="download-split" data-download-split>
                 <a id="download-cta" class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
@@ -240,10 +268,21 @@
                   <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
                 </ul>
               </div>
-              <div id="release-meta" class="subtext"><span class="release-version" data-prefix="v">v1.5.1</span> • Requires OBS Studio 32.2.0+</div>
+              <a class="btn btn-secondary btn-lg" href="#how-it-works">See how it works</a>
             </div>
+
+            <p class="hero-meta">Free and open source · Requires OBS Studio 32.2.0+</p>
           </div>
+
           <div class="hero-media">
+            <!-- Framed product surface, mimicking the OBS dock in situ -->
+            <div class="surface surface-chrome">
+              <div class="surface-bar">
+                <span class="surface-dot" aria-hidden="true"></span>
+                <span class="surface-label">OBS Studio — Docks → Replay Buffer Pro</span>
+              </div>
+              <div class="surface-body plugin-ui-stage-wrap">
+
             <!-- Interactive Plugin UI Demo -->
             <div class="plugin-ui-stage">
             <div class="plugin-ui-demo" id="plugin-ui-demo">
@@ -267,7 +306,7 @@
               <div class="plugin-body">
                 <div class="plugin-section">
                   <h3 class="plugin-section-title">Replay Buffer Settings</h3>
-                  
+
                   <div class="buffer-length-container">
                     <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
                     <div class="buffer-number-input" id="buffer-number-input">
@@ -382,156 +421,230 @@
             </div>
 
             </div><!-- /.plugin-ui-stage -->
+
+              </div>
+            </div>
           </div>
+        </div>
+
+        <!-- Fact strip, in place of Vercel's customer logo band -->
+        <div class="container">
+          <ul class="fact-strip">
+            <li>No re-encoding</li>
+            <li>Frame-accurate trims</li>
+            <li>Six custom durations</li>
+            <li>Hotkey for every button</li>
+            <li>Windows &amp; macOS</li>
+            <li>GPL-2.0</li>
+          </ul>
         </div>
       </section>
 
-      <section class="section alt" id="features">
+      <!-- ============ HOW IT WORKS — alternating feature rows ============ -->
+      <section class="section" id="how-it-works">
         <div class="container">
-          <h2>What is Replay Buffer Pro?</h2>
-          <p><strong>Replay Buffer Pro is a plugin for OBS Studio</strong> that expands upon the built-in Replay Buffer. When you press a button or hotkey for a custom save button, the plugin saves the current buffer and instantly trims it down to the desired length, without re-encoding.</p>
-          <h3>Key Features</h3>
-          <div class="features-grid">
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+
+          <div class="feature-row">
+            <div class="feature-row-copy">
+              <h2>One buffer, any clip length</h2>
+              <p class="feature-statement"><strong>Keep a long buffer running</strong> and decide the clip length at the moment you press the button. The plugin saves the buffer, then trims it back to exactly the window you asked for.</p>
+              <ul class="check-list">
+                <li>Six save buttons, each with its own duration</li>
+                <li>Anything from 1 second to 6 hours</li>
+                <li>Buffer length editable straight from the dock</li>
+              </ul>
+            </div>
+            <div class="feature-row-media">
+              <div class="surface">
+                <div class="surface-body">
+                  <div class="timeline" role="img" aria-label="A 2 hour replay buffer with the last 30 seconds highlighted as the saved clip">
+                    <div class="timeline-head">
+                      <span class="timeline-title">Replay buffer</span>
+                      <span class="timeline-len">7200s</span>
+                    </div>
+                    <div class="timeline-track">
+                      <div class="timeline-fill"></div>
+                      <div class="timeline-window"><span class="timeline-window-label">30s</span></div>
+                      <div class="timeline-now" aria-hidden="true"></div>
+                    </div>
+                    <div class="timeline-axis">
+                      <span>oldest frame in buffer</span><span>now</span>
+                    </div>
+                    <div class="timeline-out">
+                      <span class="mono">clip-2026-08-14-21-04-33.mkv</span>
+                      <span class="tag tag-ok">saved · 30.0s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-row feature-row-reverse">
+            <div class="feature-row-copy">
+              <h2>Trimmed without re-encoding</h2>
+              <p class="feature-statement"><strong>Trimming is a stream copy, not a render.</strong> Replay Buffer Pro remuxes with FFmpeg's libavformat, so the clip keeps the exact bitrate, codec, and quality your buffer already captured — and lands in about the time it takes to write the file.</p>
+              <ul class="check-list">
+                <li>Identical quality to the source buffer</li>
+                <li>No GPU or CPU spike mid-stream</li>
+                <li>Runs on a background thread</li>
+              </ul>
+            </div>
+            <div class="feature-row-media">
+              <div class="surface">
+                <div class="surface-bar">
+                  <span class="surface-label mono">OBS Studio log</span>
+                </div>
+                <div class="surface-body">
+                  <pre class="log"><code><span class="log-dim">21:04:33.118</span> <span class="log-key">[replay-buffer-pro]</span> save requested: 30s
+<span class="log-dim">21:04:33.301</span> <span class="log-key">[replay-buffer-pro]</span> buffer written, 2:00:00 total
+<span class="log-dim">21:04:33.302</span> <span class="log-key">[replay-buffer-pro]</span> trimming to last 30s
+<span class="log-dim">21:04:33.304</span> <span class="log-key">[replay-buffer-pro]</span> stream copy, no re-encode
+<span class="log-dim">21:04:33.489</span> <span class="log-ok">[replay-buffer-pro]</span> done in 187ms → clip-2026-08-14-21-04-33.mkv</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-row">
+            <div class="feature-row-copy">
+              <h2>Never leave the game to clip</h2>
+              <p class="feature-statement"><strong>Every save button gets a hotkey.</strong> Bind them in OBS Studio's own hotkey settings and clip mid-fight without alt-tabbing, opening a dock, or touching your mouse.</p>
+              <ul class="check-list">
+                <li>Bindings persist across profiles and restarts</li>
+                <li>Works whether or not the dock is visible</li>
+                <li>Buttons grey out when the buffer is too short to satisfy them</li>
+              </ul>
+            </div>
+            <div class="feature-row-media">
+              <div class="surface">
+                <div class="surface-bar">
+                  <span class="surface-label">Settings → Hotkeys</span>
+                </div>
+                <div class="surface-body">
+                  <ul class="keymap">
+                    <li><span>Save Last 15 Seconds</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>1</kbd></span></li>
+                    <li><span>Save Last 30 Seconds</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>2</kbd></span></li>
+                    <li><span>Save Last 1 Minute</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>3</kbd></span></li>
+                    <li><span>Save Last 5 Minutes</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>4</kbd></span></li>
+                    <li><span>Save Replay Buffer</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>B</kbd></span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ FEATURE GRID ============ -->
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-intro">
+            <h2>Everything in one dock</h2>
+            <p>Replay Buffer Pro expands OBS Studio's built-in Replay Buffer rather than replacing it. Same output folder, same encoder, same buffer — with the controls you actually reach for.</p>
+          </div>
+
+          <div class="card-grid card-grid-4">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
               </div>
               <h3>Custom save buttons</h3>
-              <p>Save any custom clip length instantly with fully customizable save buttons.</p>
+              <p>Six buttons, each set to any duration you like, editable from the dock.</p>
             </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 7h18" stroke="currentColor" stroke-width="1.5"/>
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M8 14l2 2 6-6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  <path d="M8 14l2 2 6-6" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
               </div>
               <h3>Instant clips</h3>
-              <p>No re-encoding, same quality as your buffer.</p>
+              <p>Stream-copy trimming keeps the same quality as your buffer, in milliseconds.</p>
             </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
                   <rect x="6" y="9" width="4" height="6" rx="1" fill="currentColor"/>
-                  <rect x="12" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".8"/>
+                  <rect x="12" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".55"/>
                 </svg>
               </div>
               <h3>Hotkeys</h3>
-              <p>Assign hotkeys for each save button in settings.</p>
+              <p>Bind a key to every save button in OBS Studio's own hotkey settings.</p>
             </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                  <rect x="4" y="5" width="16" height="4" rx="2" fill="currentColor" opacity=".9"/>
+                  <path d="M4 9h16" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
               </div>
               <h3>Dockable, minimal UI</h3>
-              <p>Simple user interface designed for quick access.</p>
-            </article>
-          </div>
-
-          <h3>Use Cases</h3>
-          <div class="features-grid">
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  <path d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <h3>Streaming & Content Creation</h3>
-              <p>Twitch and YouTube streamers can instantly capture highlight moments during live streams and create clips ready for TikTok, YouTube Shorts, and Instagram Reels.</p>
-            </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  <path d="M17 11l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                </svg>
-              </div>
-              <h3>Sports & Esports Analysis</h3>
-              <p>Coaches and analysts can quickly save gameplay segments at precise moments for detailed review and breakdown without post-processing delays or complex editing.</p>
-            </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                </svg>
-              </div>
-              <h3>Tutorial & Educational Content</h3>
-              <p>Educators and tutorial creators can capture specific segments of their recordings at various lengths, perfect for different platforms and diverse educational use cases.</p>
-            </article>
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <path d="M7 7h10M7 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <h3>Software Development & QA</h3>
-              <p>Developers and QA testers can instantly save bug reproductions, feature demonstrations, and code walkthroughs at the exact moment issues or behaviors occur.</p>
+              <p>Native Qt dock that snaps anywhere in your OBS Studio layout.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="install">
+      <!-- ============ USE CASES ============ -->
+      <section class="section" id="use-cases">
         <div class="container">
-          <div class="section-header">
-            <h2>Installation</h2>
-            <div class="section-actions">
-              <div class="download-split" data-download-split>
-                <a id="download-secondary" class="btn btn-primary download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
-                <button type="button" class="btn btn-primary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
-                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <ul class="download-split-menu" role="menu" hidden>
-                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
-                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <div class="requirements-box">
-            <div class="requirements-header">
-              <svg class="requirements-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-              <h3>Requirements</h3>
-            </div>
-            <ul class="requirements-list">
-              <li>
-                <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>OBS Studio 32.2.0+</span>
-              </li>
-              <li>
-                <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Windows 10/11 (64-bit)</span>
-              </li>
-              <li>
-                <svg class="check-icon" width="24" height="24" viewBox="6 6 12 12" fill="none">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>macOS 12.0+ (Apple Silicon &amp; Intel)</span>
-              </li>
-            </ul>
+          <div class="section-intro">
+            <h2>Built for anyone who says "wait, did I get that?"</h2>
           </div>
 
-          <h3 class="steps-title">Installation Steps</h3>
+          <div class="card-grid card-grid-2">
+            <article class="card card-lg">
+              <span class="card-eyebrow">Streaming &amp; content creation</span>
+              <p>Twitch and YouTube streamers can capture a highlight the second it happens and walk away with a clip already sized for TikTok, YouTube Shorts, and Instagram Reels — no editor, no export queue.</p>
+            </article>
+            <article class="card card-lg">
+              <span class="card-eyebrow">Sports &amp; esports analysis</span>
+              <p>Coaches and analysts can pull gameplay segments at precise moments for review and breakdown, without post-processing delays or scrubbing through hours of VOD.</p>
+            </article>
+            <article class="card card-lg">
+              <span class="card-eyebrow">Tutorial &amp; educational content</span>
+              <p>Educators and tutorial creators can grab specific segments of a recording at whatever length each platform wants, straight out of the session.</p>
+            </article>
+            <article class="card card-lg">
+              <span class="card-eyebrow">Software development &amp; QA</span>
+              <p>Developers and QA testers can save a bug reproduction the moment it occurs, with the exact preceding context attached to the ticket.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INSTALL ============ -->
+      <section class="section" id="install">
+        <div class="container">
+          <div class="section-intro">
+            <h2>Get started</h2>
+            <p>Two minutes, one folder, one restart.</p>
+          </div>
+
+          <dl class="spec-list">
+            <div class="spec-row">
+              <dt>OBS Studio</dt>
+              <dd>32.2.0 or newer</dd>
+            </div>
+            <div class="spec-row">
+              <dt>Windows</dt>
+              <dd>Windows 10/11 (64-bit) · <span class="mono">.zip</span></dd>
+            </div>
+            <div class="spec-row">
+              <dt>macOS</dt>
+              <dd>macOS 12.0+, Apple Silicon &amp; Intel universal · <span class="mono">.pkg</span></dd>
+            </div>
+            <div class="spec-row">
+              <dt>Price</dt>
+              <dd>Free — GPL-2.0-or-later</dd>
+            </div>
+          </dl>
+
           <div class="os-tabs" data-os-tabs>
             <div class="os-tablist" role="tablist" aria-label="Choose your operating system">
               <button type="button" class="os-tab" role="tab" id="tab-windows" aria-controls="panel-windows" data-os-tab="windows">Windows</button>
@@ -539,249 +652,24 @@
             </div>
 
             <ol class="os-tabpanel" role="tabpanel" id="panel-windows" aria-labelledby="tab-windows" data-os-panel="windows">
-              <li><span class="os-step-text">Download the <code>.zip</code> using the button above.</span></li>
+              <li><span class="os-step-text">Download the <code>.zip</code> for Windows (x64).</span></li>
               <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
               <li><span class="os-step-text">Extract the ZIP and copy the <code>obs-studio</code> folder into <code>%ALLUSERSPROFILE%\obs-studio\plugins\</code> (typically <code>C:\ProgramData\obs-studio\plugins\</code>).</span></li>
-              <li><span class="os-step-text">Restart OBS Studio — Replay Buffer Pro is ready in <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+              <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
             </ol>
 
             <ol class="os-tabpanel" role="tabpanel" id="panel-macos" aria-labelledby="tab-macos" data-os-panel="macos">
-              <li><span class="os-step-text">Download the <code>.pkg</code> using the button above.</span></li>
+              <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
               <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-              <li><span class="os-step-text">Open the downloaded <code>.pkg</code> and follow the installer — it installs to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
-              <li><span class="os-step-text">Restart OBS Studio — Replay Buffer Pro is ready in <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+              <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
+              <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
             </ol>
           </div>
-        </div>
-      </section>
 
-      <section class="section alt" id="usage-tips">
-        <div class="container">
-          <h2>Getting Started</h2>
-          
-          <div class="usage-section">
-            <h3 class="steps-title">Usage Guide</h3>
-            <div class="steps-container">
-              <div class="step-card">
-                <div class="step-badge">1</div>
-                <div class="step-content">
-                  <p>Open OBS Studio.</p>
-                </div>
-              </div>
-              <div class="step-card">
-                <div class="step-badge">2</div>
-                <div class="step-content">
-                  <p>Show the Replay Buffer Pro dock (<strong>Docks → Replay Buffer Pro</strong>).</p>
-                </div>
-              </div>
-              <div class="step-card">
-                <div class="step-badge">3</div>
-                <div class="step-content">
-                  <p>Adjust the Replay Buffer length using the numeric field.</p>
-                </div>
-              </div>
-              <div class="step-card">
-                <div class="step-badge">4</div>
-                <div class="step-content">
-                  <p>Start the Replay Buffer from OBS.</p>
-                </div>
-              </div>
-              <div class="step-card">
-                <div class="step-badge">5</div>
-                <div class="step-content">
-                  <p>Click a save button (e.g., "Last 30 Seconds") or trigger its hotkey to save a clip.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <h3 class="section-subtitle">Tips</h3>
-          <div class="features-grid">
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                  <rect x="6" y="9" width="4" height="6" rx="1" fill="currentColor"/>
-                  <rect x="12" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".8"/>
-                </svg>
-              </div>
-              <h3>Hotkeys</h3>
-              <p>Assign keys for each duration in <strong>OBS Studio Settings → Hotkeys</strong> (search "Replay Buffer Pro").</p>
-            </article>
-
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <h3>Disabled Buttons</h3>
-              <p>A clip button is disabled if your buffer isn't long enough (e.g., 5m clip requires a ≥5m replay buffer).</p>
-            </article>
-
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <h3>Adjusting Buffer Length</h3>
-              <p>Adjust the Replay Buffer length easily with the numeric field in the plugin UI, bypassing the settings menu.</p>
-            </article>
-
-            <article class="feature">
-              <div class="feature-icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-4-4H5a2 2 0 0 0-2 2z" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M13 3v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <h3>Saved Clips</h3>
-              <p>Clips save in to the same OBS recordings folder you set in Output settings.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-      
-      <section class="section" id="faq">
-        <div class="container">
-          <h2>FAQ</h2>
-          <details>
-            <summary>How is this different from OBS's default Replay Buffer?</summary>
-            <p>The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons/hotkeys, and trims automatically.</p>
-          </details>
-          <details>
-            <summary>Why would I use this?</summary>
-            <p>Replay Buffer Pro is ideal for effortlessly capturing and saving recent moments from your streams or recordings in various lengths. Unlike traditional methods that require manual clipping, this plugin mimics the "Save Recent Gameplay" feature found on Xbox and Playstation, ensuring seamless and automatic trim functionality. It's the perfect tool for crafting clips ready for platforms like TikTok, YouTube Shorts, and Instagram Reels.</p>
-          </details>
-          <details>
-            <summary>Does it re-encode video?</summary>
-            <p>No. Trimming uses FFmpeg with <code>-c copy</code> for fast, lossless output.</p>
-          </details>
-          <details>
-            <summary>Why are some save buttons disabled?</summary>
-            <p>Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip.</p>
-          </details>
-          <details>
-            <summary>Why can't I change the buffer length right now?</summary>
-            <p>The Replay Buffer is active. Stop it to adjust the length, then start it again.</p>
-          </details>
-          <details>
-            <summary>Can I customize the save button durations?</summary>
-            <p>Yes. Use the Customize button in the Save Clips section to set each button's duration.</p>
-          </details>
-          <details>
-            <summary>Where are clips saved?</summary>
-            <p>In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).</p>
-          </details>
-        </div>
-      </section>
-
-      <section class="section alt troubleshooting-section" id="troubleshooting">
-        <div class="container">
-          <h2>Troubleshooting</h2>
-          <div class="troubleshoot-list">
-            <div class="troubleshoot-item">
-              <div class="troubleshoot-marker">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="troubleshoot-content">
-                <strong>Plugin Not Loading</strong>
-                <p>Ensure <code>replay-buffer-pro.dll</code> is in <code>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code> (typically <code>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code>). Restart OBS Studio after placing the file.</p>
-              </div>
-            </div>
-            
-            <div class="troubleshoot-item">
-              <div class="troubleshoot-marker">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="troubleshoot-content">
-                <strong>Trimming Fails</strong>
-                <p>Check disk space and write permissions in the output directory.</p>
-              </div>
-            </div>
-            
-            <div class="troubleshoot-item">
-              <div class="troubleshoot-marker">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="troubleshoot-content">
-                <strong>Check the Logs</strong>
-                <p>Review the OBS Studio log file for plugin load messages and errors. Look for "Replay Buffer Pro" entries to diagnose issues.</p>
-              </div>
-            </div>
-            
-            <div class="troubleshoot-item">
-              <div class="troubleshoot-marker">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="troubleshoot-content">
-                <strong>Report an Issue</strong>
-                <p>If you're experiencing a bug or need additional help, please <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" target="_blank" rel="noopener">file an issue on GitHub</a>. Include your OBS Studio version, plugin version, and any relevant log entries.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <!-- Brand & Legal -->
-          <div class="footer-section footer-brand-section">
-            <div class="footer-brand">Replay Buffer Pro</div>
-            <p class="footer-license">© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
-            <p class="footer-license">
-            Replay Buffer Pro is an independent project and is not affiliated with, endorsed, or sponsored by OBS Studio or its developers. All product names, trademarks, and registered trademarks are property of their respective owners.</p>
-          </div>
-          
-          <!-- Navigation Links -->
-          <div class="footer-section">
-            <h4 class="footer-section-title">Navigation</h4>
-            <ul class="footer-nav-list">
-              <li><a href="#features">Features</a></li>
-              <li><a href="#installation">Installation</a></li>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#troubleshooting">Troubleshooting</a></li>
-              <li><a href="#" class="scroll-to-top">↑ Scroll to Top</a></li>
-            </ul>
-          </div>
-          
-          <!-- Resources -->
-          <div class="footer-section">
-            <h4 class="footer-section-title">Resources</h4>
-            <ul class="footer-nav-list">
-              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub Repository<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
-              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
-              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an Issue<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
-              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases<svg class="external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg></a></li>
-            </ul>
-            <div class="download-split footer-download-split" data-download-split>
-              <a class="footer-download-btn download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" rel="noopener" target="_blank">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download
-              </a>
-              <button type="button" class="footer-download-btn download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+          <div class="section-actions">
+            <div class="download-split" data-download-split>
+              <a id="download-secondary" class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+              <button type="button" class="btn btn-primary btn-lg download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
                 <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <ul class="download-split-menu" role="menu" hidden>
@@ -790,6 +678,166 @@
               </ul>
             </div>
           </div>
+
+          <h3 class="subhead">Then, in OBS Studio</h3>
+          <ol class="numbered-list">
+            <li><span>Open <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+            <li><span>Set the maximum replay buffer length in the dock's numeric field.</span></li>
+            <li><span>Start the Replay Buffer from OBS Studio's controls.</span></li>
+            <li><span>Hit a save button — or its hotkey — to write the clip.</span></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ============ FAQ ============ -->
+      <section class="section" id="faq">
+        <div class="container">
+          <div class="section-intro">
+            <h2>Frequently asked questions</h2>
+          </div>
+
+          <div class="faq">
+            <details>
+              <summary>How is this different from OBS Studio's default Replay Buffer?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons or hotkeys, and trims each one automatically.</p></div>
+            </details>
+            <details>
+              <summary>Why would I use this?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>It captures recent moments from your stream or recording in whatever length you need, without manual clipping. It behaves like the "Save Recent Gameplay" feature on Xbox and PlayStation — press once, get a trimmed clip ready for TikTok, YouTube Shorts, or Instagram Reels.</p></div>
+            </details>
+            <details>
+              <summary>Does it re-encode video?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>No. Trimming is a stream copy through FFmpeg's libavformat — the equivalent of <code>-c copy</code> — so it is fast and lossless.</p></div>
+            </details>
+            <details>
+              <summary>Why are some save buttons disabled?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>Your configured buffer length is shorter than that clip length. Increase the buffer length, or choose a shorter clip.</p></div>
+            </details>
+            <details>
+              <summary>Why can't I change the buffer length right now?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>The Replay Buffer is active. Stop it to adjust the length, then start it again.</p></div>
+            </details>
+            <details>
+              <summary>Can I customize the save button durations?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>Yes. Use the <strong>Customize</strong> button in the Save Clips section to set each button's duration.</p></div>
+            </details>
+            <details>
+              <summary>Where are clips saved?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.</p></div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TROUBLESHOOTING ============ -->
+      <section class="section" id="troubleshooting">
+        <div class="container">
+          <div class="section-intro">
+            <h2>Troubleshooting</h2>
+          </div>
+
+          <div class="issue-list">
+            <div class="issue">
+              <div class="issue-title">Plugin not loading</div>
+              <p>Confirm <code>replay-buffer-pro.dll</code> sits in <code>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code> (typically <code>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code>), then restart OBS Studio.</p>
+            </div>
+            <div class="issue">
+              <div class="issue-title">Trimming fails</div>
+              <p>Check free disk space and write permissions on the output directory.</p>
+            </div>
+            <div class="issue">
+              <div class="issue-title">Check the logs</div>
+              <p>Open the OBS Studio log file and search for <code>Replay Buffer Pro</code> entries to see load messages and errors.</p>
+            </div>
+            <div class="issue">
+              <div class="issue-title">Report an issue</div>
+              <p>Still stuck? <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" target="_blank" rel="noopener">File an issue on GitHub</a> with your OBS Studio version, plugin version, and any relevant log lines.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CLOSING CTA ============ -->
+      <section class="section section-cta">
+        <div class="container">
+          <div class="cta-panel">
+            <h2>Stop losing the good takes</h2>
+            <p>Install the dock, set your durations, and clip the last thirty seconds without breaking stride.</p>
+            <div class="cta-row cta-row-center">
+              <div class="download-split" data-download-split>
+                <a class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+                <button type="button" class="btn btn-primary btn-lg download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <ul class="download-split-menu" role="menu" hidden>
+                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+                </ul>
+              </div>
+              <a class="btn btn-secondary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View source</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand-col">
+            <a class="brand" href="#top">
+              <svg class="brand-mark" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M10 1.5 18.5 17H1.5L10 1.5Z" fill="currentColor"/>
+              </svg>
+              <span class="brand-name">Replay Buffer Pro</span>
+            </a>
+            <p class="footer-blurb">An OBS Studio plugin for saving replay buffer clips at any length, without re-encoding.</p>
+            <div class="download-split footer-download-split" data-download-split>
+              <a class="btn btn-secondary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" rel="noopener" target="_blank">Download</a>
+              <button type="button" class="btn btn-secondary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <ul class="download-split-menu" role="menu" hidden>
+                <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Product</h4>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#how-it-works">How it works</a></li>
+              <li><a href="#install">Install</a></li>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub repository</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an issue</a></li>
+              <li><a href="llms.txt">llms.txt</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" rel="noopener" target="_blank">GPL-2.0-or-later</a></li>
+              <li><a href="#" class="scroll-to-top">Back to top</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
+          <p class="footer-disclaimer">Replay Buffer Pro is an independent project, not affiliated with, endorsed by, or sponsored by OBS Studio or its developers. All product names and trademarks are the property of their respective owners.</p>
         </div>
       </div>
     </footer>
