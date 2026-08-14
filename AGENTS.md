@@ -15,7 +15,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
 - Save button settings: `src/managers/save-button-settings.hpp`, `src/managers/save-button-settings.cpp`
 - Hotkey manager: `src/managers/hotkey-manager.hpp`, `src/managers/hotkey-manager.cpp`
-- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`
+- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/status-reporter.*`
 - Config constants: `src/config/config.hpp`
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
@@ -31,13 +31,20 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ### Save segment
 1. User clicks a duration button or hotkey.
 2. `ReplayBufferManager::saveSegment(...)` validates buffer active and duration <= current length.
-3. `obs_frontend_replay_buffer_save()` is called and `pendingSaveDuration` is set.
-4. On `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, the saved path is trimmed in a background thread.
+3. The request is pushed onto a pending-save FIFO and `obs_frontend_replay_buffer_save()` is called.
+4. On `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, `handleSaveCompleted(...)` pops the matching request and queues a trim job.
+5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed`, then deletes the original.
 
 ### Save full buffer
 1. User clicks “Save Replay Buffer”.
-2. `ReplayBufferManager::saveFullBuffer(...)` saves without setting `pendingSaveDuration`.
-3. Saved event occurs, but no trimming is performed.
+2. `ReplayBufferManager::saveFullBuffer(...)` queues a `0`-duration do-not-trim marker, then saves.
+3. The saved event consumes that marker, so no trimming is performed and no stale duration can be inherited.
+
+### Correlating saves
+- OBS cannot tie a save request to the file it produces, so requests are matched to saved events in FIFO order.
+- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS` (OBS silently drops saves when encoders are paused).
+- Requests within `Config::TRIM_REQUEST_COALESCE_MS` collapse into one, because OBS produces a single file for presses that close together.
+- A saved event with nothing pending came from outside the plugin (OBS's own hotkey, tray, obs-websocket) and is logged but not trimmed.
 
 ## Key components and ownership
 - `ReplayBufferPro::Plugin` (dock) owns UI, managers, timers, and OBS event wiring.

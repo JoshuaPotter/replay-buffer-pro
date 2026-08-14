@@ -101,10 +101,14 @@ A: Windows 10/11 (64-bit) and macOS 12.0+.
 - Restart OBS Studio after placing the file
 - Check OBS logs for "Replay Buffer Pro" entries
 
-**Trimming Fails**
-- Confirm locale files exist at `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\data\locale\`
-- Check disk space availability
-- Verify write permissions in output directory
+**A Clip Wasn't Trimmed**
+- Every replay save writes one `TRIM VERDICT` line to the OBS log. Search the log for `TRIM VERDICT` and read the `reason` field on the line for that clip
+- `skipped reason=no-pending-request`: the save came from outside the plugin (OBS's own Save Replay hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action). Bind a *Replay Buffer Pro: Save…* hotkey instead
+- `skipped reason=save-full-buffer`: a Save Replay Buffer click, intentionally untrimmed
+- `failed reason=output-too-long`: the encoder keyframe interval is too long for the requested clip length. Set Settings → Output → Keyframe Interval to 2 seconds
+- `failed reason=open-input-failed`: another process was holding the file. Try disabling Settings → Advanced → "Automatically remux to mp4"; antivirus and cloud-sync folders do the same
+- Any other failure: check disk space and write permissions in the output directory
+- A failed trim always leaves the original full-length clip in place
 
 **Button Disabled**
 - Check if your buffer length is long enough for that clip duration

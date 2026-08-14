@@ -64,7 +64,7 @@
         "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding. Perfect for streamers, gamers, and content creators.",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Windows 10/11 (64-bit), macOS 12.0+",
-        "softwareVersion": "1.5.1",
+        "softwareVersion": "1.6.0",
         "datePublished": "2024-01-01",
         "author": {
           "@type": "Person",
@@ -249,7 +249,7 @@
           <div class="hero-copy">
             <a class="release-pill" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">
               <span class="release-pill-tag">New</span>
-              <span class="release-version" data-prefix="v">v1.5.1</span>
+              <span class="release-version" data-prefix="v">v1.6.0</span>
               <span class="release-pill-text">is out — now on macOS</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
             </a>
@@ -742,8 +742,10 @@
               <p>Confirm <code>replay-buffer-pro.dll</code> sits in <code>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code> (typically <code>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</code>), then restart OBS Studio.</p>
             </div>
             <div class="issue">
-              <div class="issue-title">Trimming fails</div>
-              <p>Check free disk space and write permissions on the output directory.</p>
+              <div class="issue-title">A clip wasn't trimmed</div>
+              <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
+              <p><code>skipped reason=no-pending-request</code> means the save came from outside the plugin — OBS's own <strong>Save Replay</strong> hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action. Those save the full buffer. Bind a <em>Replay Buffer Pro: Save…</em> hotkey instead so the plugin knows which duration you wanted.</p>
+              <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Settings → Advanced → Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
             </div>
             <div class="issue">
               <div class="issue-title">Check the logs</div>

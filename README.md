@@ -15,17 +15,12 @@ Unlike the default Replay Buffer, which saves a fixed duration, this OBS Studio 
 
 The project website is currently hosted via GitHub Pages.
 
-![Plugin UI](./plugin_ui.png)
-
 ## Usage
 
 ### Saving Clips
 1. Start the Replay Buffer in OBS
 2. Click any save clip button (customizable durations) or use the assigned hotkey
 3. Use the Customize button to set your preferred clip lengths
-
-   ![Customize UI](./customize_ui.png)
-
 4. The plugin will:
    - Save the full replay buffer
    - Automatically trim to the selected duration (Without re-encoding)
@@ -165,9 +160,18 @@ replay-buffer-pro/
 
 - Verify plugin file location (`.dll` on Windows, `.plugin` bundle on macOS)
 - Check OBS logs for errors
-- For trimming issues:
-  - Check disk space
-  - Check write permissions in output directory
+
+### A clip wasn't trimmed
+
+Every replay save writes one `TRIM VERDICT` line to the OBS log (**Help → Log Files → Show Log Files**). Search the log for `TRIM VERDICT` and find the line matching the clip:
+
+- `skipped reason=no-pending-request` — the save was triggered outside this plugin, so it was saved at full buffer length. OBS's own **Save Replay** hotkey, the tray menu item, and Stream Deck buttons using the official *OBS Studio* plugin's "Save Replay Buffer" action all take this path. Use one of Replay Buffer Pro's own **Save Clip** hotkeys (Settings → Hotkeys → *Replay Buffer Pro: Save ...*) so the plugin knows which duration you wanted.
+- `skipped reason=save-full-buffer` — this was a **Save Replay Buffer** click, which is intentionally untrimmed.
+- `failed reason=output-too-long` — your encoder's keyframe interval is too long for the clip length you asked for, so the cut could not land near the right place. Set **Settings → Output → Keyframe Interval** to 2 seconds.
+- `failed reason=open-input-failed` — something else was holding the file. If **Settings → Advanced → Automatically remux to mp4** is enabled, try turning it off; antivirus and cloud-sync folders can do the same.
+- Any other `failed reason=...` — check disk space and write permissions in the output directory, and include the line when reporting an issue.
+
+A failed trim always leaves your original full-length clip in place, so nothing is lost.
 - When building from source:
   - **Windows**: Ensure Visual Studio 2022+ and CMake 3.28+ are installed
   - **macOS**: Ensure Xcode 26.5+ (with macOS SDK 26.5+) and CMake 3.28+ are installed; run `xcode-select --install` if needed
