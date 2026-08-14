@@ -486,7 +486,7 @@
               <p class="feature-statement"><strong>Trimming is a stream copy, not a render.</strong> Replay Buffer Pro remuxes with FFmpeg's libavformat, so the clip keeps the exact bitrate, codec, and quality your buffer already captured — and lands in about the time it takes to write the file.</p>
               <ul class="check-list">
                 <li>Identical quality to the source buffer</li>
-                <li>No GPU or CPU spike mid-stream</li>
+                <li>Skips the CPU/GPU-heavy encode pass</li>
                 <li>Runs on a background thread</li>
               </ul>
             </div>
@@ -654,7 +654,7 @@
             <ol class="os-tabpanel" role="tabpanel" id="panel-windows" aria-labelledby="tab-windows" data-os-panel="windows">
               <li><span class="os-step-text">Download the <code>.zip</code> for Windows (x64).</span></li>
               <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-              <li><span class="os-step-text">Extract the ZIP and copy the <code>obs-studio</code> folder into <code>%ALLUSERSPROFILE%\obs-studio\plugins\</code> (typically <code>C:\ProgramData\obs-studio\plugins\</code>).</span></li>
+              <li><span class="os-step-text">Extract the ZIP and copy the <code>replay-buffer-pro</code> folder into <code>%ALLUSERSPROFILE%\obs-studio\plugins\</code> (typically <code>C:\ProgramData\obs-studio\plugins\</code>).</span></li>
               <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
             </ol>
 
