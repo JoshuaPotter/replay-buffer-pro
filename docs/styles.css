@@ -884,6 +884,8 @@ kbd {
 }
 .issue p { font-size: .875rem; color: var(--text-muted); }
 .issue p + p { margin-top: .75rem; }
+.issue p strong { color: var(--text); font-weight: 500; }
+.issue p em { color: var(--text); font-style: italic; }
 .issue a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
 .issue a:hover { color: var(--text); }
 
