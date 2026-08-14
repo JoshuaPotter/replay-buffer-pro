@@ -263,8 +263,6 @@ code {
   color: var(--text);
   flex-shrink: 0;
 }
-.brand-mark { color: var(--text); flex-shrink: 0; }
-
 .header-nav {
   display: flex;
   align-items: center;
@@ -352,21 +350,35 @@ code {
 
 .hero-media { min-width: 0; }
 
-/* Fact strip — stands in for a customer logo band */
-.fact-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 2.5rem;
+/* Fact strip — stands in for a customer logo band, scrolls as an infinite marquee */
+.fact-strip-wrap {
   margin: clamp(3.5rem, 7vw, 6rem) 0 0;
   padding: 1.25rem 0;
-  list-style: none;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+}
+.fact-strip-track {
+  display: flex;
+  width: max-content;
+  animation: fact-strip-scroll 28s linear infinite;
+}
+.fact-strip-track:hover { animation-play-state: paused; }
+.fact-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
 }
 .fact-strip li {
   position: relative;
   padding: .375rem 0;
+  margin-right: 2.5rem;
   font-size: .8125rem;
   font-weight: 450;
   letter-spacing: .01em;
@@ -383,7 +395,16 @@ code {
   background: var(--gray-500);
   transform: translateY(-50%);
 }
-.fact-strip li:first-child::before { display: none; }
+.fact-strip-track > .fact-strip:first-child li:first-child::before { display: none; }
+
+@keyframes fact-strip-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fact-strip-track { animation: none; }
+}
 
 /* ============================================================
    Surfaces — bordered panels that hold product visuals
@@ -713,6 +734,8 @@ kbd {
 .spec-row:last-child { border-bottom: 0; }
 .spec-list dt { font-size: .875rem; color: var(--text-faint); }
 .spec-list dd { margin: 0; font-size: .875rem; color: var(--text); }
+.spec-list dd .spec-line { display: block; }
+.spec-list dd .spec-line + .spec-line { margin-top: .25rem; }
 
 /* ============================================================
    OS tabs + step lists
@@ -860,6 +883,7 @@ kbd {
   color: var(--text);
 }
 .issue p { font-size: .875rem; color: var(--text-muted); }
+.issue p + p { margin-top: .75rem; }
 .issue a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
 .issue a:hover { color: var(--text); }
 
@@ -974,7 +998,7 @@ kbd {
   .cta-row > *,
   .cta-row .download-split { width: 100%; }
   .cta-row .download-split-main { flex: 1; }
-  .fact-strip { gap: 0 1.75rem; }
+  .fact-strip li { margin-right: 1.75rem; }
   .fact-strip li::before { left: -1rem; }
   .spec-row { grid-template-columns: 1fr; gap: .25rem; }
   .os-tablist { display: flex; width: 100%; }
