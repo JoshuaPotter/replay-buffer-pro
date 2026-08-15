@@ -1427,10 +1427,6 @@ kbd {
    ============================================ */
 
 .plugin-ui-stage {
-  position: relative;
-  /* zoom scales the rendered box after width resolves, so a plain 100% would
-     overflow the frame by the zoom factor. 88.889% == 1 / 1.125. */
-  width: 88.889%;
   max-width: 26rem;
   zoom: 1.125;
   /* Extra vertical room so the modal card can overflow the panel top edge */
