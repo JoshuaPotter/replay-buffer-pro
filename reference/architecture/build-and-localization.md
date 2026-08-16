@@ -75,7 +75,7 @@ Requires Xcode 26.5+ and macOS SDK 26.5+.
 # Configure (first run downloads deps and builds OBS — takes a few minutes)
 cmake --preset macos
 
-# Build (universal binary: arm64 + x86_64, deployment target macOS 12.0)
+# Build (universal binary: arm64 + x86_64, deployment target macOS 13.0)
 cmake --build --preset macos
 
 # Install to ~/Library/Application Support/obs-studio/plugins/
