@@ -1,7 +1,7 @@
 /**
  * Main entry point for the Replay Buffer Pro landing page
  */
-import { fetchLatestRelease, applyReleaseVersionToElements, applyDownloadUrls, applyDetectedOS, detectOS, updateYearByClass } from './utils.js';
+import { fetchLatestRelease, applyReleaseVersionToElements, applyDownloadUrls, applyDetectedOS, detectOS, updateYearByClass, clickToCopy } from './utils.js';
 import { initializePluginBufferInput } from './plugin-ui-demo.js';
 import { initDownloadSplits } from './download-split.js';
 import { initOsTabs } from './install-tabs.js';
@@ -48,3 +48,9 @@ scrollToTopLinks.forEach(link => {
   });
 });
 
+// Assign click to copy functionality to click surfaces
+const copyEls = document.querySelectorAll('.click-to-copy');
+copyEls.forEach(el => {
+  const text = el.getAttribute('data-copy-text') || el.textContent;
+  clickToCopy(el, text);
+});

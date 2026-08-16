@@ -67,4 +67,17 @@ export function updateYearByClass(yearEls = []) {
   });
 }
 
+export function clickToCopy(el, text) {
+  if (!el || !text) return;
+  el.addEventListener('click', () => {
+    navigator.clipboard.writeText(text).then(() => {
+      el.classList.add('animating');
+      setTimeout(() => {
+        el.classList.remove('animating');
+      }, 1500);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  });
+}
 
