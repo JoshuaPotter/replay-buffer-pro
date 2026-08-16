@@ -58,6 +58,11 @@ function Package {
 
     Remove-Item @RemoveArgs
 
+    Log-Group "Removing debug symbols from ${ProductName}..."
+    Get-ChildItem -Path "${ProjectRoot}/release/${Configuration}" -Recurse -Filter '*.pdb' |
+        Remove-Item -Force
+    Log-Group
+
     Log-Group "Archiving ${ProductName}..."
     $CompressArgs = @{
         Path = (Get-ChildItem -Path "${ProjectRoot}/release/${Configuration}" -Exclude "${OutputName}*.*")
