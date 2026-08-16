@@ -75,7 +75,7 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 - CMake 3.28+
 
 **macOS:**
-- macOS 12.0+ (builds target macOS 12.0+; universal binary: arm64 + x86_64)
+- macOS 13.0+ (builds target macOS 13.0+; universal binary: arm64 + x86_64)
 - Xcode 26.5+ with macOS SDK 26.5+
 - CMake 3.28+
 
