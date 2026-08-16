@@ -42,7 +42,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest (choose `replay-buffer-pro-<version>-windows-x64.zip`)
 2. Close OBS Studio completely
 3. Extract the ZIP file
-4. Copy the `obs-studio` folder to your OBS plugins directory: `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
+4. Copy the `replay-buffer-pro` folder to your OBS plugins directory: `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
 5. Verify installation:
    - DLL location: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\replay-buffer-pro.dll`
    - Data location: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\data\locale\` (includes `en-US.ini` and other locale files)

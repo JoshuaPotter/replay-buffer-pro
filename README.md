@@ -39,7 +39,7 @@ The project website is currently hosted via GitHub Pages.
 **Windows:**
 1. Download the latest `.zip` release
 2. Extract the ZIP file
-3. Copy the `obs-studio` folder to `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
+3. Copy the `replay-buffer-pro` folder to `%ALLUSERSPROFILE%\obs-studio\plugins\` (typically `C:\ProgramData\obs-studio\plugins\`)
 
 Final file structure should look like this:
 ```
