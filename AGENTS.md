@@ -42,7 +42,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 
 ### Correlating saves
 - OBS cannot tie a save request to the file it produces, so requests are matched to saved events in FIFO order.
-- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS` (OBS silently drops saves when encoders are paused). The window has to stay generous — OBS can legitimately take minutes to flush and mux a buffer, and expiring too early skips the trim on a save that actually completes.
+- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS` (OBS silently drops saves when encoders are paused).
 - Requests within `Config::TRIM_REQUEST_COALESCE_MS` collapse into one, because OBS produces a single file for presses that close together.
 - A saved event with nothing pending came from outside the plugin (OBS's own hotkey, tray, obs-websocket) and is logged but not trimmed.
 

@@ -31,14 +31,7 @@ namespace ReplayBufferPro
     constexpr int BUFFER_LENGTH_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
 
     // Trim request correlation
-    //
-    // This must outlast legitimate save latency, not just detect a dropped save:
-    // OBS can take well over 30s to flush and mux a buffer to disk (seen: ~2m19s
-    // in the wild, issue #40), and a request discarded before OBS reports
-    // completion leaves a real save with nothing to match against, silently
-    // skipping the trim. A longer window costs almost nothing (one small struct
-    // sitting in a deque); a shorter one costs a silently untrimmed clip.
-    constexpr int TRIM_REQUEST_TIMEOUT_MS = 300000; // Drop a request OBS never honored
+    constexpr int TRIM_REQUEST_TIMEOUT_MS = 30000;  // Drop a request OBS never honored
     constexpr int TRIM_REQUEST_COALESCE_MS = 250;   // Presses this close yield one OBS file
 
     // Trim retry behavior. OBS starts AutoRemux on the same file the moment it fires

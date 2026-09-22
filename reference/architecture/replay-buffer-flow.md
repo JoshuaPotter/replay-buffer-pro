@@ -15,7 +15,7 @@ OBS provides no way to tie a save request to the file it eventually produces. `o
 `ReplayBufferManager` therefore keeps a FIFO of pending requests and matches them to saved events in order:
 
 - Each request records its duration and the time it was made. A duration of `0` is an explicit "do not trim" marker used by Save Replay Buffer.
-- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS`. OBS silently drops a save when the encoders are paused or the output is inactive, and without expiry that orphaned duration would later be applied to an unrelated clip. The window has to be generous, not just long enough to detect a drop: OBS can legitimately take minutes to flush and mux a buffer to disk, and expiring a request before its completion event arrives skips the trim on a save that actually succeeded (issue #40).
+- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS`. OBS silently drops a save when the encoders are paused or the output is inactive, and without expiry that orphaned duration would later be applied to an unrelated clip.
 - Requests made within `Config::TRIM_REQUEST_COALESCE_MS` of each other are collapsed into one, because OBS tracks a single pending save timestamp and produces only one file for presses that close together.
 - A saved event with nothing pending came from outside the plugin (OBS's own Save Replay hotkey, the tray item, obs-websocket). It is logged and left alone.
 
