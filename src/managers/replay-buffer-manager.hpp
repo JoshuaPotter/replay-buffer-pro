@@ -10,8 +10,10 @@
 // OBS includes
 #include <obs-module.h>
 #include <obs-frontend-api.h>
+#include <obs.hpp>
 
 // STL includes
+#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
@@ -24,6 +26,7 @@
 // Qt includes
 #include <QObject>
 #include <QMessageBox>
+#include <QTimer>
 
 // Local includes
 #include "utils/video-trimmer.hpp"
@@ -33,10 +36,21 @@ namespace ReplayBufferPro
   /**
    * @brief Manages replay buffer operations including saving and trimming
    *
-   * OBS gives no way to correlate a save request with the file it eventually
-   * produces, so requests are tracked in a FIFO and matched to saved events in
-   * order. Requests expire, which keeps one that OBS silently dropped from
-   * being applied to somebody else's clip later on.
+   * OBS gives no way to tie a save request to the file it produces, and it does
+   * not queue requests either: the replay buffer holds a single armed save
+   * timestamp (save_ts in obs-ffmpeg-mux.c) that a later request overwrites, so
+   * any number of requests made before OBS starts writing yield one file and one
+   * saved signal. A FIFO of requests therefore drifts out of step with the files.
+   *
+   * This manager mirrors that model instead. It keeps at most one outstanding
+   * request (issued to OBS, awaiting its file) and one deferred request (made
+   * while a file was already being written, issued once that write completes).
+   * A press before OBS has started writing folds into the outstanding request,
+   * exactly as OBS folds it into save_ts. Requests OBS would silently drop are
+   * refused before any state is recorded, and completions come from the replay
+   * buffer output's own "saved" signal, which fires once per written file.
+   *
+   * All correlation state lives on the Qt main thread.
    */
   class ReplayBufferManager : public QObject
   {
@@ -78,24 +92,60 @@ namespace ReplayBufferPro
     /**
      * @brief Matches a completed save to its request and schedules the trim
      *
-     * Call from the Qt main thread when OBS reports a replay buffer save. Emits
-     * exactly one verdict line to the log for every save, whatever the outcome.
+     * Runs on the Qt main thread, posted from the replay buffer output's
+     * "saved" signal. Emits exactly one verdict line to the log for every
+     * saved file, whatever the outcome.
      *
-     * @param savedPath Path OBS reported for the saved replay, may be empty
+     * @param savedPath Path of the file OBS just finished, may be empty
      */
     void handleSaveCompleted(const std::string &savedPath);
+
+    /**
+     * @brief Reacts to replay buffer lifecycle and output-reset events
+     *
+     * Call from the Qt main thread for REPLAY_BUFFER_STARTING/STARTED/
+     * STOPPING/STOPPED, PROFILE_CHANGED and FINISHED_LOADING.
+     *
+     * @param event The frontend event that occurred
+     */
+    void handleFrontendEvent(obs_frontend_event event);
+
+    /**
+     * @brief Disconnects from OBS and abandons any live request
+     *
+     * Idempotent. Call on OBS_FRONTEND_EVENT_EXIT, while the frontend API is
+     * still usable; the destructor calls it again as a backstop.
+     */
+    void shutdown();
 
   private:
     //=========================================================================
     // TYPES
     //=========================================================================
     /**
-     * @brief A save this plugin asked for, awaiting its saved event
+     * @brief A save awaiting its file
+     *
+     * A foreign placeholder stands for a save something else (OBS's own
+     * hotkey, a Stream Deck OBS action, obs-websocket) was already writing
+     * when this plugin was asked to save. It holds our request back until that
+     * file has been accounted for, so the foreign file is not trimmed as ours.
      */
-    struct PendingSave
+    struct SaveRequest
     {
-      int duration;           ///< Seconds to keep, or 0 for an untrimmed full save
-      uint64_t requestedAtNs; ///< When it was requested, for expiry and coalescing
+      int duration = 0;           ///< Seconds to keep, or 0 for an untrimmed full save
+      uint64_t armedAtNs = 0;     ///< When save was issued to OBS (or the placeholder made)
+      uint64_t generation = 0;    ///< Monotonic id, only for log correlation
+      bool foreign = false;       ///< Placeholder for a save this plugin did not issue
+    };
+
+    /**
+     * @brief Why OBS would or would not honor a save issued right now
+     */
+    enum class ArmVerdict
+    {
+      Ok,
+      BufferInactive, ///< No replay buffer output, or it is not active
+      EncoderPaused   ///< Recording is paused; OBS drops replay saves then
     };
 
     /**
@@ -108,26 +158,119 @@ namespace ReplayBufferPro
     };
 
     //=========================================================================
-    // REQUEST TRACKING
+    // REQUEST TRACKING (Qt main thread)
     //=========================================================================
     /**
-     * @brief Records a save request, expiring stale ones and coalescing bursts
+     * @brief Records a validated save request and issues, folds or defers it
      * @param duration Seconds to keep, or 0 for an untrimmed full save
+     * @return false if OBS would have dropped the save, so nothing was recorded
      */
-    void enqueueRequest(int duration);
+    bool requestSave(int duration);
 
     /**
-     * @brief Removes and returns the oldest live request, if any
-     * @return The request, or nullopt when the save did not come from this plugin
+     * @brief Issues a save to OBS and makes it the outstanding request
      */
-    std::optional<PendingSave> takeNextPendingSave();
+    void arm(int duration, uint64_t generation);
 
     /**
-     * @brief Pops requests OBS never honored off the front of pendingSaves
-     * @param now Current timestamp, as returned by os_gettime_ns()
-     * @pre pendingMutex is held by the caller
+     * @brief Issues the deferred request, if any, once nothing is outstanding
      */
-    void expireStaleRequestsLocked(uint64_t now);
+    void promoteDeferred();
+
+    /**
+     * @brief Emits the verdict for a finished file and queues its trim
+     * @param request The request the file belongs to
+     * @param savedPath Path of the finished file
+     */
+    void dispatchCompletion(const SaveRequest &request, const std::string &savedPath);
+
+    /**
+     * @brief Mirrors OBS clearing its armed save when the buffer stops
+     *
+     * A request whose file OBS has already started is kept, because that file
+     * still completes and signals after the buffer stops.
+     */
+    void handleBufferStopped();
+
+    /**
+     * @brief Drops every live request, logging a verdict for each
+     * @param reason Reason token for the verdict lines
+     */
+    void abandonAll(const char *reason);
+
+    /**
+     * @brief Checks the conditions under which OBS silently drops a save
+     *
+     * Mirrors replay_buffer_hotkey() in obs-ffmpeg-mux.c. Also makes sure the
+     * saved signal is connected to the output about to be armed.
+     */
+    ArmVerdict checkArmable();
+
+    /**
+     * @brief The verdict reason token for a refused save
+     */
+    static const char *armVerdictReason(ArmVerdict verdict);
+
+    /**
+     * @brief Whether OBS has already started producing a file
+     *
+     * True while a mux is in flight, or when a file has finished but its
+     * completion is still queued for the main thread. A request made while
+     * this is false folds into the pending save_ts; one made while it is true
+     * gets a file of its own.
+     */
+    bool isFileStarted();
+
+    /**
+     * @brief Whether the replay buffer output is writing a file right now
+     *
+     * get_last_replay only reports a path while the output is not muxing.
+     */
+    bool isMuxInFlight();
+
+    //=========================================================================
+    // OBS SIGNAL SUBSCRIPTION
+    //=========================================================================
+    /**
+     * @brief Connects the saved signal to the current replay buffer output
+     *
+     * Level-triggered: compares against the output held last time, so it
+     * recovers from any lifecycle event OBS suppressed (frontend events are
+     * dropped wholesale during scene collection and profile switches).
+     * Qt main thread only.
+     */
+    void ensureSubscribed();
+
+    /**
+     * @brief Replay buffer output "saved" signal handler
+     *
+     * Runs on OBS's mux thread. Must never block or wait on the main thread:
+     * signal_handler_disconnect() holds the same mutex while it waits for this
+     * callback, so blocking here would deadlock teardown.
+     */
+    static void onSavedSignal(void *data, calldata_t *params);
+
+    /**
+     * @brief Reads the path of the file the output last wrote
+     * @return The path, or empty if OBS reported none
+     */
+    std::string readLastReplayPath();
+
+    /**
+     * @brief Periodic liveness check while a request is outstanding
+     */
+    void onWatchdogTick();
+
+    /**
+     * @brief Starts the watchdog if a request is outstanding, stops it otherwise
+     */
+    void syncWatchdog();
+
+    /**
+     * @brief Logs a correlation state transition
+     */
+    static void logState(const char *transition, const SaveRequest &request,
+                         const std::string &extra = std::string());
 
     //=========================================================================
     // TRIMMING
@@ -193,8 +336,27 @@ namespace ReplayBufferPro
     //=========================================================================
     // MEMBER VARIABLES
     //=========================================================================
-    std::mutex pendingMutex;              ///< Guards pendingSaves
-    std::deque<PendingSave> pendingSaves; ///< Requests awaiting a saved event
+    // Correlation state, Qt main thread only
+    std::optional<SaveRequest> outstanding; ///< Issued to OBS, awaiting its file
+    std::optional<SaveRequest> deferred;    ///< Waiting for outstanding; never set without it
+    uint64_t nextGeneration = 1;            ///< Source of SaveRequest::generation
+    uint64_t lastProbeNs = 0;               ///< Watchdog: last liveness probe
+    bool muxStallWarned = false;            ///< Watchdog: stall warning already logged
+    bool shutDown = false;                  ///< Set once shutdown() has run
+    bool frontendReady = false;             ///< OBS has finished loading, so its output handler exists
+
+    // Saved-signal subscription. subscribedOutput is also read from the mux
+    // thread inside onSavedSignal; that is safe only because it is never
+    // reassigned while savedSignal is connected (see ensureSubscribed).
+    OBSOutputAutoRelease subscribedOutput;  ///< Strong ref to the output we listen to
+    OBSSignal savedSignal;                  ///< Connection to its "saved" signal
+
+    // Completions counted on the mux thread vs. handled on the main thread.
+    // seen > handled means a file is finished but not yet processed.
+    std::atomic<uint64_t> savedEdgesSeen{0};
+    uint64_t savedEdgesHandled = 0;
+
+    QTimer *watchdog = nullptr;             ///< Runs only while a request is outstanding
 
     std::mutex jobMutex;             ///< Guards jobQueue and stopping
     std::condition_variable jobCv;   ///< Signals the worker

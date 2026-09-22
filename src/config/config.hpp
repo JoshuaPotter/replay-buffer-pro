@@ -30,9 +30,19 @@ namespace ReplayBufferPro
     constexpr int SETTINGS_MONITOR_INTERVAL = 1000;       // 1 second
     constexpr int BUFFER_LENGTH_DEBOUNCE_INTERVAL = 800;   // 800 milliseconds
 
-    // Trim request correlation
-    constexpr int TRIM_REQUEST_TIMEOUT_MS = 30000;  // Drop a request OBS never honored
-    constexpr int TRIM_REQUEST_COALESCE_MS = 250;   // Presses this close yield one OBS file
+    // Save-completion watchdog.
+    //
+    // Correlation is event-driven: a request is resolved by the replay buffer
+    // output's own "saved" signal, cleared when the buffer stops, and refused up
+    // front when OBS would drop it. Nothing here bounds how long OBS may take to
+    // write a file; that can legitimately run for minutes (issue #40). The
+    // watchdog only catches saves that will never produce a "saved" signal at
+    // all (a mux pipe failure, a stalled encoder), and it cannot fire while OBS
+    // is still writing, because it checks for an in-flight mux first.
+    constexpr int SAVE_WATCHDOG_INTERVAL_MS = 1000;       // Tick cadence while a save is outstanding
+    constexpr int SAVE_WATCHDOG_GRACE_MS = 15000;         // Bounds save -> mux start, NOT mux duration
+    constexpr int SAVE_WATCHDOG_PROBE_INTERVAL_MS = 5000; // Min spacing between liveness probes
+    constexpr int SAVE_MUX_STALL_WARN_MS = 60000;         // Log-only; never clears state
 
     // Trim retry behavior. OBS starts AutoRemux on the same file the moment it fires
     // the saved event, so the first open or unlink can lose a race with it.

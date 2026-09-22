@@ -31,25 +31,29 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ### Save segment
 1. User clicks a duration button or hotkey.
 2. `ReplayBufferManager::saveSegment(...)` validates buffer active and duration <= current length.
-3. The request is pushed onto a pending-save FIFO and `obs_frontend_replay_buffer_save()` is called.
-4. On `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, `handleSaveCompleted(...)` pops the matching request and queues a trim job.
+3. `requestSave(...)` refuses the save if OBS would drop it (buffer inactive, recording paused), otherwise arms it with `obs_frontend_replay_buffer_save()`, folds it into a not-yet-started outstanding request, or defers it behind a file being written.
+4. On the replay buffer output's own `saved` signal (mux thread), the manager reads the path and posts it to `handleSaveCompleted(...)` on the Qt main thread, which queues a trim job and issues any deferred request.
 5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed`, then deletes the original.
 
 ### Save full buffer
 1. User clicks “Save Replay Buffer”.
-2. `ReplayBufferManager::saveFullBuffer(...)` queues a `0`-duration do-not-trim marker, then saves.
-3. The saved event consumes that marker, so no trimming is performed and no stale duration can be inherited.
+2. `ReplayBufferManager::saveFullBuffer(...)` requests a `0`-duration save, an explicit do-not-trim marker.
+3. The completion carrying that marker is logged `save-full-buffer` and left untrimmed.
 
 ### Correlating saves
-- OBS cannot tie a save request to the file it produces, so requests are matched to saved events in FIFO order.
-- Requests expire after `Config::TRIM_REQUEST_TIMEOUT_MS` (OBS silently drops saves when encoders are paused).
-- Requests within `Config::TRIM_REQUEST_COALESCE_MS` collapse into one, because OBS produces a single file for presses that close together.
-- A saved event with nothing pending came from outside the plugin (OBS's own hotkey, tray, obs-websocket) and is logged but not trimmed.
+- OBS holds a single armed save timestamp (`save_ts`) that a later request overwrites, so it never queues requests; a FIFO of requests drifts out of step with files. See `reference/architecture/replay-buffer-flow.md` for the OBS source citations.
+- The manager keeps at most one outstanding request plus one deferred request (last-write-wins). A press before OBS starts writing folds into the outstanding request; a press while a file is being written is deferred; a press while a foreign save is being written waits behind a placeholder.
+- A pre-flight gate mirrors OBS's own drop conditions (output inactive, video encoder paused), so a save OBS would drop is refused before any state exists.
+- Completions come from the output's `saved` signal, not `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, which OBS suppresses when the buffer stopped mid-write or during scene collection/profile switches. Do not handle both, or every file is trimmed twice.
+- The subscription is level-triggered via `ensureSubscribed()`, called from lifecycle events and every save request. Never ask for the replay buffer output before `FINISHED_LOADING` unless the buffer is active: OBS has no output handler at module load and the frontend API dereferences it unchecked.
+- A liveness-checked watchdog only releases requests OBS never started a file for. It never bounds how long a write takes (issue #40).
+- The `saved` callback runs on the mux thread and must never block; `ensureSubscribed()` must disconnect before replacing the held output.
+- A saved signal with nothing outstanding came from outside the plugin (OBS's own hotkey, tray, obs-websocket) and is logged `no-pending-request` but not trimmed.
 
 ## Key components and ownership
 - `ReplayBufferPro::Plugin` (dock) owns UI, managers, timers, and OBS event wiring.
 - `UIComponents` builds the UI and manages enabled/disabled state.
-- `ReplayBufferManager` handles save requests and trimming.
+- `ReplayBufferManager` handles save requests and trimming, and owns the replay buffer output reference and its `saved` signal subscription.
 - `SettingsManager` reads/writes OBS profile config and updates output settings.
 - `HotkeyManager` registers per-duration hotkeys and persists bindings.
 - `VideoTrimmer` trims using libavformat stream copy.
