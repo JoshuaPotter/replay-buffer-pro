@@ -117,7 +117,7 @@ A: Windows 10/11 (64-bit) and macOS 13.0+ (universal, supports Apple Silicon and
 - `skipped reason=save-full-buffer`: a Save Replay Buffer click, intentionally untrimmed
 - `skipped reason=encoder-paused`: recording was paused, and OBS doesn't save the replay buffer while recording is paused. Resume recording and save again
 - `skipped reason=replay-buffer-stopped`: the replay buffer was stopped before OBS started writing the clip
-- A save pressed while OBS is still writing a previous clip waits for that write, then saves the last N seconds as of that moment; on slow storage that clip can end well after the key press
+- A save pressed while OBS is still writing a previous clip waits for that write, then is trimmed so it ends at the moment the key was pressed (`end_offset=` in its verdict, not counting paused recording). If less than the clip length of buffer precedes the press, the clip is shorter; if none does, the trim fails with `failed reason=window-not-in-buffer` and the full-length file is kept. A waiting Save Replay Buffer click is not trimmed back
 - `failed reason=output-too-long`: the encoder keyframe interval is too long for the requested clip length. Set Settings → Output → Keyframe Interval to 2 seconds
 - `failed reason=open-input-failed`: another process was holding the file. Try disabling Settings → Advanced → "Automatically remux to mp4"; antivirus and cloud-sync folders do the same
 - Any other failure: check disk space and write permissions in the output directory

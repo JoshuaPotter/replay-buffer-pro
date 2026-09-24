@@ -176,8 +176,8 @@ namespace ReplayBufferPro
      * 
      * Handles OBS events related to replay buffer state changes:
      * - Buffer starting/stopped: Updates UI state and settings monitoring
-     * - Buffer lifecycle, profile changes and finished loading: forwarded to
-     *   ReplayBufferManager, which keeps its saved-signal subscription current
+     * - Buffer started/stopped: forwarded to ReplayBufferManager, which
+     *   subscribes to the output and clears requests OBS can no longer honor
      * - Exit: shuts the manager down while the frontend API is still usable
      * Saves are not handled here; the manager listens to the replay buffer
      * output's own "saved" signal.

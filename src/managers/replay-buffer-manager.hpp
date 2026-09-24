@@ -101,10 +101,11 @@ namespace ReplayBufferPro
     void handleSaveCompleted(const std::string &savedPath);
 
     /**
-     * @brief Reacts to replay buffer lifecycle and output-reset events
+     * @brief Reacts to replay buffer lifecycle events
      *
-     * Call from the Qt main thread for REPLAY_BUFFER_STARTING/STARTED/
-     * STOPPING/STOPPED, PROFILE_CHANGED and FINISHED_LOADING.
+     * Call from the Qt main thread for REPLAY_BUFFER_STARTED (subscribe, so
+     * saves from outside the plugin are logged) and REPLAY_BUFFER_STOPPED
+     * (clear requests OBS can no longer honor). Other events are ignored.
      *
      * @param event The frontend event that occurred
      */
@@ -133,19 +134,14 @@ namespace ReplayBufferPro
     struct SaveRequest
     {
       int duration = 0;           ///< Seconds to keep, or 0 for an untrimmed full save
+      uint64_t requestedAtNs = 0; ///< When the key was pressed; the clip should end here
+      uint64_t pauseAtRequestNs = 0; ///< Encoder pause offset at the press, to discount pauses
+      uint64_t heldNs = 0;        ///< Recorded time between press and issue; 0 if issued at once
       uint64_t armedAtNs = 0;     ///< When save was issued to OBS (or the placeholder made)
+      uint64_t graceStartNs = 0;  ///< Watchdog: start of the grace period, restarted by pauses
       uint64_t generation = 0;    ///< Monotonic id, only for log correlation
       bool foreign = false;       ///< Placeholder for a save this plugin did not issue
-    };
-
-    /**
-     * @brief Why OBS would or would not honor a save issued right now
-     */
-    enum class ArmVerdict
-    {
-      Ok,
-      BufferInactive, ///< No replay buffer output, or it is not active
-      EncoderPaused   ///< Recording is paused; OBS drops replay saves then
+      bool stallWarned = false;   ///< Watchdog: long-write warning already logged
     };
 
     /**
@@ -155,6 +151,7 @@ namespace ReplayBufferPro
     {
       std::string sourcePath;
       int duration;
+      double endOffsetSeconds; ///< How far before the file's end the clip should end
     };
 
     //=========================================================================
@@ -168,9 +165,33 @@ namespace ReplayBufferPro
     bool requestSave(int duration);
 
     /**
+     * @brief Creates a request stamped with the current time as its press time
+     */
+    static SaveRequest newRequest(int duration, uint64_t generation = 0);
+
+    /**
+     * @brief Total time the replay buffer's video encoder has spent paused
+     *
+     * Paused time produces no frames, so it is absent from a saved file's
+     * timeline and must not count towards how far back a held press lies.
+     */
+    static uint64_t encoderPauseOffsetNs();
+
+    /**
      * @brief Issues a save to OBS and makes it the outstanding request
      */
-    void arm(int duration, uint64_t generation);
+    void arm(const SaveRequest &request);
+
+    /**
+     * @brief Makes a request outstanding and starts its watchdog grace period
+     */
+    void setOutstanding(SaveRequest request);
+
+    /**
+     * @brief Holds a request back behind a file this plugin did not ask for
+     * @param next The request to issue once that file has been accounted for
+     */
+    void waitBehindForeign(const SaveRequest &next);
 
     /**
      * @brief Issues the deferred request, if any, once nothing is outstanding
@@ -201,15 +222,22 @@ namespace ReplayBufferPro
     /**
      * @brief Checks the conditions under which OBS silently drops a save
      *
-     * Mirrors replay_buffer_hotkey() in obs-ffmpeg-mux.c. Also makes sure the
-     * saved signal is connected to the output about to be armed.
+     * Mirrors replay_buffer_hotkey() in obs-ffmpeg-mux.c against the current
+     * replay buffer output. Has no side effects.
+     *
+     * @return nullptr if OBS would honor a save now, else the reason token
      */
-    ArmVerdict checkArmable();
+    static const char *armRefusalReason();
 
     /**
-     * @brief The verdict reason token for a refused save
+     * @brief Logs the verdict for a request that will not get a file
+     * @param reason Reason token
+     * @param request The request being dropped
+     * @param isDeferred Whether it was the deferred request
+     * @param extra Trailing key=value diagnostics, starting with a space
      */
-    static const char *armVerdictReason(ArmVerdict verdict);
+    static void reportSkipped(const char *reason, const SaveRequest &request, bool isDeferred,
+                              const std::string &extra = std::string());
 
     /**
      * @brief Whether OBS has already started producing a file
@@ -222,11 +250,14 @@ namespace ReplayBufferPro
     bool isFileStarted();
 
     /**
-     * @brief Whether the replay buffer output is writing a file right now
+     * @brief Asks the subscribed output for the path of the file it last wrote
      *
      * get_last_replay only reports a path while the output is not muxing.
+     *
+     * @return nullopt while a mux is in flight, otherwise the path (empty if
+     *         OBS has none, there is no output, or it lacks the proc)
      */
-    bool isMuxInFlight();
+    std::optional<std::string> queryLastReplay();
 
     //=========================================================================
     // OBS SIGNAL SUBSCRIPTION
@@ -236,8 +267,10 @@ namespace ReplayBufferPro
      *
      * Level-triggered: compares against the output held last time, so it
      * recovers from any lifecycle event OBS suppressed (frontend events are
-     * dropped wholesale during scene collection and profile switches).
-     * Qt main thread only.
+     * dropped wholesale during scene collection and profile switches). Only
+     * acts while the buffer is active, which is also what guarantees OBS's
+     * output handler exists. Keeps listening to the old output while it still
+     * owes the outstanding request a file. Qt main thread only.
      */
     void ensureSubscribed();
 
@@ -251,20 +284,12 @@ namespace ReplayBufferPro
     static void onSavedSignal(void *data, calldata_t *params);
 
     /**
-     * @brief Reads the path of the file the output last wrote
-     * @return The path, or empty if OBS reported none
-     */
-    std::string readLastReplayPath();
-
-    /**
-     * @brief Periodic liveness check while a request is outstanding
+     * @brief Liveness check for the outstanding request
+     *
+     * Single-shot: runs once the grace period is up, then reschedules itself
+     * for as long as the request is waiting on OBS.
      */
     void onWatchdogTick();
-
-    /**
-     * @brief Starts the watchdog if a request is outstanding, stops it otherwise
-     */
-    void syncWatchdog();
 
     /**
      * @brief Logs a correlation state transition
@@ -290,13 +315,13 @@ namespace ReplayBufferPro
      * @brief Checks a freshly written trim is plausibly the requested length
      * @param outputPath File to probe
      * @param duration Requested duration in seconds
-     * @param sourceDuration Duration of the input, which caps what is achievable
+     * @param availableSeconds Source time up to the clip's end, which caps what is achievable
      * @param actualDuration Receives the measured duration
      * @param reason Receives a short failure token when the check fails
      * @return true if the output should be kept
      */
     static bool verifyTrimmedOutput(const std::string &outputPath, int duration,
-                                    double sourceDuration, double *actualDuration,
+                                    double availableSeconds, double *actualDuration,
                                     std::string *reason);
 
     //=========================================================================
@@ -340,10 +365,7 @@ namespace ReplayBufferPro
     std::optional<SaveRequest> outstanding; ///< Issued to OBS, awaiting its file
     std::optional<SaveRequest> deferred;    ///< Waiting for outstanding; never set without it
     uint64_t nextGeneration = 1;            ///< Source of SaveRequest::generation
-    uint64_t lastProbeNs = 0;               ///< Watchdog: last liveness probe
-    bool muxStallWarned = false;            ///< Watchdog: stall warning already logged
     bool shutDown = false;                  ///< Set once shutdown() has run
-    bool frontendReady = false;             ///< OBS has finished loading, so its output handler exists
 
     // Saved-signal subscription. subscribedOutput is also read from the mux
     // thread inside onSavedSignal; that is safe only because it is never
@@ -356,7 +378,7 @@ namespace ReplayBufferPro
     std::atomic<uint64_t> savedEdgesSeen{0};
     uint64_t savedEdgesHandled = 0;
 
-    QTimer *watchdog = nullptr;             ///< Runs only while a request is outstanding
+    QTimer *watchdog = nullptr;             ///< Single-shot; armed only while a request is outstanding
 
     std::mutex jobMutex;             ///< Guards jobQueue and stopping
     std::condition_variable jobCv;   ///< Signals the worker

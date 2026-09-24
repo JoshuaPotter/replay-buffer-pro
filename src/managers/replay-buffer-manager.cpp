@@ -68,11 +68,10 @@ namespace ReplayBufferPro
       : QObject(parent)
   {
     // Not subscribed here: the manager is built in obs_module_post_load, before
-    // OBS creates its output handler, and asking for the replay buffer output
-    // that early dereferences a null handler. FINISHED_LOADING and every save
-    // request subscribe instead.
+    // OBS creates its output handler. REPLAY_BUFFER_STARTED and every save
+    // request subscribe instead, once the buffer is active.
     watchdog = new QTimer(this);
-    watchdog->setInterval(Config::SAVE_WATCHDOG_INTERVAL_MS);
+    watchdog->setSingleShot(true);
     connect(watchdog, &QTimer::timeout, this, [this]() { onWatchdogTick(); });
 
     worker = std::thread([this]() { workerLoop(); });
@@ -149,20 +148,14 @@ namespace ReplayBufferPro
   {
     switch (event)
     {
-    case OBS_FRONTEND_EVENT_FINISHED_LOADING:
-      frontendReady = true;
-      ensureSubscribed();
-      break;
-    case OBS_FRONTEND_EVENT_PROFILE_CHANGED:
-    case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
     case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
-    case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
+      // Subscribe now rather than at the first press, so saves from outside
+      // the plugin are logged from the start
       ensureSubscribed();
       break;
     case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
       // Only STOPPED clears state: while the buffer is merely stopping, packets
       // still flow and an armed save can still fire.
-      ensureSubscribed();
       handleBufferStopped();
       break;
     default:
@@ -204,17 +197,15 @@ namespace ReplayBufferPro
 
     // Refusing here, before anything is recorded, is what keeps a save OBS
     // would silently drop from lingering and claiming somebody else's file.
-    const ArmVerdict verdict = checkArmable();
-    if (verdict != ArmVerdict::Ok)
+    if (const char *refusal = armRefusalReason())
     {
-      reportVerdict("skipped",
-                    std::string("reason=") + armVerdictReason(verdict) +
-                        " requested=" + std::to_string(duration) + "s",
-                    QString(), false);
+      reportSkipped(refusal, newRequest(duration), false);
       return false;
     }
 
-    const uint64_t generation = nextGeneration++;
+    // Listen to the output about to be armed, even if OBS suppressed the
+    // lifecycle event that would normally have told us about it
+    ensureSubscribed();
 
     if (!outstanding)
     {
@@ -223,20 +214,11 @@ namespace ReplayBufferPro
         // Something else is writing (or has just written) a file this plugin
         // did not ask for. Its saved signal will arrive first, so hold ours
         // back until that file has been accounted for.
-        SaveRequest placeholder;
-        placeholder.foreign = true;
-        placeholder.armedAtNs = os_gettime_ns();
-        outstanding = placeholder;
-        lastProbeNs = 0;
-        muxStallWarned = false;
-
-        deferred = SaveRequest{duration, 0, generation, false};
-        logState("waiting-foreign", *deferred);
-        syncWatchdog();
+        waitBehindForeign(newRequest(duration, nextGeneration++));
         return true;
       }
 
-      arm(duration, generation);
+      arm(newRequest(duration, nextGeneration++));
       return true;
     }
 
@@ -245,8 +227,12 @@ namespace ReplayBufferPro
       // OBS has not started our file yet, so another save() would only
       // overwrite the same save_ts. Fold the press into the outstanding
       // request instead; the newest press decides the duration.
+      const SaveRequest press = newRequest(duration);
       const int previous = outstanding->duration;
       outstanding->duration = duration;
+      outstanding->requestedAtNs = press.requestedAtNs;
+      outstanding->pauseAtRequestNs = press.pauseAtRequestNs;
+      outstanding->heldNs = 0;
       logState("folded", *outstanding, " previous=" + std::to_string(previous) + "s");
       return true;
     }
@@ -255,87 +241,131 @@ namespace ReplayBufferPro
     // finishes anyway; holding it here keeps each file paired with its request.
     const std::string replaced =
         deferred ? " replaced=" + std::to_string(deferred->generation) : std::string(" replaced=none");
-    deferred = SaveRequest{duration, 0, generation, false};
+    deferred = newRequest(duration, nextGeneration++);
     logState("deferred", *deferred, replaced);
     return true;
   }
 
-  void ReplayBufferManager::arm(int duration, uint64_t generation)
+  ReplayBufferManager::SaveRequest ReplayBufferManager::newRequest(int duration, uint64_t generation)
+  {
+    SaveRequest request;
+    request.duration = duration;
+    request.requestedAtNs = os_gettime_ns();
+    request.pauseAtRequestNs = encoderPauseOffsetNs();
+    request.generation = generation;
+    return request;
+  }
+
+  uint64_t ReplayBufferManager::encoderPauseOffsetNs()
+  {
+    // The frontend API dereferences OBS's output handler unchecked; an active
+    // buffer guarantees it exists
+    if (!obs_frontend_replay_buffer_active())
+    {
+      return 0;
+    }
+
+    OBSOutputAutoRelease rb(obs_frontend_get_replay_buffer_output());
+    return rb ? obs_encoder_get_pause_offset(obs_output_get_video_encoder(rb)) : 0;
+  }
+
+  void ReplayBufferManager::arm(const SaveRequest &request)
   {
     // State first: save() is synchronous from the main thread, so the request
     // must already be outstanding if anything reacts to it.
-    outstanding = SaveRequest{duration, os_gettime_ns(), generation, false};
-    lastProbeNs = 0;
-    muxStallWarned = false;
+    setOutstanding(request);
 
     logState("armed", *outstanding);
     obs_frontend_replay_buffer_save();
-    syncWatchdog();
+  }
+
+  void ReplayBufferManager::setOutstanding(SaveRequest request)
+  {
+    const uint64_t now = os_gettime_ns();
+    request.armedAtNs = now;
+    request.graceStartNs = now;
+    request.stallWarned = false;
+    outstanding = request;
+
+    // Restarts any tick still pending for a previous request
+    watchdog->start(Config::SAVE_WATCHDOG_GRACE_MS);
+  }
+
+  void ReplayBufferManager::waitBehindForeign(const SaveRequest &next)
+  {
+    SaveRequest placeholder;
+    placeholder.foreign = true;
+    setOutstanding(placeholder);
+
+    deferred = next;
+    logState("waiting-foreign", next);
   }
 
   void ReplayBufferManager::promoteDeferred()
   {
     if (outstanding || !deferred)
     {
-      syncWatchdog();
       return;
     }
 
     SaveRequest next = *deferred;
     deferred.reset();
 
-    const ArmVerdict verdict = checkArmable();
-    if (verdict != ArmVerdict::Ok)
+    if (const char *refusal = armRefusalReason())
     {
-      reportVerdict("skipped",
-                    std::string("reason=") + armVerdictReason(verdict) +
-                        " requested=" + std::to_string(next.duration) + "s deferred",
-                    QString(), false);
-      syncWatchdog();
+      reportSkipped(refusal, next, true);
       return;
     }
+
+    ensureSubscribed();
 
     if (isFileStarted())
     {
       // A foreign save got in between our completion and now
-      SaveRequest placeholder;
-      placeholder.foreign = true;
-      placeholder.armedAtNs = os_gettime_ns();
-      outstanding = placeholder;
-      lastProbeNs = 0;
-      muxStallWarned = false;
-
-      deferred = next;
-      logState("waiting-foreign", next);
-      syncWatchdog();
+      waitBehindForeign(next);
       return;
     }
 
-    logState("promoted", next);
-    arm(next.duration, next.generation);
+    // A held request is issued late, so its file ends that much recorded time
+    // after the press, and the trim pulls the clip's end back by the same
+    // amount. Time spent with recording paused produced no frames, so it is
+    // not in the file and does not count. The pause offset only grows when a
+    // pause ends, and the check above refuses to issue while paused, so the
+    // difference is exactly the pause time since the press. It resets if the
+    // encoder restarts, hence the clamp.
+    const uint64_t waitedNs = os_gettime_ns() - next.requestedAtNs;
+    const uint64_t pauseNow = encoderPauseOffsetNs();
+    const uint64_t pausedNs = (pauseNow > next.pauseAtRequestNs) ? pauseNow - next.pauseAtRequestNs : 0;
+    next.heldNs = (waitedNs > pausedNs) ? waitedNs - pausedNs : 0;
+
+    std::string held = " delayed=" + QString::number(static_cast<double>(next.heldNs) / 1e9, 'f', 1).toStdString() + "s";
+    if (pausedNs > 0)
+    {
+      held += " paused=" + QString::number(static_cast<double>(pausedNs) / 1e9, 'f', 1).toStdString() + "s";
+    }
+    logState("promoted", next, held);
+    arm(next);
   }
 
   void ReplayBufferManager::abandonAll(const char *reason)
   {
-    if (outstanding && !outstanding->foreign)
+    // A finished file whose completion is still queued belongs to the
+    // outstanding request, and handleSaveCompleted reports it when it arrives.
+    // Reporting it here too would give that save two verdicts.
+    const bool completionQueued = savedEdgesSeen.load() > savedEdgesHandled;
+
+    if (outstanding && !outstanding->foreign && !completionQueued)
     {
-      reportVerdict("skipped",
-                    std::string("reason=") + reason +
-                        " requested=" + std::to_string(outstanding->duration) + "s",
-                    QString(), false);
+      reportSkipped(reason, *outstanding, false);
     }
 
     if (deferred)
     {
-      reportVerdict("skipped",
-                    std::string("reason=") + reason +
-                        " requested=" + std::to_string(deferred->duration) + "s deferred",
-                    QString(), false);
+      reportSkipped(reason, *deferred, true);
     }
 
     outstanding.reset();
     deferred.reset();
-    syncWatchdog();
   }
 
   void ReplayBufferManager::handleBufferStopped()
@@ -343,10 +373,7 @@ namespace ReplayBufferPro
     // Nothing can arm once the buffer is gone
     if (deferred)
     {
-      reportVerdict("skipped",
-                    "reason=replay-buffer-stopped requested=" +
-                        std::to_string(deferred->duration) + "s deferred",
-                    QString(), false);
+      reportSkipped("replay-buffer-stopped", *deferred, true);
       deferred.reset();
     }
 
@@ -356,10 +383,7 @@ namespace ReplayBufferPro
     {
       if (!outstanding->foreign)
       {
-        reportVerdict("skipped",
-                      "reason=replay-buffer-stopped requested=" +
-                          std::to_string(outstanding->duration) + "s",
-                      QString(), false);
+        reportSkipped("replay-buffer-stopped", *outstanding, false);
       }
       else
       {
@@ -367,68 +391,73 @@ namespace ReplayBufferPro
       }
       outstanding.reset();
     }
-
-    syncWatchdog();
   }
 
-  ReplayBufferManager::ArmVerdict ReplayBufferManager::checkArmable()
+  const char *ReplayBufferManager::armRefusalReason()
   {
-    // Also guarantees we listen to the exact output about to be armed, even if
-    // OBS suppressed the lifecycle events that would normally tell us.
-    ensureSubscribed();
+    // Checked before asking for the output: the frontend API dereferences
+    // OBS's output handler unchecked, and an active buffer guarantees it exists
+    if (!obs_frontend_replay_buffer_active())
+    {
+      return "buffer-inactive";
+    }
 
-    obs_output_t *rb = subscribedOutput.Get();
+    OBSOutputAutoRelease rb(obs_frontend_get_replay_buffer_output());
     if (!rb || !obs_output_active(rb))
     {
-      return ArmVerdict::BufferInactive;
+      return "buffer-inactive";
     }
 
     // The video encoder is borrowed from the output, not referenced
     if (obs_encoder_paused(obs_output_get_video_encoder(rb)))
     {
-      return ArmVerdict::EncoderPaused;
+      return "encoder-paused";
     }
 
-    return ArmVerdict::Ok;
+    return nullptr;
   }
 
-  const char *ReplayBufferManager::armVerdictReason(ArmVerdict verdict)
+  void ReplayBufferManager::reportSkipped(const char *reason, const SaveRequest &request,
+                                          bool isDeferred, const std::string &extra)
   {
-    switch (verdict)
-    {
-    case ArmVerdict::EncoderPaused:
-      return "encoder-paused";
-    case ArmVerdict::BufferInactive:
-    default:
-      return "buffer-inactive";
-    }
+    reportVerdict("skipped",
+                  std::string("reason=") + reason +
+                      " requested=" + std::to_string(request.duration) + "s" +
+                      (isDeferred ? " deferred" : "") + extra,
+                  QString(), false);
   }
 
   bool ReplayBufferManager::isFileStarted()
   {
-    return isMuxInFlight() || savedEdgesSeen.load() > savedEdgesHandled;
+    return !queryLastReplay().has_value() || savedEdgesSeen.load() > savedEdgesHandled;
   }
 
-  bool ReplayBufferManager::isMuxInFlight()
+  std::optional<std::string> ReplayBufferManager::queryLastReplay()
   {
     obs_output_t *rb = subscribedOutput.Get();
     if (!rb)
     {
-      return false;
+      return std::string();
     }
 
     calldata_t cd = {0};
     const bool called = proc_handler_call(obs_output_get_proc_handler(rb), "get_last_replay", &cd);
 
     // get_last_replay always sets "path" (possibly to nothing) unless a mux is
-    // in flight, so its absence is the signal
+    // in flight, so its absence is the signal. calldata_string() returns NULL
+    // for a missing or empty key, so check both.
     const char *path = nullptr;
     const bool reported = calldata_get_string(&cd, "path", &path);
+    std::optional<std::string> result;
+    if (reported || !called)
+    {
+      // An output without the proc cannot tell us anything; treat it as idle
+      // so requests are never held back forever
+      result = (reported && path) ? std::string(path) : std::string();
+    }
     calldata_free(&cd);
 
-    // An output without the proc cannot tell us anything; treat it as idle so
-    // requests are never held back forever
-    return called && !reported;
+    return result;
   }
 
   //=============================================================================
@@ -442,9 +471,10 @@ namespace ReplayBufferPro
       return;
     }
 
-    // Before OBS finishes loading its output handler may not exist, and the
-    // frontend API dereferences it unchecked. An active buffer implies it does.
-    if (!frontendReady && !obs_frontend_replay_buffer_active())
+    // Saves only happen while the buffer is active, and an active buffer is
+    // also what guarantees OBS's output handler exists: the frontend API
+    // dereferences it unchecked, and it is missing at module load.
+    if (!obs_frontend_replay_buffer_active())
     {
       return;
     }
@@ -455,7 +485,12 @@ namespace ReplayBufferPro
       return;
     }
 
-    const bool hadOutput = subscribedOutput.Get() != nullptr;
+    // The old output is still writing the outstanding request's file. Keep
+    // listening to it; the swap happens once that file has been accounted for.
+    if (outstanding && isFileStarted())
+    {
+      return;
+    }
 
     // Disconnect BEFORE replacing the held output. Disconnect() waits for a
     // saved callback in progress, and that callback reads subscribedOutput, so
@@ -469,9 +504,16 @@ namespace ReplayBufferPro
                           &ReplayBufferManager::onSavedSignal, this);
     }
 
-    if (hadOutput && (outstanding || deferred))
+    // A request armed on the old output that OBS never started can no longer
+    // produce a file
+    if (outstanding)
     {
-      abandonAll("output-replaced");
+      if (!outstanding->foreign)
+      {
+        reportSkipped("output-replaced", *outstanding, false);
+      }
+      outstanding.reset();
+      promoteDeferred();
     }
   }
 
@@ -479,14 +521,15 @@ namespace ReplayBufferPro
   {
     auto *self = static_cast<ReplayBufferManager *>(data);
 
+    // Counted first: OBS has already cleared its muxing flag, so until this
+    // lands the main thread would see neither a mux nor a finished file, and
+    // could fold a new press into a save whose file is already written.
+    self->savedEdgesSeen.fetch_add(1);
+
     // Read the path here, on the mux thread, the instant the file is closed.
     // OBS's own copy (obs_frontend_get_last_replay) is only updated while the
     // buffer is still active, so after a stop it would name the previous clip.
-    std::string path = self->readLastReplayPath();
-
-    // Counted before posting, so the main thread can tell a finished file
-    // apart from one that has not started yet
-    self->savedEdgesSeen.fetch_add(1);
+    std::string path = self->queryLastReplay().value_or(std::string());
 
     // Never BlockingQueuedConnection: see onSavedSignal's declaration
     QMetaObject::invokeMethod(
@@ -494,34 +537,10 @@ namespace ReplayBufferPro
         Qt::QueuedConnection);
   }
 
-  std::string ReplayBufferManager::readLastReplayPath()
-  {
-    obs_output_t *rb = subscribedOutput.Get();
-    if (!rb)
-    {
-      return std::string();
-    }
-
-    calldata_t cd = {0};
-    proc_handler_call(obs_output_get_proc_handler(rb), "get_last_replay", &cd);
-
-    // calldata_string() returns NULL for a missing or empty key, so check both
-    const char *path = nullptr;
-    std::string result;
-    if (calldata_get_string(&cd, "path", &path) && path)
-    {
-      result = path;
-    }
-    calldata_free(&cd);
-
-    return result;
-  }
-
   void ReplayBufferManager::onWatchdogTick()
   {
     if (!outstanding || shutDown)
     {
-      syncWatchdog();
       return;
     }
 
@@ -531,11 +550,17 @@ namespace ReplayBufferPro
       return;
     }
 
-    // A stop whose frontend event OBS suppressed
-    obs_output_t *rb = subscribedOutput.Get();
-    if (!rb || !obs_output_active(rb))
+    const uint64_t probeMs = static_cast<uint64_t>(Config::SAVE_WATCHDOG_PROBE_INTERVAL_MS);
+
+    // A stop whose frontend event OBS suppressed. A request kept because its
+    // file has started still needs watching until that file arrives.
+    if (!obs_frontend_replay_buffer_active())
     {
       handleBufferStopped();
+      if (outstanding)
+      {
+        watchdog->start(static_cast<int>(probeMs));
+      }
       return;
     }
 
@@ -544,30 +569,25 @@ namespace ReplayBufferPro
     // Pausing after a save was armed does not retract it: OBS keeps save_ts and
     // fires it once packets flow again. Restart the grace period meanwhile, so
     // the save is not declared lost the moment recording resumes.
-    if (obs_encoder_paused(obs_output_get_video_encoder(rb)))
+    obs_output_t *rb = subscribedOutput.Get();
+    if (rb && obs_output_active(rb) && obs_encoder_paused(obs_output_get_video_encoder(rb)))
     {
-      outstanding->armedAtNs = now;
-      lastProbeNs = 0;
+      outstanding->graceStartNs = now;
+      watchdog->start(Config::SAVE_WATCHDOG_GRACE_MS);
+      return;
+    }
+
+    // OBS starts writing within one encoded packet of a save; until the grace
+    // period is up there is nothing to check.
+    const uint64_t graceNs = static_cast<uint64_t>(Config::SAVE_WATCHDOG_GRACE_MS) * 1000000ULL;
+    const uint64_t sinceGraceNs = now - outstanding->graceStartNs;
+    if (sinceGraceNs < graceNs)
+    {
+      watchdog->start(static_cast<int>((graceNs - sinceGraceNs) / 1000000ULL) + 1);
       return;
     }
 
     const uint64_t elapsedNs = now - outstanding->armedAtNs;
-    const uint64_t graceNs = static_cast<uint64_t>(Config::SAVE_WATCHDOG_GRACE_MS) * 1000000ULL;
-    const uint64_t probeNs = static_cast<uint64_t>(Config::SAVE_WATCHDOG_PROBE_INTERVAL_MS) * 1000000ULL;
-
-    // OBS starts writing within one encoded packet of a save; until the grace
-    // period is up there is nothing to check.
-    if (elapsedNs < graceNs)
-    {
-      return;
-    }
-
-    if (lastProbeNs != 0 && now - lastProbeNs < probeNs)
-    {
-      return;
-    }
-    lastProbeNs = now;
-
     const double elapsedSeconds = static_cast<double>(elapsedNs) / 1e9;
 
     if (isFileStarted())
@@ -575,12 +595,13 @@ namespace ReplayBufferPro
       // OBS is still writing the file. However long that takes, the request
       // stays; timing out here is exactly how issue #40 lost its trims.
       const uint64_t warnNs = static_cast<uint64_t>(Config::SAVE_MUX_STALL_WARN_MS) * 1000000ULL;
-      if (!muxStallWarned && elapsedNs > warnNs)
+      if (!outstanding->stallWarned && elapsedNs > warnNs)
       {
         Logger::warning("Replay buffer save still being written after %.0fs; waiting for OBS to finish",
                         elapsedSeconds);
-        muxStallWarned = true;
+        outstanding->stallWarned = true;
       }
+      watchdog->start(static_cast<int>(probeMs));
       return;
     }
 
@@ -590,40 +611,17 @@ namespace ReplayBufferPro
     const SaveRequest dead = *outstanding;
     outstanding.reset();
 
-    const std::string armed = QString::number(elapsedSeconds, 'f', 1).toStdString() + "s";
+    const std::string armed = " armed=" + QString::number(elapsedSeconds, 'f', 1).toStdString() + "s";
     if (!dead.foreign)
     {
-      reportVerdict("skipped",
-                    "reason=no-mux-started requested=" + std::to_string(dead.duration) +
-                        "s armed=" + armed,
-                    QString(), false);
+      reportSkipped("no-mux-started", dead, false, armed);
     }
     else
     {
-      logState("cleared", dead, " reason=foreign-save-never-completed armed=" + armed);
+      logState("cleared", dead, " reason=foreign-save-never-completed" + armed);
     }
 
     promoteDeferred();
-  }
-
-  void ReplayBufferManager::syncWatchdog()
-  {
-    if (!watchdog)
-    {
-      return;
-    }
-
-    if (outstanding && !shutDown)
-    {
-      if (!watchdog->isActive())
-      {
-        watchdog->start();
-      }
-    }
-    else
-    {
-      watchdog->stop();
-    }
   }
 
   void ReplayBufferManager::logState(const char *transition, const SaveRequest &request,
@@ -654,7 +652,12 @@ namespace ReplayBufferPro
       return;
     }
 
-    if (!outstanding)
+    // A foreign placeholder is resolved like no request at all: the file is
+    // not ours, but a deferred request may now be issued.
+    const std::optional<SaveRequest> completed = outstanding;
+    outstanding.reset();
+
+    if (!completed || completed->foreign)
     {
       // OBS's own Save Replay hotkey, the tray item and obs-websocket all reach
       // here. Those saves are not ours to trim, but saying so explicitly is what
@@ -662,15 +665,11 @@ namespace ReplayBufferPro
       reportVerdict("skipped",
                     "reason=no-pending-request file=" + quoted(savedPath),
                     QString(), false);
-      return;
     }
-
-    const SaveRequest completed = *outstanding;
-    outstanding.reset();
-    lastProbeNs = 0;
-    muxStallWarned = false;
-
-    dispatchCompletion(completed, savedPath);
+    else
+    {
+      dispatchCompletion(*completed, savedPath);
+    }
 
     // Only once this file is fully accounted for
     promoteDeferred();
@@ -678,15 +677,6 @@ namespace ReplayBufferPro
 
   void ReplayBufferManager::dispatchCompletion(const SaveRequest &request, const std::string &savedPath)
   {
-    if (request.foreign)
-    {
-      // The save we were waiting out; ours is issued next
-      reportVerdict("skipped",
-                    "reason=no-pending-request file=" + quoted(savedPath),
-                    QString(), false);
-      return;
-    }
-
     if (request.duration <= 0)
     {
       reportVerdict("skipped",
@@ -715,17 +705,16 @@ namespace ReplayBufferPro
       }
     }
 
+    // OBS writes the buffer as it stood when the save was issued, so a request
+    // that was held back has its press that far before the end of the file.
+    // A request issued at once has exactly 0 and keeps the last N seconds.
+    const double endOffsetSeconds = static_cast<double>(request.heldNs) / 1e9;
+
+    // Shutdown cannot interleave here: handleSaveCompleted returns once
+    // shutDown is set, and stopping is only set after that, on this thread.
     {
       std::lock_guard<std::mutex> lock(jobMutex);
-      if (stopping)
-      {
-        reportVerdict("skipped",
-                      "reason=shutdown file=" + quoted(savedPath) +
-                          " requested=" + std::to_string(request.duration) + "s",
-                      QString(), false);
-        return;
-      }
-      jobQueue.push_back(TrimJob{savedPath, request.duration});
+      jobQueue.push_back(TrimJob{savedPath, request.duration, endOffsetSeconds});
     }
     jobCv.notify_one();
   }
@@ -804,7 +793,8 @@ namespace ReplayBufferPro
       removeFileWithRetry(partialPath);
     }
 
-    const TrimResult trim = VideoTrimmer::trimToLastSeconds(job.sourcePath, partialPath, job.duration);
+    const TrimResult trim = VideoTrimmer::trimToWindow(job.sourcePath, partialPath, job.duration,
+                                                       job.endOffsetSeconds);
     if (!trim.success)
     {
       fail(trim.reason, trim.detail);
@@ -816,7 +806,7 @@ namespace ReplayBufferPro
     // as a success and the full-length original deleted in its favour.
     double actualDuration = 0.0;
     std::string verifyReason;
-    if (!verifyTrimmedOutput(partialPath, job.duration, trim.sourceDuration,
+    if (!verifyTrimmedOutput(partialPath, job.duration, trim.endAt,
                              &actualDuration, &verifyReason))
     {
       Logger::error("Trimmed output failed verification (%s): %.2fs from a %.2fs source, "
@@ -846,6 +836,14 @@ namespace ReplayBufferPro
                        " source=" + QString::number(trim.sourceDuration, 'f', 1).toStdString() + "s" +
                        " cut_at=" + QString::number(trim.cutAt, 'f', 1).toStdString() + "s";
 
+    // Only a held save ends before the end of its file; say where, so the log
+    // shows the clip was pulled back to the press
+    if (job.endOffsetSeconds > 0.0)
+    {
+      line += " end_at=" + QString::number(trim.endAt, 'f', 1).toStdString() + "s" +
+              " end_offset=" + QString::number(job.endOffsetSeconds, 'f', 1).toStdString() + "s";
+    }
+
     if (!removeFileWithRetry(job.sourcePath))
     {
       // The clip is correct, but the untrimmed original is still sitting next to
@@ -863,7 +861,7 @@ namespace ReplayBufferPro
   }
 
   bool ReplayBufferManager::verifyTrimmedOutput(const std::string &outputPath, int duration,
-                                                double sourceDuration, double *actualDuration,
+                                                double availableSeconds, double *actualDuration,
                                                 std::string *reason)
   {
     const double actual = VideoTrimmer::getVideoDuration(outputPath);
@@ -875,10 +873,10 @@ namespace ReplayBufferPro
       return false;
     }
 
-    // A buffer holding less than the requested duration legitimately yields a
-    // shorter clip, so measure against whichever is smaller.
-    const double expected = (sourceDuration > 0.0)
-                                ? std::min(static_cast<double>(duration), sourceDuration)
+    // A buffer holding less than the requested duration before the clip's end
+    // legitimately yields a shorter clip, so measure against whichever is smaller.
+    const double expected = (availableSeconds > 0.0)
+                                ? std::min(static_cast<double>(duration), availableSeconds)
                                 : static_cast<double>(duration);
 
     if (actual < expected * Config::TRIM_MIN_DURATION_RATIO)

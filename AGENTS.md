@@ -45,7 +45,8 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - The manager keeps at most one outstanding request plus one deferred request (last-write-wins). A press before OBS starts writing folds into the outstanding request; a press while a file is being written is deferred; a press while a foreign save is being written waits behind a placeholder.
 - A pre-flight gate mirrors OBS's own drop conditions (output inactive, video encoder paused), so a save OBS would drop is refused before any state exists.
 - Completions come from the output's `saved` signal, not `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, which OBS suppresses when the buffer stopped mid-write or during scene collection/profile switches. Do not handle both, or every file is trimmed twice.
-- The subscription is level-triggered via `ensureSubscribed()`, called from lifecycle events and every save request. Never ask for the replay buffer output before `FINISHED_LOADING` unless the buffer is active: OBS has no output handler at module load and the frontend API dereferences it unchecked.
+- The subscription is level-triggered via `ensureSubscribed()`, called on `REPLAY_BUFFER_STARTED`, every save request and every watchdog tick. It only acts while the buffer is active: OBS has no output handler at module load and the frontend API dereferences it unchecked, and an active buffer guarantees it exists. It keeps listening to an old output that still owes the outstanding request a file.
+- A held request (deferred or waiting-foreign) is issued late, so its file ends after the key press. When it is issued, the manager records `heldNs`: the recorded time since the press, i.e. the wall-clock wait minus time recording was paused (`obs_encoder_get_pause_offset`), because paused time is not in the file. The trim job's `endOffsetSeconds` makes `VideoTrimmer::trimToWindow` end the clip at the press. Requests issued at once have exactly 0. A press older than the whole buffer fails with `window-not-in-buffer`; Save Replay Buffer saves are never trimmed back.
 - A liveness-checked watchdog only releases requests OBS never started a file for. It never bounds how long a write takes (issue #40).
 - The `saved` callback runs on the mux thread and must never block; `ensureSubscribed()` must disconnect before replacing the held output.
 - A saved signal with nothing outstanding came from outside the plugin (OBS's own hotkey, tray, obs-websocket) and is logged `no-pending-request` but not trimmed.
@@ -96,7 +97,7 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 ```
 
 ## Not present
-- No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs.
+- No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
 
 ## Documentation upkeep
 - More documentation is available in `reference/` and README.md.

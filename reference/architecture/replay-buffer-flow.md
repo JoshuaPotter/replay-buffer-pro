@@ -32,7 +32,7 @@ An earlier design kept a FIFO of requests with a timeout. Because OBS collapses 
 - A press while nothing of ours is outstanding but a file has started is **waiting-foreign**: something else (OBS's own Save Replay hotkey, a Stream Deck OBS action, obs-websocket) is writing. A placeholder takes the outstanding slot so that file is reported `no-pending-request` rather than trimmed as ours, then our request is issued.
 - **Completions come from the output's `saved` signal**, not the frontend event. The path is read with the `get_last_replay` proc inside the callback, on the mux thread, and posted to the main thread with the path attached.
 - On `REPLAY_BUFFER_STOPPED` a deferred request is dropped, and the outstanding one is dropped only if OBS has not started its file. `STOPPING` does not clear anything, because packets still flow and an armed save can still fire.
-- Subscription to `saved` is level-triggered. The output lives until OBS resets its output handler (profile switch, Settings > Apply), not until the buffer stops, and lifecycle events can be suppressed, so the manager re-checks which output is current on each lifecycle event, on `FINISHED_LOADING`, on `PROFILE_CHANGED`, on every save request, and on every watchdog tick. It never asks for the output before `FINISHED_LOADING` unless the buffer is active: at module load OBS has not created its output handler, and the frontend API dereferences it unchecked.
+- Subscription to `saved` is level-triggered. The output lives until OBS resets its output handler (profile switch, Settings > Apply), not until the buffer stops, and lifecycle events can be suppressed, so the manager re-checks which output is current on `REPLAY_BUFFER_STARTED`, on every save request, and on every watchdog tick. It only does so while the buffer is active: at module load OBS has not created its output handler, the frontend API dereferences it unchecked, and an active buffer guarantees it exists. If the output was replaced while the old one is still writing the outstanding request's file, the manager keeps listening to the old one until that file arrives, and only then switches.
 - A saved signal with nothing outstanding came from outside the plugin and is logged `no-pending-request` and left alone.
 
 ### Residual ambiguity
@@ -41,16 +41,26 @@ If a foreign save has been requested but OBS has not yet started writing it when
 
 ### Deferred clips
 
-A deferred request is issued only after the previous file finishes writing, and the trim keeps the last N seconds of the file it produces. The clip therefore ends when the deferred save was issued, not when the key was pressed. On slow storage, where a write can take minutes, the moment the user wanted may fall outside the clip. OBS behaves the same way for its own saves pressed mid-write.
+A deferred request, or one waiting behind a foreign save, is issued only after the previous file finishes writing. OBS writes the buffer as it stands at that moment, so the file ends later than the key press by however long the request was held, which on slow storage can be minutes. The file still holds the pressed moment as long as the buffer is longer than N plus that delay.
+
+Each request records when the key was pressed. When a held request is issued, the manager stores how much *recorded* time has passed since the press (`heldNs`): the wall-clock wait minus any time recording was paused, read from the video encoder's pause offset (`obs_encoder_get_pause_offset`). Paused time produces no frames, so it is not in the file's timeline. The trim job carries `heldNs` as an end offset, and `VideoTrimmer::trimToWindow(...)` keeps the N seconds ending that far before the end of the file, i.e. ending at the press.
+
+- A request issued straight away has an offset of exactly 0 and the clip is simply the last N seconds.
+- A folded press lands before OBS starts writing, so its file already ends at the press, and its offset is 0 too.
+- If fewer than N seconds of the buffer precede the press, the clip still ends at the press and is shorter, with a warning. It never includes footage from after the press.
+- If the press is older than everything the buffer still holds (the wait was longer than the buffer), none of the requested window exists. The trim fails with `window-not-in-buffer` and the original is kept.
+- **Save Replay Buffer** is never trimmed, so a held full-buffer save is not pulled back: its file ends when it was issued.
+
+OBS's own saves pressed mid-write have no such correction and end when the write finished.
 
 ### The watchdog
 
-A `QTimer` runs only while a request is outstanding. It exists for saves that will never produce a `saved` signal at all: a mux pipe failure skips the signal entirely (lines 1120-1134), as does a failed mux thread or a stalled encoder. It does **not** bound how long a write may take.
+A single-shot `QTimer` is armed only while a request is outstanding. It exists for saves that will never produce a `saved` signal at all: a mux pipe failure skips the signal entirely (lines 1120-1134), as does a failed mux thread or a stalled encoder. It does **not** bound how long a write may take.
 
-- Until `Config::SAVE_WATCHDOG_GRACE_MS` has passed since the save was issued, it does nothing. That grace bounds the time from a save to OBS starting the file, which is one encoded packet, not the time to finish writing it.
-- While the video encoder is paused it restarts the grace period, because OBS keeps the save armed and fires it on unpause.
-- After the grace period it checks, at most every `Config::SAVE_WATCHDOG_PROBE_INTERVAL_MS`, whether OBS has started the file. If it has, the request stays however long the write takes, with a single warning past `Config::SAVE_MUX_STALL_WARN_MS`. If not, the save was lost: `skipped reason=no-mux-started`, and the deferred request is issued.
-- If the output has gone inactive and OBS has not started the file, it applies the same handling as `REPLAY_BUFFER_STOPPED`, covering a stop whose event was suppressed.
+- It first fires `Config::SAVE_WATCHDOG_GRACE_MS` after the save was issued. That grace bounds the time from a save to OBS starting the file, which is one encoded packet, not the time to finish writing it.
+- While the video encoder is paused it restarts the grace period, because OBS keeps the save armed and fires it on unpause. The request's issue time is kept separately, so the stall warning and `armed=` still measure from the original save.
+- After the grace period it checks whether OBS has started the file, and re-checks every `Config::SAVE_WATCHDOG_PROBE_INTERVAL_MS` while it is being written. If it has, the request stays however long the write takes, with a single warning past `Config::SAVE_MUX_STALL_WARN_MS`. If not, the save was lost: `skipped reason=no-mux-started`, and the deferred request is issued.
+- If the replay buffer is no longer active, it applies the same handling as `REPLAY_BUFFER_STOPPED`, covering a stop whose event was suppressed, and keeps re-checking while a started file is still owed.
 
 ### Threading
 
@@ -86,7 +96,9 @@ Any failure deletes the partial and leaves the original untouched.
 
 ### Cut point selection
 
-`VideoTrimmer::trimToLastSeconds(...)` seeks backwards to the requested start, which lands on the closest keyframe at or before it, and takes the first key video packet from there as the cut point. Timestamps are compared as DTS, which is monotonic; comparing PTS lets a reordered B-frame end the search early and drag the cut back by a whole GOP.
+`VideoTrimmer::trimToWindow(...)` seeks backwards to the requested start, which lands on the closest keyframe at or before it, and takes the first key video packet from there as the cut point. Timestamps are compared as DTS, which is monotonic; comparing PTS lets a reordered B-frame end the search early and drag the cut back by a whole GOP.
+
+With an end offset (see "Deferred clips"), the window ends before the end of the file. Each stream is cut at its first packet past the end; DTS follows decode order, so the cut stays decodable, and reading stops once every stream has ended.
 
 The cut can only ever land at or before the request, so a clip is never shorter than asked and can be longer by up to one GOP. Drift beyond `Config::TRIM_KEYFRAME_TOLERANCE_SECONDS` is logged as a warning naming the encoder keyframe interval as the cause.
 
@@ -122,9 +134,10 @@ Grepping an OBS log for `TRIM VERDICT` gives a complete per-save accounting. The
 | `output-too-long` | The cut point collapsed; the clip would have been near full length |
 | `output-too-short` / `output-unreadable` | The written clip did not survive verification |
 | `no-packets-written` | Nothing was copied; writing would have produced an empty clip |
+| `window-not-in-buffer` | A held save's press is older than everything the buffer still holds, so the requested clip does not exist |
 | `rename-failed` | The verified clip could not take its final name |
 
-Refused and abandoned requests carry `requested=Ns` instead of `file=`, plus `deferred` when it was the deferred request.
+Refused and abandoned requests carry `requested=Ns` instead of `file=`, plus `deferred` when it was the deferred request. A successful trim of a held request adds `end_at=` (where the clip ends in the saved file) and `end_offset=` (recorded time the request was held). Its `promoted` line carries the same value as `delayed=`, plus `paused=` when recording was paused during the wait.
 
 Correlation transitions are logged as `SAVE STATE:` lines with a generation number (`armed`, `folded`, `deferred`, `waiting-foreign`, `promoted`, `cleared`), so the pairing of requests and files can be read straight from a log. Pairing OBS's own `Wrote replay buffer to '...'` lines with `TRIM VERDICT` lines checks it independently.
 
@@ -145,7 +158,7 @@ Successes and failures also surface briefly in the OBS status bar via `StatusRep
 - `ReplayBufferManager::saveSegment(...)`
 - `ReplayBufferManager::saveFullBuffer(...)`
 - `ReplayBufferManager::requestSave(...)`
-- `ReplayBufferManager::checkArmable()`
+- `ReplayBufferManager::armRefusalReason()`
 - `ReplayBufferManager::ensureSubscribed()`
 - `ReplayBufferManager::onSavedSignal(...)`
 - `ReplayBufferManager::handleSaveCompleted(...)`
@@ -153,7 +166,7 @@ Successes and failures also surface briefly in the OBS status bar via `StatusRep
 - `ReplayBufferManager::onWatchdogTick()`
 - `ReplayBufferManager::processTrimJob(...)`
 - `ReplayBufferManager::verifyTrimmedOutput(...)`
-- `VideoTrimmer::trimToLastSeconds(...)`
+- `VideoTrimmer::trimToWindow(...)`
 - `StatusReporter::showMessage(...)`
 
 ## Related code

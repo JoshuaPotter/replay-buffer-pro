@@ -25,7 +25,6 @@
 #include <QPushButton>
 
 // STL includes
-#include <string>
 #include <vector>
 
 // Local includes
@@ -151,7 +150,6 @@ namespace ReplayBufferPro
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING:
 			plugin->settingsMonitorTimer->stop();
 			QMetaObject::invokeMethod(plugin, "updateBufferLengthUIState", Qt::QueuedConnection);
-			plugin->replayManager->handleFrontendEvent(event);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED:
 			plugin->settingsMonitorTimer->start();
@@ -160,9 +158,6 @@ namespace ReplayBufferPro
 			plugin->replayManager->handleFrontendEvent(event);
 			break;
 		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING:
-		case OBS_FRONTEND_EVENT_PROFILE_CHANGED:
-		case OBS_FRONTEND_EVENT_FINISHED_LOADING:
 			plugin->replayManager->handleFrontendEvent(event);
 			break;
 		// Saves are not handled here. OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED is
