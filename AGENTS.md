@@ -41,7 +41,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 3. The completion carrying that marker is logged `save-full-buffer` and left untrimmed.
 
 ### Correlating saves
-- OBS holds a single armed save timestamp (`save_ts`) that a later request overwrites, so it never queues requests; a FIFO of requests drifts out of step with files. See `reference/architecture/replay-buffer-flow.md` for the OBS source citations.
+- OBS holds a single armed save timestamp (`save_ts`) that a later request overwrites, so it never queues requests; a FIFO of requests drifts out of step with files. See `docs/architecture/replay-buffer-flow.md` for the OBS source citations.
 - The manager keeps at most one outstanding request plus one deferred request (last-write-wins). A press before OBS starts writing folds into the outstanding request; a press while a file is being written is deferred; a press while a foreign save is being written waits behind a placeholder.
 - A pre-flight gate mirrors OBS's own drop conditions (output inactive, video encoder paused), so a save OBS would drop is refused before any state exists.
 - Completions come from the output's `saved` signal, not `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, which OBS suppresses when the buffer stopped mid-write or during scene collection/profile switches. Do not handle both, or every file is trimmed twice.
@@ -100,6 +100,6 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 - No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
 
 ## Documentation upkeep
-- More documentation is available in `reference/` and README.md.
-- Project website source lives in `docs/` and should be updated when relevant.
-- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `reference/`, `docs/`, and this file in sync with project changes.
+- More documentation is available in `docs/` and README.md.
+- Project website source lives in `pages/` and should be updated when relevant.
+- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `pages/`, and this file in sync with project changes.

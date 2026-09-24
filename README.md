@@ -151,8 +151,8 @@ replay-buffer-pro/
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
 ├── .github/             # CI workflows, actions, scripts (Windows + macOS)
-├── docs/                # Project website source
-├── reference/           # Developer documentation
+├── pages/               # Project website source
+├── docs/                # Developer documentation
 └── README.md
 ```
 
