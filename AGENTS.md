@@ -95,6 +95,6 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 - No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs.
 
 ## Documentation upkeep
-- More documentation is available in `reference/` and README.md.
-- Project website source lives in `docs/` and should be updated when relevant.
-- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `reference/`, `docs/`, and this file in sync with project changes.
+- More documentation is available in `docs/` and README.md.
+- Project website source lives in `pages/` and should be updated when relevant.
+- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `pages/`, and this file in sync with project changes.
