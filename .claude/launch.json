@@ -4,7 +4,7 @@
     {
       "name": "docs-site",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "docs"],
+      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "pages"],
       "port": 8099
     }
   ]

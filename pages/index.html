@@ -426,7 +426,8 @@
         <!-- Fact strip, in place of Vercel's customer logo band -->
         <div class="container">
           <div class="fact-strip-wrap">
-            <div class="fact-strip-track">
+            <!-- Dots layer: renders only the separator dots, never faded -->
+            <div class="fact-strip-track fact-strip-track--dots" aria-hidden="true">
               <ul class="fact-strip">
                 <li>No re-encoding</li>
                 <li>Trims in milliseconds</li>
@@ -435,7 +436,7 @@
                 <li>Windows &amp; macOS</li>
                 <li>Same output folder</li>
               </ul>
-              <ul class="fact-strip" aria-hidden="true">
+              <ul class="fact-strip">
                 <li>No re-encoding</li>
                 <li>Trims in milliseconds</li>
                 <li>Six custom durations</li>
@@ -443,6 +444,45 @@
                 <li>Windows &amp; macOS</li>
                 <li>Same output folder</li>
               </ul>
+              <ul class="fact-strip">
+                <li>No re-encoding</li>
+                <li>Trims in milliseconds</li>
+                <li>Six custom durations</li>
+                <li>Hotkey for every button</li>
+                <li>Windows &amp; macOS</li>
+                <li>Same output folder</li>
+              </ul>
+            </div>
+            <!-- Text layer: renders only the labels, fades at the wrap's edges.
+                 The mask lives on this stationary wrapper (not the scrolling
+                 track) so the fade zone stays pinned to the wrap's edges. -->
+            <div class="fact-strip-mask">
+              <div class="fact-strip-track fact-strip-track--text">
+                <ul class="fact-strip">
+                  <li>No re-encoding</li>
+                  <li>Trims in milliseconds</li>
+                  <li>Six custom durations</li>
+                  <li>Hotkey for every button</li>
+                  <li>Windows &amp; macOS</li>
+                  <li>Same output folder</li>
+                </ul>
+                <ul class="fact-strip" aria-hidden="true">
+                  <li>No re-encoding</li>
+                  <li>Trims in milliseconds</li>
+                  <li>Six custom durations</li>
+                  <li>Hotkey for every button</li>
+                  <li>Windows &amp; macOS</li>
+                  <li>Same output folder</li>
+                </ul>
+                <ul class="fact-strip" aria-hidden="true">
+                  <li>No re-encoding</li>
+                  <li>Trims in milliseconds</li>
+                  <li>Six custom durations</li>
+                  <li>Hotkey for every button</li>
+                  <li>Windows &amp; macOS</li>
+                  <li>Same output folder</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

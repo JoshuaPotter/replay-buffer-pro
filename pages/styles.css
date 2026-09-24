@@ -391,22 +391,37 @@ code.click-to-copy:hover svg {
 
 .hero-media { min-width: 0; }
 
-/* Fact strip — stands in for a customer logo band, scrolls as an infinite marquee */
+/* Fact strip — stands in for a customer logo band, scrolls as an infinite marquee.
+   Rendered as two synced layers so the edge fade can apply to the text without
+   fading the separator dots: a dots-only layer underneath (never faded), and a
+   text-only layer on top (masked). */
 .fact-strip-wrap {
+  position: relative;
   margin: clamp(3.5rem, 7vw, 6rem) 0 0;
   padding: 1.25rem 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
 }
 .fact-strip-track {
   display: flex;
   width: max-content;
   animation: fact-strip-scroll 28s linear infinite;
 }
-.fact-strip-track:hover { animation-play-state: paused; }
+.fact-strip-wrap:hover .fact-strip-track { animation-play-state: paused; }
+.fact-strip-mask {
+  position: absolute;
+  inset: 0;
+  /* Matches .fact-strip-wrap's padding: inset:0 positions against the wrap's
+     padding box, but the dots track sits in its content box — without this,
+     the text layer renders offset from the dots layer. */
+  padding: 1.25rem 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+}
+.fact-strip-track--dots .fact-strip li { color: transparent; }
+.fact-strip-track--text .fact-strip li::before { opacity: 0; }
 .fact-strip {
   display: flex;
   flex-wrap: nowrap;
@@ -440,7 +455,7 @@ code.click-to-copy:hover svg {
 
 @keyframes fact-strip-scroll {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to { transform: translateX(-33.3334%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
