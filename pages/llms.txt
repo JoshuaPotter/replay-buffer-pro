@@ -168,6 +168,6 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2026-08-14
-Version: 1.6.0
+Last Updated: 2026-09-24
+Version: 1.7.0
 
