@@ -22,17 +22,17 @@ This document covers shared utilities used across the plugin.
 - It does nothing when the main window is unavailable, which is the case during shutdown.
 
 ## Video trimming (FFmpeg libavformat)
-`VideoTrimmer` trims a saved replay file down to the last N seconds using stream copy (no re-encoding). It follows this sequence:
+`VideoTrimmer::trimToWindow(...)` trims a saved replay file down to the N seconds ending a given offset before its end, using stream copy (no re-encoding). An offset of 0 keeps the last N seconds; a held save passes how much recorded time it was held, so its clip ends at the key press. It follows this sequence:
 1. Open the input file, retrying with backoff while another process still holds it, and find stream info.
 2. Determine total duration from container or stream durations.
-3. Calculate start time: `max(0, totalDuration - durationSeconds)`.
+3. Calculate the window: end at `totalDuration - endOffsetSeconds` and start at `max(0, end - durationSeconds)`. An end at or before 0 means the window is not in the file, and the trim fails with `window-not-in-buffer`.
 4. Create output format context and mirror input streams.
 5. Seek backwards to the start time and take the first key video packet as the cut point.
-6. Copy packets from the cut point to the end.
+6. Copy packets from the cut point to the window's end. With an offset, each stream stops at its first packet past the end (DTS follows decode order, so the cut stays decodable), and reading stops once every stream has.
 7. Rescale timestamps per stream so output starts at 0.
 8. Write trailer and close contexts.
 
-It returns a `TrimResult` carrying the source duration, requested start, actual cut point and packet count, which the caller uses both to verify the output and to build its log verdict.
+It returns a `TrimResult` carrying the source duration, requested start, actual cut point, window end (`endAt`) and packet count, which the caller uses both to verify the output and to build its log verdict.
 
 ### Cut point selection
 - `AVSEEK_FLAG_BACKWARD` already lands on the closest keyframe at or before the target, so the first key packet after the seek is the cut point. If seeking is unavailable, the scan falls back to tracking the last keyframe at or before the target.

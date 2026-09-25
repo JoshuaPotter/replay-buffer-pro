@@ -34,6 +34,7 @@ struct TrimResult {
     double sourceDuration = 0.0;///< Duration of the input in seconds
     double requestedStart = 0.0;///< Where the cut was asked for, in seconds
     double cutAt = 0.0;         ///< Where the keyframe actually put it, in seconds
+    double endAt = 0.0;         ///< Where the clip ends in the source, in seconds
     int64_t packetsWritten = 0; ///< Packets copied to the output
 };
 
@@ -46,24 +47,33 @@ struct TrimResult {
 class VideoTrimmer {
 public:
     /**
-     * @brief Trim video to last N seconds using libavformat
+     * @brief Trim video to the N seconds ending at a point in the file
      *
-     * This method opens a video file, calculates the start time for the last
-     * N seconds, and creates a new trimmed video file using stream copy
-     * (no re-encoding) for maximum performance.
+     * Opens a video file and writes the N seconds that end endOffsetSeconds
+     * before its end to a new file, using stream copy (no re-encoding) for
+     * maximum performance. An offset of 0 keeps the last N seconds; a
+     * positive offset is where the user pressed save when OBS wrote the file
+     * later than it was requested.
+     *
+     * The clip always ends at that point. If fewer than N seconds precede it,
+     * the clip is shorter; if the point lies before the start of the file,
+     * nothing of the window exists and the trim fails with
+     * "window-not-in-buffer".
      *
      * The cut lands on the first keyframe at or before the requested start,
      * so the output can be longer than requested by up to one GOP. It is
-     * never shorter.
+     * never shorter than the source allows.
      *
      * @param inputPath Input video file path
      * @param outputPath Output video file path
-     * @param durationSeconds Duration in seconds to keep from the end
+     * @param durationSeconds Duration in seconds to keep
+     * @param endOffsetSeconds How far before the end of the file the clip ends
      * @return Outcome of the attempt, including diagnostic timings
      */
-    static TrimResult trimToLastSeconds(const std::string& inputPath,
-                                        const std::string& outputPath,
-                                        int durationSeconds);
+    static TrimResult trimToWindow(const std::string& inputPath,
+                                   const std::string& outputPath,
+                                   int durationSeconds,
+                                   double endOffsetSeconds);
 
     /**
      * @brief Get duration of video file in seconds
@@ -82,7 +92,7 @@ private:
      * @brief Initialize FFmpeg libraries (call once)
      *
      * Initializes the FFmpeg library system. This is called automatically
-     * by trimToLastSeconds but can be called explicitly if needed.
+     * by trimToWindow but can be called explicitly if needed.
      */
     static void initializeFFmpeg();
 

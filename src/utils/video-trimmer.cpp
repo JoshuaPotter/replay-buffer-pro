@@ -114,9 +114,10 @@ bool VideoTrimmer::openInputWithRetry(const std::string& inputPath,
     return false;
 }
 
-TrimResult VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
-                                           const std::string& outputPath,
-                                           int durationSeconds) {
+TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
+                                      const std::string& outputPath,
+                                      int durationSeconds,
+                                      double endOffsetSeconds) {
     initializeFFmpeg();
 
     TrimResult result;
@@ -154,13 +155,40 @@ TrimResult VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
         result.sourceDuration = totalDuration;
         Logger::info("Input video duration: %.2f seconds", totalDuration);
 
-        // Calculate start time (total duration - desired duration)
-        // Ensure we don't go before the beginning of the file
-        double startTime = std::max(0.0, totalDuration - durationSeconds);
-        result.requestedStart = startTime;
+        // The clip ends endOffsetSeconds before the end of the file, where the
+        // user pressed save. With no offset that is simply the end of the file.
+        const bool cutsEnd = endOffsetSeconds > 0.0;
+        const double endTime = cutsEnd ? totalDuration - endOffsetSeconds : totalDuration;
 
-        Logger::info("Trimming from %.2f seconds to end (%.2f seconds total)",
-                    startTime, totalDuration - startTime);
+        if (endTime <= 0.0) {
+            // The press is older than anything the buffer still holds, so none of
+            // the requested window exists. Anything kept would be footage from
+            // after the press; the untouched original is the honest result.
+            Logger::error("The moment save was pressed (%.2f seconds before the end) is older "
+                          "than the saved buffer (%.2f seconds)",
+                          endOffsetSeconds, totalDuration);
+            avformat_close_input(&inputCtx);
+            return failure(result, "window-not-in-buffer",
+                           "pressed " + std::to_string(static_cast<int>(endOffsetSeconds)) +
+                               "s before the end of a " +
+                               std::to_string(static_cast<int>(totalDuration)) + "s buffer");
+        }
+
+        if (endTime < durationSeconds && endTime < totalDuration) {
+            // Ending at the press matters more than the length: keeping the full
+            // length would mean including footage from after the press.
+            Logger::warning("Only %.2f seconds of the saved buffer precede the moment save was "
+                            "pressed; the clip will be that long",
+                            endTime);
+        }
+
+        // Calculate start time, ensuring we don't go before the beginning of the file
+        double startTime = std::max(0.0, endTime - durationSeconds);
+        result.requestedStart = startTime;
+        result.endAt = endTime;
+
+        Logger::info("Trimming from %.2f to %.2f seconds (%.2f seconds total)",
+                    startTime, endTime, endTime - startTime);
 
         // Create output context
         ret = avformat_alloc_output_context2(&outputCtx, nullptr, nullptr, outputPath.c_str());
@@ -330,15 +358,35 @@ TrimResult VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
             std::vector<bool> streamStarted(inputCtx->nb_streams, false);
             std::vector<int64_t> lastDts(inputCtx->nb_streams, AV_NOPTS_VALUE);
 
+            // A clip that ends before the file does is cut per stream at its first
+            // packet past the end. DTS follows decode order, so everything after
+            // that packet is past the end too and the cut stays decodable; once
+            // every stream is done, the rest of the file need not be read.
+            std::vector<bool> streamEnded(inputCtx->nb_streams, false);
+            size_t streamsEnded = 0;
+
             while (av_read_frame(inputCtx, packet) >= 0) {
                 AVStream* inputStream = inputCtx->streams[packet->stream_index];
                 AVStream* outputStream = outputCtx->streams[packet->stream_index];
                 const int streamIndex = packet->stream_index;
 
+                if (streamEnded[streamIndex]) {
+                    av_packet_unref(packet);
+                    continue;
+                }
+
                 double packetTime = 0.0;
                 if (packetTimeSeconds(packet, inputStream, &packetTime)) {
                     if (packetTime < cutTime) {
                         av_packet_unref(packet);
+                        continue;
+                    }
+                    if (cutsEnd && packetTime > endTime) {
+                        streamEnded[streamIndex] = true;
+                        av_packet_unref(packet);
+                        if (++streamsEnded == streamEnded.size()) {
+                            break;
+                        }
                         continue;
                     }
                 } else if (!streamStarted[streamIndex]) {
@@ -422,7 +470,7 @@ TrimResult VideoTrimmer::trimToLastSeconds(const std::string& inputPath,
         closeOutput(&outputCtx);
 
         Logger::info("Copied %lld packets covering %.2f seconds",
-                     static_cast<long long>(result.packetsWritten), totalDuration - cutTime);
+                     static_cast<long long>(result.packetsWritten), endTime - cutTime);
 
         result.success = true;
         return result;

@@ -25,7 +25,6 @@
 #include <QPushButton>
 
 // STL includes
-#include <string>
 #include <vector>
 
 // Local includes
@@ -98,6 +97,10 @@ namespace ReplayBufferPro
 			settingsMonitorTimer->stop();
 		}
 		
+		// Stop saved-signal delivery before anything else goes away (no-op if
+		// OBS_FRONTEND_EVENT_EXIT already did it)
+		replayManager->shutdown();
+
 		// Remove OBS callbacks before destroying components
 		obs_frontend_remove_event_callback(handleOBSEvent, this);
 		
@@ -132,6 +135,11 @@ namespace ReplayBufferPro
 		switch (event)
 		{
 		case OBS_FRONTEND_EVENT_EXIT:
+			// Disconnect from the replay buffer output while the frontend API is
+			// still usable; OBS tears its callbacks down right after this event.
+			if (plugin->replayManager) {
+				plugin->replayManager->shutdown();
+			}
 			if (plugin->settingsMonitorTimer) {
 				plugin->settingsMonitorTimer->stop();
 			}
@@ -147,10 +155,16 @@ namespace ReplayBufferPro
 			plugin->settingsMonitorTimer->start();
 			QMetaObject::invokeMethod(plugin, "updateBufferLengthUIState", Qt::QueuedConnection);
 			QMetaObject::invokeMethod(plugin, "loadBufferLength", Qt::QueuedConnection);
+			plugin->replayManager->handleFrontendEvent(event);
 			break;
-		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED:
-			plugin->handleReplayBufferSaved();
+		case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
+			plugin->replayManager->handleFrontendEvent(event);
 			break;
+		// Saves are not handled here. OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED is
+		// suppressed when the buffer stopped mid-write or during scene
+		// collection and profile switches; the manager listens to the replay
+		// buffer output's own "saved" signal instead. Handling both would trim
+		// every file twice.
 		default:
 			break;
 		}
@@ -191,21 +205,6 @@ namespace ReplayBufferPro
 	void Plugin::handleSaveSegment(int duration)
 	{
 		replayManager->saveSegment(duration, this);
-	}
-
-	void Plugin::handleReplayBufferSaved()
-	{
-		std::string savedPath;
-
-		if (const char* path = obs_frontend_get_last_replay()) {
-			savedPath = path;
-			bfree((void*)path);
-		}
-
-		// The manager matches this to the request that produced it, logs a verdict
-		// either way, and hands any trimming off to its own worker thread so the
-		// OBS event thread is never blocked.
-		replayManager->handleSaveCompleted(savedPath);
 	}
 
 	void Plugin::handleCustomizeSaveButtons()
