@@ -342,7 +342,7 @@ code.click-to-copy:hover svg {
   align-items: center;
   gap: .5rem;
   height: 1.875rem;
-  padding: 0 .75rem 0 .3125rem;
+  padding: 0 .75rem;
   margin-bottom: 1.75rem;
   border: 1px solid var(--border-strong);
   border-radius: var(--r-full);
@@ -352,15 +352,6 @@ code.click-to-copy:hover svg {
   transition: border-color .15s ease, background-color .15s ease;
 }
 .release-pill:hover { border-color: var(--gray-500); background: var(--gray-100); }
-.release-pill-tag {
-  padding: .125rem .4375rem;
-  border-radius: var(--r-full);
-  background: var(--gray-1000);
-  color: #000;
-  font-size: .6875rem;
-  font-weight: 500;
-  letter-spacing: .01em;
-}
 .release-pill .release-version { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
 .release-pill svg { color: var(--text-faint); transition: transform .15s ease; }
 .release-pill:hover svg { transform: translateX(2px); }

@@ -117,14 +117,6 @@ namespace ReplayBufferPro
     void loadBufferLength();
 
     /**
-     * @brief Handles replay buffer saved event
-     * 
-     * Handles the event when a replay buffer is saved.
-     * Invokes the trim operation and clears the pending save duration, if needed.
-     */
-     void handleReplayBufferSaved();
-
-    /**
      * @brief Opens dialog to customize save button durations
      */
     void handleCustomizeSaveButtons();
@@ -183,10 +175,12 @@ namespace ReplayBufferPro
      * @param ptr Instance pointer for callback routing
      * 
      * Handles OBS events related to replay buffer state changes:
-     * - Buffer starting/stopping: Updates UI state
-     * - Buffer started/stopped: Updates UI and settings monitoring
-     * - Buffer saved: Handles segment trimming if needed
-     * Uses Qt's event system to safely update UI from any thread.
+     * - Buffer starting/stopped: Updates UI state and settings monitoring
+     * - Buffer started/stopped: forwarded to ReplayBufferManager, which
+     *   subscribes to the output and clears requests OBS can no longer honor
+     * - Exit: shuts the manager down while the frontend API is still usable
+     * Saves are not handled here; the manager listens to the replay buffer
+     * output's own "saved" signal.
      */
     static void handleOBSEvent(enum obs_frontend_event event, void *ptr);
   };
