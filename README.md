@@ -36,12 +36,15 @@ The project website is currently hosted via GitHub Pages.
 Authenticated OBS WebSocket clients can save an arbitrary whole-second duration
 with `CallVendorRequest`: vendor `replay-buffer-pro`, request `SaveClip`, data
 `{"durationSeconds": 120}`. This uses the same save-and-trim path as the buttons.
-Durations must be 1–21600 seconds and fit within the configured buffer length.
-The vendor result (`responseData.responseData`) is `{"accepted": true}` or
+Durations must be 1–21600 seconds. A duration longer than the configured buffer
+saves the whole buffer instead of failing.
+The vendor result (`responseData.responseData`) is
+`{"accepted": true, "durationSeconds": <saved>, "clamped": <bool>}`, where `clamped`
+means the buffer was shorter than requested, or
 `{"accepted": false, "error": "<reason>"}`, where the reason is `invalid-duration`,
-`buffer-inactive`, `exceeds-buffer-length`, `save-refused` (for example, recording
-is paused) or `unavailable` (OBS is shutting down). Acceptance is not file
-completion; existing coalescing and deferred-save behavior still applies.
+`buffer-inactive`, `save-refused` (for example, recording is paused) or
+`unavailable` (OBS is shutting down). Acceptance is not file completion; existing
+coalescing and deferred-save behavior still applies.
 
 ## Installation
 

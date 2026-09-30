@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QThread>
 
+#include <algorithm>
 #include <cmath>
 #include <condition_variable>
 #include <memory>
@@ -35,13 +36,13 @@ namespace ReplayBufferPro
 
     // Main thread, with commandMutex held. Returns nullptr when the save was accepted,
     // otherwise a short reason; saveSegment itself only reports success or failure.
-    const char *save(int duration)
+    // A request longer than the buffer saves the whole buffer instead of failing.
+    const char *save(int requested, int &saved)
     {
       if (!obs_frontend_replay_buffer_active())
         return "buffer-inactive";
-      if (duration > SettingsManager().getCurrentBufferLength())
-        return "exceeds-buffer-length";
-      return saveManager->saveSegment(duration, nullptr) ? nullptr : "save-refused";
+      saved = std::min(requested, SettingsManager().getCurrentBufferLength());
+      return saveManager->saveSegment(saved, nullptr) ? nullptr : "save-refused";
     }
 
     void saveClip(obs_data_t *request, obs_data_t *response, void *)
@@ -58,7 +59,7 @@ namespace ReplayBufferPro
         return;
       }
 
-      struct Result { bool done = false; const char *error = "unavailable"; };
+      struct Result { bool done = false; const char *error = "unavailable"; int saved = 0; };
       auto result = std::make_shared<Result>();
       std::unique_lock<std::mutex> lock(commandMutex);
       if (!saveManager)
@@ -70,7 +71,7 @@ namespace ReplayBufferPro
       const int duration = static_cast<int>(seconds);
       if (QThread::currentThread() == dispatchTarget->thread())
       {
-        result->error = save(duration);
+        result->error = save(duration, result->saved);
         result->done = true;
       }
       else
@@ -81,7 +82,7 @@ namespace ReplayBufferPro
         const bool queued = QMetaObject::invokeMethod(dispatchTarget, [result, duration]() {
           std::lock_guard<std::mutex> guard(commandMutex);
           if (saveManager)
-            result->error = save(duration);
+            result->error = save(duration, result->saved);
           result->done = true;
           commandFinished.notify_all();
         }, Qt::QueuedConnection);
@@ -91,7 +92,12 @@ namespace ReplayBufferPro
 
       obs_data_set_bool(response, "accepted", !result->error);
       if (result->error)
+      {
         obs_data_set_string(response, "error", result->error);
+        return;
+      }
+      obs_data_set_int(response, "durationSeconds", result->saved);
+      obs_data_set_bool(response, "clamped", result->saved < duration);
     }
   }
 

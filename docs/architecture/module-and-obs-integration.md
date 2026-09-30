@@ -42,7 +42,7 @@ The module itself does not register OBS sources or outputs. Instead it relies on
 - `obs_frontend_add_dock_by_id(...)` for the dock.
 - `obs_frontend_add_event_callback(...)` inside the dock to react to replay buffer events.
 - `obs_frontend_replay_buffer_*` APIs for replay buffer operations (see replay flow doc).
-- obs-websocket's vendor API (`obs_websocket_api_get_ph`, `vendor_register`, `vendor_request_register`) to expose `SaveClip`. The request callback runs on an obs-websocket thread, posts `saveSegment(...)` to the Qt main thread, and waits only for that call to return, not for the file to be written.
+- obs-websocket's vendor API (`obs_websocket_api_get_ph`, `vendor_register`, `vendor_request_register`) to expose `SaveClip`. The request callback runs on an obs-websocket thread, posts `saveSegment(...)` to the Qt main thread, and waits only for that call to return, not for the file to be written. A request longer than the buffer is clamped to the buffer length and reported with `"clamped": true`.
 
 ## Notes
 - The module stores a global `ReplayBufferPro::Plugin*` pointer only for module scope; OBS manages widget destruction.
