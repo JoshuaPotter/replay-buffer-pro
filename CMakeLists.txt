@@ -78,6 +78,8 @@ target_sources(
     src/main.cpp
     src/plugin/plugin.cpp
     src/plugin/plugin.hpp
+    src/plugin/websocket-command.cpp
+    src/plugin/websocket-command.hpp
     src/utils/obs-utils.cpp
     src/utils/obs-utils.hpp
     src/utils/duration-format.cpp
