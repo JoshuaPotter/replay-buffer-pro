@@ -30,6 +30,7 @@
 // Local includes
 #include "utils/obs-utils.hpp"
 #include "plugin/plugin.hpp"
+#include "plugin/websocket-command.hpp"
 #include "config/config.hpp"
 #include "utils/logger.hpp"
 
@@ -86,12 +87,16 @@ namespace ReplayBufferPro
 		settingsMonitorTimer->setInterval(Config::SETTINGS_MONITOR_INTERVAL);
 		connect(settingsMonitorTimer, &QTimer::timeout, this, &Plugin::loadBufferLength);
 		settingsMonitorTimer->start();
+
+		// This constructor runs from obs_module_post_load, after all modules load.
+		registerSaveClipCommand(replayManager);
 	}
 
 	// Removed QMainWindow-based constructor; OBS wraps QWidget into a dock
 
 	Plugin::~Plugin()
 	{
+		unregisterSaveClipCommand();
 		// Stop the settings monitor timer first
 		if (settingsMonitorTimer) {
 			settingsMonitorTimer->stop();
@@ -135,6 +140,7 @@ namespace ReplayBufferPro
 		switch (event)
 		{
 		case OBS_FRONTEND_EVENT_EXIT:
+			unregisterSaveClipCommand();
 			// Disconnect from the replay buffer output while the frontend API is
 			// still usable; OBS tears its callbacks down right after this event.
 			if (plugin->replayManager) {

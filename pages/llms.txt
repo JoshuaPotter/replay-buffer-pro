@@ -27,6 +27,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 4. **Adjustable Buffer Length**: Set replay buffer from 1 second to 6 hours via a numeric input
 5. **Dockable UI**: Minimal, clean interface that docks in OBS Studio
 6. **Automatic Trimming**: Saves full buffer then trims to desired length automatically
+7. **WebSocket Command**: Other apps can save any duration through obs-websocket (`CallVendorRequest`, vendor `replay-buffer-pro`, request `SaveClip`, `{"durationSeconds": N}`)
 
 ## Use Cases
 
