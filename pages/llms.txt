@@ -93,6 +93,9 @@ A: The default saves a single fixed duration clip. Replay Buffer Pro lets you sa
 **Q: Does it re-encode video?**
 A: No. Trimming uses FFmpeg with `-c copy` for fast, lossless output.
 
+**Q: Does saving a short clip write the whole buffer to disk?**
+A: Yes, briefly. OBS Studio's replay buffer saves as one complete file, and there isn't currently a way for plugins to save just part of it. So the full buffer is written first, then the plugin trims a copy to the chosen length (stream copy, no re-encode) and deletes the full-length file. If OBS Studio adds a way to save part of the buffer, the plugin will use it. Until then, writes per save are the same as OBS Studio's own Save Replay, plus the trimmed clip. Example: a 15-minute buffer at 40 Mbps is about 4.5 GB per save, which is small relative to a modern SSD's rated write endurance (TBW). To reduce SSD writes, keep the buffer length modest or point the Replay Buffer save directory at another drive.
+
 **Q: Why are some save buttons disabled?**
 A: Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip.
 

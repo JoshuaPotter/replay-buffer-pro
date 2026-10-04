@@ -694,6 +694,10 @@
               <div class="faq-body"><p>No. Trimming is a stream copy through FFmpeg's libavformat — the equivalent of <code>-c copy</code> — so it is fast and lossless.</p></div>
             </details>
             <details>
+              <summary>Does saving a short clip write the whole buffer to disk?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>Yes, briefly. OBS Studio's replay buffer saves as one complete file, and there isn't currently a way for plugins to save just part of it. So the full buffer is written first, then Replay Buffer Pro trims a copy to the length you chose and deletes the full-length file. If OBS Studio adds a way to save part of the buffer in the future, the plugin will use it. Until then, each save writes the same amount as OBS Studio's own Save Replay, plus the short trimmed clip. For example, a 15-minute buffer at 40 Mbps is about 4.5 GB per save, which is small next to the rated write endurance of a modern SSD. If you save often at high bitrates and want fewer writes on your SSD, keep the buffer length modest or point your Replay Buffer save directory at another drive.</p></div>
+            </details>
+            <details>
               <summary>Why are some save buttons disabled?<span class="faq-icon" aria-hidden="true"></span></summary>
               <div class="faq-body"><p>Your configured buffer length is shorter than that clip length. Increase the buffer length, or choose a shorter clip.</p></div>
             </details>
