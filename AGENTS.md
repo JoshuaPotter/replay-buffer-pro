@@ -10,6 +10,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 ## Architecture map (start here)
 - Module entry + OBS integration: `src/main.cpp`
 - Dock widget + UI orchestration: `src/plugin/plugin.hpp`, `src/plugin/plugin.cpp`
+- obs-websocket `SaveClip` vendor request: `src/plugin/websocket-command.hpp`, `src/plugin/websocket-command.cpp`
 - UI components: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
@@ -34,6 +35,13 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 3. `requestSave(...)` refuses the save if OBS would drop it (buffer inactive, recording paused), otherwise arms it with `obs_frontend_replay_buffer_save()`, folds it into a not-yet-started outstanding request, or defers it behind a file being written.
 4. On the replay buffer output's own `saved` signal (mux thread), the manager reads the path and posts it to `handleSaveCompleted(...)` on the Qt main thread, which queues a trim job and issues any deferred request.
 5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed`, then deletes the original.
+
+### Save clip over obs-websocket
+1. A client sends `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and `{"durationSeconds": N}`.
+2. The callback (obs-websocket thread) validates N as a whole number of seconds in 1..`MAX_BUFFER_LENGTH`.
+3. It posts the save to the Qt main thread and waits only until `saveSegment(...)` returns, never for file I/O. A null parent means no message boxes. N is clamped to the current buffer length, so a request longer than the buffer saves the whole buffer instead of failing (unlike the dock buttons, which refuse).
+4. The response is `{"accepted": true, "durationSeconds": saved, "clamped": bool}` or `{"accepted": false, "error": ...}` (`invalid-duration`, `buffer-inactive`, `save-refused`, `unavailable`).
+5. `OBS_FRONTEND_EVENT_EXIT` and the dock destructor unregister the request and release any waiting callback, because OBS may stop servicing Qt events before it joins the WebSocket threads.
 
 ### Save full buffer
 1. User clicks “Save Replay Buffer”.
@@ -97,7 +105,7 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 ```
 
 ## Not present
-- No custom OBS sources, filters, or outputs are registered. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
+- No custom OBS sources, filters, or outputs are registered. The only external API the plugin registers is the optional obs-websocket vendor request above; without obs-websocket it logs a warning and the dock still works. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
 
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.
