@@ -154,6 +154,14 @@
               "@type": "Answer",
               "text": "Yes. Use the Customize button in the Save Clips section to set each button's duration."
             }
+          },
+          {
+            "@type": "Question",
+            "name": "Can other apps save clips through OBS WebSocket?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then have your app send a CallVendorRequest with vendorName replay-buffer-pro, requestType SaveClip and requestData {\"durationSeconds\": 120}. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer."
+            }
           }
         ]
       }
@@ -700,6 +708,10 @@
             <details>
               <summary>Where are clips saved?<span class="faq-icon" aria-hidden="true"></span></summary>
               <div class="faq-body"><p>In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.</p></div>
+            </details>
+            <details>
+              <summary>Can other apps save clips through OBS WebSocket?<span class="faq-icon" aria-hidden="true"></span></summary>
+              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"durationSeconds": 120}</code>. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#websocket-command" rel="noopener" target="_blank">README</a> for the response format.</p></div>
             </details>
           </div>
         </div>
