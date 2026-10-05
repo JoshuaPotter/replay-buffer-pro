@@ -106,7 +106,7 @@ A: Yes. Use the Customize button in the Save Clips section to set each button's 
 A: In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings).
 
 **Q: Can other apps save clips through OBS WebSocket?**
-A: Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then send `CallVendorRequest` with `vendorName` `replay-buffer-pro`, `requestType` `SaveClip` and `requestData` `{"durationSeconds": 120}`. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than the buffer holds saves the whole buffer. The vendor response is `{"accepted": true, "durationSeconds": N, "clamped": bool}` or `{"accepted": false, "error": "invalid-duration" | "buffer-inactive" | "save-refused" | "unavailable"}`.
+A: Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then send `CallVendorRequest` with `vendorName` `replay-buffer-pro`, `requestType` `SaveClip` and `requestData` `{"durationSeconds": 120}`. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than the buffer holds saves the whole buffer. The vendor response is `{"accepted": true, "durationSeconds": N, "clamped": bool}` or `{"accepted": false, "error": "invalid-duration" | "buffer-inactive" | "save-refused" | "unavailable" | "timeout"}`.
 
 **Q: What platforms are supported?**
 A: Windows 10/11 (64-bit) and macOS 13.0+ (universal, supports Apple Silicon and Intel).

@@ -8,6 +8,7 @@
 #include <QThread>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <condition_variable>
 #include <memory>
@@ -59,7 +60,7 @@ namespace ReplayBufferPro
         return;
       }
 
-      struct Result { bool done = false; const char *error = "unavailable"; int saved = 0; };
+      struct Result { bool done = false; bool abandoned = false; const char *error = "unavailable"; int saved = 0; };
       auto result = std::make_shared<Result>();
       std::unique_lock<std::mutex> lock(commandMutex);
       if (!saveManager)
@@ -79,15 +80,22 @@ namespace ReplayBufferPro
         // Wait only for entry into the existing save path, never for file I/O.
         // Unlike BlockingQueuedConnection, this wait can be released at EXIT,
         // when OBS may stop servicing Qt events before joining WebSocket threads.
+        // It is also bounded: obs-websocket's settings dialog restarts the server
+        // on the main thread and waits for this request, so an unbounded wait
+        // would deadlock OBS. A timed-out request is abandoned and never saves.
         const bool queued = QMetaObject::invokeMethod(dispatchTarget, [result, duration]() {
           std::lock_guard<std::mutex> guard(commandMutex);
-          if (saveManager)
+          if (saveManager && !result->abandoned)
             result->error = save(duration, result->saved);
           result->done = true;
           commandFinished.notify_all();
         }, Qt::QueuedConnection);
-        if (queued)
-          commandFinished.wait(lock, [&]() { return result->done || !saveManager; });
+        if (queued && !commandFinished.wait_for(lock, std::chrono::seconds(2),
+                                                [&]() { return result->done || !saveManager; }))
+        {
+          result->abandoned = true;
+          result->error = "timeout";
+        }
       }
 
       obs_data_set_bool(response, "accepted", !result->error);

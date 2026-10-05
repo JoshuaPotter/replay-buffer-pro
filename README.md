@@ -42,8 +42,9 @@ The vendor result (`responseData.responseData`) is
 `{"accepted": true, "durationSeconds": <saved>, "clamped": <bool>}`, where `clamped`
 means the buffer was shorter than requested, or
 `{"accepted": false, "error": "<reason>"}`, where the reason is `invalid-duration`,
-`buffer-inactive`, `save-refused` (for example, recording is paused) or
-`unavailable` (OBS is shutting down). Acceptance is not file completion; existing
+`buffer-inactive`, `save-refused` (for example, recording is paused),
+`unavailable` (OBS is shutting down) or `timeout` (OBS was busy, nothing was
+saved). Acceptance is not file completion; existing
 coalescing and deferred-save behavior still applies.
 
 ## Installation
