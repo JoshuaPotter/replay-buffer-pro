@@ -98,6 +98,7 @@
         <nav class="header-nav" aria-label="Sections">
           <a href="../#how-it-works">How it works</a>
           <a href="../#install">Install</a>
+          <a href="../usage/">Usage</a>
           <a href="../#faq">FAQ</a>
         </nav>
 
@@ -174,7 +175,7 @@
           <p>Yes, in a few ways. Bind a <strong>Replay Buffer Pro: Save…</strong> hotkey in OBS under <strong>Settings → Hotkeys</strong> and have the Stream Deck send that key combination, use the community Stream Deck plugin above, which sends obs-websocket <code>SaveClip</code> requests and needs version 1.8.0 or later, or use another tool that sends obs-websocket requests.</p>
           <p>The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the full buffer without trimming, because the save comes from outside Replay Buffer Pro.</p>
           <h2>Can other apps save clips through obs-websocket?</h2>
-          <p>Yes. Since version 1.8.0, any obs-websocket client can send a <code>CallVendorRequest</code> with vendor <code>replay-buffer-pro</code>, request <code>SaveClip</code>, and data like <code>{"durationSeconds": 120}</code>. Durations are whole seconds from 1 to 21600. A request longer than the buffer saves the whole buffer and the response includes <code>"clamped": true</code>. See the <a href="https://joshuapotter.github.io/replay-buffer-pro/#faq">FAQ</a> and the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#websocket-command" rel="noopener" target="_blank">README</a> for the full response format.</p>
+          <p>Yes. Since version 1.8.0, any obs-websocket client can send a <code>SaveClip</code> request for a clip of any whole-second length from 1 to 21600. See <a href="../usage/#obs-websocket">how to use Replay Buffer Pro</a> for the request, the response format, and examples.</p>
           <h2>What do file-organizing tools need to know about the output files?</h2>
           <p>Each trimmed clip appears as <code>&lt;name&gt;_trimmed.&lt;ext&gt;</code> next to where OBS saved the replay. It is written to a <code>.rbp-partial.&lt;ext&gt;</code> scratch file first and renamed into place, so the <code>_trimmed</code> file is complete the moment it exists. After that, the original full-length file is deleted. Tools that move or rename replays should wait for the <code>_trimmed</code> file rather than acting on the original.</p>
           <p>If the <code>_trimmed</code> suffix, the original-file deletion, or the timing of the final file changes, the developer documentation asks contributors to open an issue at Smart Replay Mover so its author can update.</p>
@@ -241,6 +242,7 @@
           <div class="footer-col">
             <h4>Explore</h4>
             <ul>
+              <li><a href="../usage/">Usage</a></li>
               <li><a href="../obs-replay-buffer-guide/">Replay buffer guide</a></li>
               <li><a href="../compare/">Compare</a></li>
               <li><a href="../integrations/">Community integrations</a></li>

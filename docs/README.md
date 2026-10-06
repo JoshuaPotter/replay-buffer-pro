@@ -2,6 +2,8 @@
 
 This folder documents the Replay Buffer Pro OBS Studio plugin. The plugin adds a dockable UI panel that controls the built-in OBS replay buffer, and trims saved files to a selected duration using FFmpeg libraries.
 
+End-user behavior (dock, hotkeys, obs-websocket `SaveClip`) is documented in the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/), whose source is `pages/usage/index.html` and `pages/usage.md`. The pages below cover internals.
+
 ## Architecture map
 If you are new to the plugin, read in order:
 1. Module entry + OBS integration: `docs/architecture/module-and-obs-integration.md`

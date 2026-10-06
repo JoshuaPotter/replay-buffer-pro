@@ -1100,6 +1100,15 @@ kbd {
 .prose + .table-wrap,
 .table-wrap + .prose { margin-top: 2.5rem; }
 
+/* Code panels and tables nested in long-form prose (usage page) */
+.prose .surface,
+.prose .table-wrap { margin-top: 1.5rem; }
+.prose .surface + p,
+.prose .table-wrap + p { margin-top: 1.5rem; }
+.prose .compare td code { white-space: nowrap; }
+.compare a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+.compare a:hover { color: var(--text); }
+
 .release {
   display: grid;
   grid-template-columns: 1fr;
