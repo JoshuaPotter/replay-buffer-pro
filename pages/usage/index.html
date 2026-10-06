@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Replay Buffer Pro vs the Built-in OBS Replay Buffer</title>
-    <meta name="description" content="A side-by-side comparison of Replay Buffer Pro and the built-in OBS Studio replay buffer, including when the built-in buffer is enough.">
+    <title>How to Use Replay Buffer Pro</title>
+    <meta name="description" content="Every way to save a clip with Replay Buffer Pro: the OBS dock, per-duration hotkeys, the Save Replay Buffer button, and the obs-websocket SaveClip request.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
@@ -19,36 +19,36 @@
     <!-- End Google Tag Manager -->
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Replay Buffer Pro vs the Built-in OBS Replay Buffer">
-    <meta property="og:description" content="A side-by-side comparison of Replay Buffer Pro and the built-in OBS Studio replay buffer, including when the built-in buffer is enough.">
+    <meta property="og:title" content="How to Use Replay Buffer Pro">
+    <meta property="og:description" content="Every way to save a clip with Replay Buffer Pro: the OBS dock, per-duration hotkeys, the Save Replay Buffer button, and the obs-websocket SaveClip request.">
     <meta property="og:type" content="article">
     <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
-    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/compare/">
+    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/usage/">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Replay Buffer Pro vs the Built-in OBS Replay Buffer">
-    <meta name="twitter:description" content="A side-by-side comparison of Replay Buffer Pro and the built-in OBS Studio replay buffer, including when the built-in buffer is enough.">
+    <meta name="twitter:title" content="How to Use Replay Buffer Pro">
+    <meta name="twitter:description" content="Every way to save a clip with Replay Buffer Pro: the OBS dock, per-duration hotkeys, the Save Replay Buffer button, and the obs-websocket SaveClip request.">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
 
     <meta name="author" content="Joshua Potter">
     <meta name="theme-color" content="#000000">
     <meta name="color-scheme" content="dark">
-    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/compare/">
-    <link rel="alternate" type="text/markdown" href="../compare.md" title="Markdown version of this page">
+    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/usage/">
+    <link rel="alternate" type="text/markdown" href="../usage.md" title="Markdown version of this page">
     <link rel="alternate" type="text/plain" href="../llms.txt" title="LLM-optimized documentation">
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebPage",
-        "headline": "Replay Buffer Pro vs the built-in OBS replay buffer",
-        "name": "Replay Buffer Pro vs the Built-in OBS Replay Buffer",
-        "description": "A side-by-side comparison of Replay Buffer Pro and the built-in OBS Studio replay buffer, including when the built-in buffer is enough.",
-        "url": "https://joshuapotter.github.io/replay-buffer-pro/compare/",
-        "mainEntityOfPage": "https://joshuapotter.github.io/replay-buffer-pro/compare/",
+        "@type": "TechArticle",
+        "headline": "How to use Replay Buffer Pro",
+        "name": "How to Use Replay Buffer Pro",
+        "description": "Every way to save a clip with Replay Buffer Pro: the OBS dock, per-duration hotkeys, the Save Replay Buffer button, and the obs-websocket SaveClip request.",
+        "url": "https://joshuapotter.github.io/replay-buffer-pro/usage/",
+        "mainEntityOfPage": "https://joshuapotter.github.io/replay-buffer-pro/usage/",
         "inLanguage": "en",
-        "datePublished": "2026-10-05",
+        "datePublished": "2026-10-06",
         "author": {
           "@type": "Person",
           "name": "Joshua Potter"
@@ -74,8 +74,8 @@
           {
             "@type": "ListItem",
             "position": 2,
-            "name": "Compare",
-            "item": "https://joshuapotter.github.io/replay-buffer-pro/compare/"
+            "name": "Usage",
+            "item": "https://joshuapotter.github.io/replay-buffer-pro/usage/"
           }
         ]
       }
@@ -128,31 +128,118 @@
           <nav aria-label="Breadcrumb">
             <ol class="crumbs">
               <li><a href="../">Replay Buffer Pro</a></li>
-              <li aria-current="page">Compare</li>
+              <li aria-current="page">Usage</li>
             </ol>
           </nav>
-          <h1>Replay Buffer Pro vs the built-in OBS replay buffer</h1>
-          <p class="hero-lead">The built-in OBS Studio replay buffer saves one fixed length. Replay Buffer Pro adds a button and hotkey for any length, trimmed without re-encoding.</p>
+          <h1>How to use Replay Buffer Pro</h1>
+          <p class="hero-lead">Every way to save a clip, and what each one does.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-intro">
+            <h2>Ways to save a clip</h2>
+            <p>Replay Buffer Pro trims clips three ways: dock buttons, hotkeys, and an obs-websocket request. All three use the same save-and-trim path. Saves that come from outside the plugin are left at full length.</p>
+          </div>
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr><th scope="col">Interface</th><th scope="col">Best for</th><th scope="col">Trimmed to your duration</th><th scope="col">Needs</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Dock save buttons</th><td>Clicking a length while OBS is in front</td><td>Yes</td><td>Replay buffer running</td></tr>
+                <tr><th scope="row">Hotkeys</th><td>Clipping mid-game without leaving it</td><td>Yes</td><td>A binding for each <strong>Replay Buffer Pro: Save …</strong> hotkey</td></tr>
+                <tr><th scope="row">obs-websocket <code>SaveClip</code></th><td>Scripts, Stream Deck plugins, and other apps</td><td>Yes, any whole number of seconds from 1 to 21600</td><td>obs-websocket server turned on</td></tr>
+                <tr><th scope="row">Save Replay Buffer button</th><td>Keeping the whole buffer</td><td>No, saved at full buffer length</td><td>Replay buffer running</td></tr>
+                <tr><th scope="row">OBS's own Save Replay (hotkey, tray menu, <code>SaveReplayBuffer</code> request)</th><td>Nothing in this plugin; it is OBS's save</td><td>No, logged as <code>skipped reason=no-pending-request</code></td><td>Replay buffer running</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       <section class="section">
         <div class="container">
           <div class="prose">
-          <h2>What is the difference?</h2>
-          <p>The built-in OBS Studio replay buffer saves the whole buffer as one file, so every save is the same length. Replay Buffer Pro is a plugin that works on top of it. You keep one long buffer and choose the clip length at save time, with a button or hotkey for each length.</p>
-          </div>
-          <div class="table-wrap"><table class="compare"><thead><tr><th scope="col">Feature</th><th scope="col">Built-in OBS replay buffer</th><th scope="col">Replay Buffer Pro</th></tr></thead><tbody><tr><th scope="row">Clip length per save</th><td>Always the buffer length</td><td>Any length from 1 second to 6 hours, up to the buffer length</td></tr><tr><th scope="row">Save controls</th><td>One Save Replay hotkey</td><td>A button and a hotkey for each duration, plus a save-full-buffer button</td></tr><tr><th scope="row">Changing the buffer length</th><td>Settings → Output</td><td>A numeric field in the dock, while the buffer is stopped</td></tr><tr><th scope="row">Re-encoding</th><td>None</td><td>None, trimming is a stream copy</td></tr><tr><th scope="row">Disk writes per save</th><td>The whole buffer</td><td>The whole buffer, then the trimmed clip; the full-length file is deleted</td></tr><tr><th scope="row">Saving from other apps</th><td>obs-websocket saves the whole buffer</td><td>A <a href="../usage/#obs-websocket"><code>SaveClip</code> vendor request</a> with any duration (version 1.8.0 and later)</td></tr><tr><th scope="row">Platforms</th><td>Everywhere OBS runs</td><td>Windows 10/11 (64-bit) and macOS 13.0 or later</td></tr><tr><th scope="row">Requirements</th><td>OBS Studio</td><td>OBS Studio 32.2.0 or later</td></tr><tr><th scope="row">Cost</th><td>Free and open source</td><td>Free and open source, GPL v2 or later</td></tr></tbody></table></div>
-          <div class="prose">
-          <h2>When is the built-in replay buffer enough?</h2>
-          <p>When you only ever want one clip length, or you save rarely. The built-in buffer needs no install and works on every platform OBS supports, including Linux. Set the length you need and use the Save Replay hotkey.</p>
-          <h2>When is Replay Buffer Pro the better fit?</h2>
-          <p>When you want clips of several lengths from the same session, for example a 15-second highlight for a short-form video and a 2-minute segment for a longer upload, without opening Settings or a video editor between saves.</p>
-          <h2>Does Replay Buffer Pro replace the built-in replay buffer?</h2>
-          <p>No. It uses the built-in replay buffer and OBS's own save. Replay Buffer Pro does not capture footage itself. It decides how much of each saved replay to keep. Replays saved with OBS's own Save Replay hotkey, the tray menu, or obs-websocket are not trimmed.</p>
-          <h2>What about other ways to get shorter clips?</h2>
-          <p>You can trim after the fact in a video editor or with FFmpeg using <code>-c copy</code>. It is free and works anywhere, but it is a manual step for every clip. This page compares Replay Buffer Pro only with OBS Studio's own replay buffer. Other capture tools with their own instant-replay features are separate software.</p>
-          <p>Read the <a href="https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/">guide to the OBS replay buffer</a> or <a href="https://joshuapotter.github.io/replay-buffer-pro/#install">install Replay Buffer Pro</a>.</p>
+            <h2>What do I need before I save?</h2>
+            <p>The replay buffer must be running. Replay Buffer Pro does not capture footage; it trims what OBS saves from the buffer, so start the buffer from OBS Studio's controls first.</p>
+            <p>Recording must not be paused. OBS drops replay saves while recording is paused, so the plugin refuses the save up front and logs <code>encoder-paused</code>. A clip also cannot be longer than the buffer. Set the buffer to the longest clip you will want, for example 10 minutes.</p>
+
+            <h2>How do I use the dock?</h2>
+            <p>Open <strong>Docks → Replay Buffer Pro</strong> in OBS Studio. The dock has four parts.</p>
+            <ul>
+              <li><strong>Maximum Replay Buffer Length.</strong> A numeric field from 1 second to 6 hours. It writes the same OBS profile setting as <strong>Settings → Output</strong>. It is disabled while the replay buffer is running, so stop the buffer to change it.</li>
+              <li><strong>Save Clips.</strong> Six buttons, <strong>Last 15 Seconds</strong>, <strong>Last 30 Seconds</strong>, <strong>Last 1 Minute</strong>, <strong>Last 5 Minutes</strong>, <strong>Last 15 Minutes</strong> and <strong>Last 30 Minutes</strong> by default. A button is disabled when the buffer is shorter than its duration.</li>
+              <li><strong>Customize.</strong> Opens a dialog where each button can be any whole number of seconds from 1 to 21600. The durations are shared across scene collections and profiles, and the hotkey names follow them.</li>
+              <li><strong>Save Replay Buffer.</strong> Saves the whole buffer without trimming.</li>
+            </ul>
+
+            <h2>How do I save with hotkeys?</h2>
+            <p>Open <strong>Settings → Hotkeys</strong> in OBS Studio and search for <strong>Replay Buffer Pro</strong>. Each save button has its own hotkey, named after its duration, such as <strong>Replay Buffer Pro: Save 30 Seconds</strong>. Bindings are stored in <code>hotkey_bindings.json</code> in the plugin's config folder.</p>
+            <p>The Save Replay Buffer button has no hotkey of its own. To save the full buffer from a key, use OBS's built-in <strong>Save Replay</strong> hotkey, which also saves it untrimmed.</p>
+
+            <h2 id="obs-websocket">How do I save clips over obs-websocket?</h2>
+            <p>Turn on the server under <strong>Tools → WebSocket Server Settings</strong>, connect with any obs-websocket v5 client, and send a <code>CallVendorRequest</code> with vendor <code>replay-buffer-pro</code> and request <code>SaveClip</code>. It uses the same save-and-trim path as the dock buttons.</p>
+            <div class="surface">
+              <div class="surface-bar"><span class="surface-label mono">Request</span></div>
+              <div class="surface-body"><pre class="log"><code>{
+  "op": 6,
+  "d": {
+    "requestType": "CallVendorRequest",
+    "requestId": "save-clip-1",
+    "requestData": {
+      "vendorName": "replay-buffer-pro",
+      "requestType": "SaveClip",
+      "requestData": { "durationSeconds": 120 }
+    }
+  }
+}</code></pre></div>
+            </div>
+            <p>With <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js" rel="noopener" target="_blank">obs-websocket-js</a>, the same call looks like this. The plugin's reply is the <code>responseData</code> field of the result.</p>
+            <div class="surface">
+              <div class="surface-bar"><span class="surface-label mono">TypeScript</span></div>
+              <div class="surface-body"><pre class="log"><code>import OBSWebSocket from 'obs-websocket-js';
+
+const obs = new OBSWebSocket();
+await obs.connect('ws://127.0.0.1:4455', 'your-password');
+
+const { responseData: clip } = await obs.call('CallVendorRequest', {
+  vendorName: 'replay-buffer-pro',
+  requestType: 'SaveClip',
+  requestData: { durationSeconds: 120 },
+});
+
+console.log(clip); // { accepted: true, durationSeconds: 120, clamped: false }</code></pre></div>
+            </div>
+            <p><code>durationSeconds</code> must be a whole number from 1 to 21600. Anything else is rejected as <code>invalid-duration</code>. The plugin answers with one of these results. Because it is an application-level result, the obs-websocket request itself still succeeds when <code>accepted</code> is <code>false</code>.</p>
+            <div class="table-wrap">
+              <table class="compare">
+                <thead>
+                  <tr><th scope="col">Result</th><th scope="col">Meaning</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>{"accepted": true, "durationSeconds": 120, "clamped": false}</code></td><td>The save started. <code>durationSeconds</code> is the length being saved. <code>clamped</code> is <code>true</code> when the buffer was shorter than requested.</td></tr>
+                  <tr><td><code>{"accepted": false, "error": "invalid-duration"}</code></td><td>The duration is missing, not a number, not whole, or outside 1 to 21600.</td></tr>
+                  <tr><td><code>{"accepted": false, "error": "buffer-inactive"}</code></td><td>The replay buffer is not running.</td></tr>
+                  <tr><td><code>{"accepted": false, "error": "save-refused"}</code></td><td>OBS would drop the save, for example because recording is paused.</td></tr>
+                  <tr><td><code>{"accepted": false, "error": "unavailable"}</code></td><td>OBS is shutting down.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>A request longer than the buffer saves the whole buffer instead of failing, and the result has <code>"clamped": true</code>. The dock buttons refuse in that case instead.</p>
+            <p>Accepted means the save started, not that the file exists. The request returns without waiting for the file, and trimming runs in the background once OBS has written the replay. Wait for the <code>_trimmed</code> file described below. If obs-websocket is not available, the plugin logs a warning at load and the dock and hotkeys work as usual.</p>
+
+            <h2>Can I use a Stream Deck or other tools?</h2>
+            <p>Yes, in two ways. Bind a <strong>Replay Buffer Pro: Save …</strong> hotkey and have the tool send that key combination, or have it send <code>SaveClip</code> over obs-websocket, which needs Replay Buffer Pro 1.8.0 or later and no OBS hotkeys.</p>
+            <p>The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the full buffer without trimming, because the save comes from outside Replay Buffer Pro. See <a href="../integrations/">community integrations</a> for tools built for this plugin.</p>
+
+            <h2>Where do the clips go?</h2>
+            <p>Each trimmed clip is saved as <code>&lt;name&gt;_trimmed.&lt;ext&gt;</code> next to the replay OBS wrote, in your Replay Buffer save directory. It is written to a <code>.rbp-partial.&lt;ext&gt;</code> file first and renamed into place, so the <code>_trimmed</code> file is complete the moment it exists. Then the original full-length file is deleted.</p>
+            <p>A failed trim keeps the original. Replays saved outside the plugin, and Save Replay Buffer clicks, stay full length with no <code>_trimmed</code> file. Every save writes one <code>TRIM VERDICT</code> line to the OBS log that says what happened. The <a href="../#troubleshooting">troubleshooting section</a> lists the reasons.</p>
+
+            <h2>What happens if I press save twice?</h2>
+            <p>A save pressed while OBS is still writing an earlier clip waits for that write to finish, then is trimmed so it ends at the moment you pressed it. Time with recording paused does not count. If the buffer no longer holds anything from before your press, the trim fails with <code>window-not-in-buffer</code> and the full-length file is kept.</p>
           </div>
         </div>
       </section>

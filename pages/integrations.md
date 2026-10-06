@@ -26,7 +26,7 @@ The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the
 
 ## Can other apps save clips through obs-websocket?
 
-Yes. Since version 1.8.0, any obs-websocket client can send a `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip`, and data like `{"durationSeconds": 120}`. Durations are whole seconds from 1 to 21600. A request longer than the buffer saves the whole buffer and the response includes `"clamped": true`. See the [FAQ](https://joshuapotter.github.io/replay-buffer-pro/#faq) and the [README](https://github.com/JoshuaPotter/replay-buffer-pro#websocket-command) for the full response format.
+Yes. Since version 1.8.0, any obs-websocket client can send a `SaveClip` request for a clip of any whole-second length from 1 to 21600. See [how to use Replay Buffer Pro](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) for the request, the response format, and examples.
 
 ## What do file-organizing tools need to know about the output files?
 
