@@ -46,6 +46,9 @@ means the buffer was shorter than requested, or
 `unavailable` (OBS is shutting down). Acceptance is not file completion; existing
 coalescing and deferred-save behavior still applies.
 
+### Community integrations
+Other people have built tools that work with Replay Buffer Pro, including a Stream Deck plugin and the Smart Replay Mover OBS script. These are not necessarily endorsed or tested by this project. See the [community integrations page](https://joshuapotter.github.io/replay-buffer-pro/integrations/) for the list and how Stream Deck fits in.
+
 ## Installation
 
 ### From Release

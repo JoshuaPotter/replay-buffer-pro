@@ -158,6 +158,10 @@ cmake --install build_x64 --config RelWithDebInfo
 ## Links
 
 - **Website**: https://joshuapotter.github.io/replay-buffer-pro/
+- **Guide: how the OBS replay buffer works and how to save clips of any length**: https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide.md))
+- **Comparison with the built-in OBS replay buffer**: https://joshuapotter.github.io/replay-buffer-pro/compare/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/compare.md))
+- **Community integrations (Stream Deck, OBS scripts; not necessarily endorsed or tested by the maintainer)**: https://joshuapotter.github.io/replay-buffer-pro/integrations/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/integrations.md))
+- **Changelog and release history**: https://joshuapotter.github.io/replay-buffer-pro/changelog/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/changelog.md))
 - **GitHub Repository**: https://github.com/JoshuaPotter/replay-buffer-pro
 - **Latest Release**: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest
 - **Issue Tracker**: https://github.com/JoshuaPotter/replay-buffer-pro/issues
@@ -175,6 +179,6 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2026-10-03
+Last Updated: 2026-10-04
 Version: 1.8.0
 
