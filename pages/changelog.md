@@ -2,6 +2,12 @@
 
 What changed in each release of Replay Buffer Pro. Full release notes and downloads: https://github.com/JoshuaPotter/replay-buffer-pro/releases
 
+## 1.8.1 (2026-10-06)
+
+A fix for a rare obs-websocket deadlock.
+
+- **No more freeze when restarting obs-websocket.** Changing obs-websocket settings while a `SaveClip` request was in flight could hang OBS. The request now waits at most 2 seconds, then answers `timeout` and is dropped without saving anything.
+
 ## 1.8.0 (2026-10-04)
 
 Save clips from other apps through obs-websocket.
