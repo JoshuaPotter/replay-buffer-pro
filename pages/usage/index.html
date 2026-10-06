@@ -224,6 +224,7 @@ console.log(clip); // { accepted: true, durationSeconds: 120, clamped: false }</
                   <tr><td><code>{"accepted": false, "error": "buffer-inactive"}</code></td><td>The replay buffer is not running.</td></tr>
                   <tr><td><code>{"accepted": false, "error": "save-refused"}</code></td><td>OBS would drop the save, for example because recording is paused.</td></tr>
                   <tr><td><code>{"accepted": false, "error": "unavailable"}</code></td><td>OBS is shutting down.</td></tr>
+                  <tr><td><code>{"accepted": false, "error": "timeout"}</code></td><td>OBS was busy and did not start the save within 2 seconds. Nothing was saved.</td></tr>
                 </tbody>
               </table>
             </div>

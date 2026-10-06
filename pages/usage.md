@@ -80,6 +80,7 @@ console.log(clip); // { accepted: true, durationSeconds: 120, clamped: false }
 | `{"accepted": false, "error": "buffer-inactive"}` | The replay buffer is not running. |
 | `{"accepted": false, "error": "save-refused"}` | OBS would drop the save, for example because recording is paused. |
 | `{"accepted": false, "error": "unavailable"}` | OBS is shutting down. |
+| `{"accepted": false, "error": "timeout"}` | OBS was busy and did not start the save within 2 seconds. Nothing was saved. |
 
 A request longer than the buffer saves the whole buffer instead of failing, and the result has `"clamped": true`. The dock buttons refuse in that case instead.
 
