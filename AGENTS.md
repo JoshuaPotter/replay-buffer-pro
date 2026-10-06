@@ -23,6 +23,8 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - CI/CD: `.github/workflows/`, `.github/actions/`, `.github/scripts/`
 
 ## Core runtime flows
+User-facing description of the interfaces below lives in `pages/usage/index.html` and `pages/usage.md`. Update it when a flow's behavior, limits, or error strings change.
+
 ### Buffer length update
 1. User steps or types a new value into the buffer length spinbox in the dock.
 2. Debounce timer expires.
@@ -111,6 +113,6 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 - More documentation is available in `docs/` and README.md.
 - Project website source lives in `pages/` and should be updated when relevant.
 - Follow `.claude/rules/website-style.md` when adding or changing anything under `pages/`.
-- Site pages: `pages/index.html` (home), `pages/obs-replay-buffer-guide/`, `pages/compare/`, `pages/integrations/`, `pages/changelog/`, each with a Markdown twin at `pages/<slug>.md`, plus `llms.txt`, `sitemap.xml`, and `robots.txt`. Add a new page to the sitemap, `llms.txt`, and the homepage footer.
+- Site pages: `pages/index.html` (home), `pages/usage/` (every way to save a clip: dock, hotkeys, obs-websocket; keep it the single detailed reference for these), `pages/obs-replay-buffer-guide/`, `pages/compare/`, `pages/integrations/`, `pages/changelog/`, each with a Markdown twin at `pages/<slug>.md`, plus `llms.txt`, `sitemap.xml`, and `robots.txt`. Add a new page to the sitemap, `llms.txt`, and the homepage footer.
 - `.github/scripts/stamp-pages` runs in the Pages deploy workflow and stamps the version from `buildspec.json` and file dates into `index.html`, `llms.txt`, and `sitemap.xml`. Don't hand-edit those values for releases, and add a changelog entry to `pages/changelog/` and `pages/changelog.md` with each release.
 - See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `pages/`, and this file in sync with project changes.
