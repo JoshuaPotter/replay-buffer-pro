@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Stamp the plugin version and file dates into pages/ before the site is deployed,
+# so the static HTML that crawlers and AI assistants read can't drift from the latest release.
+#
+#   .github/scripts/stamp-pages   # edits pages/ in place; run `git checkout pages/` to undo locally
+#
+# Needs jq, perl, and full git history (actions/checkout with fetch-depth: 0).
+
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+
+base='https://joshuapotter.github.io/replay-buffer-pro/'
+version=$(jq -r .version buildspec.json)
+
+# Version-bearing files change on every release, so their date also tracks buildspec.json.
+release_date=$(git log -1 --format=%cs -- pages buildspec.json)
+
+VERSION="$version" DATE="$release_date" perl -0pi -e '
+  s/("softwareVersion":\s*")[^"]*/${1}$ENV{VERSION}/;
+  s/(class="release-version" data-prefix="v">v)[^<]*/${1}$ENV{VERSION}/;
+' pages/index.html
+
+VERSION="$version" DATE="$release_date" perl -0pi -e '
+  s/^(Last Updated: )[^\r\n]*/${1}$ENV{DATE}/m;
+  s/^(Version: )[^\r\n]*/${1}$ENV{VERSION}/m;
+' pages/llms.txt
+
+# Sitemap: each URL's lastmod is the date of the file it serves.
+grep -o '<loc>[^<]*</loc>' pages/sitemap.xml | sed -e 's/<[^>]*>//g' | while read -r url; do
+  rel=${url#"$base"}
+  [[ -z $rel || $rel == */ ]] && rel+=index.html
+  if [[ $rel == index.html || $rel == llms.txt ]]; then
+    date=$release_date
+  else
+    date=$(git log -1 --format=%cs -- "pages/$rel")
+    : "${date:=$(date +%F)}" # not committed yet (local run)
+  fi
+  URL="$url" DATE="$date" perl -0pi -e 's|(<loc>\Q$ENV{URL}\E</loc>\s*<lastmod>)[^<]*|${1}$ENV{DATE}|' pages/sitemap.xml
+done

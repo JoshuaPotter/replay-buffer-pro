@@ -110,4 +110,7 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.
 - Project website source lives in `pages/` and should be updated when relevant.
+- Follow `.claude/rules/website-style.md` when adding or changing anything under `pages/`.
+- Site pages: `pages/index.html` (home), `pages/obs-replay-buffer-guide/`, `pages/compare/`, `pages/integrations/`, `pages/changelog/`, each with a Markdown twin at `pages/<slug>.md`, plus `llms.txt`, `sitemap.xml`, and `robots.txt`. Add a new page to the sitemap, `llms.txt`, and the homepage footer.
+- `.github/scripts/stamp-pages` runs in the Pages deploy workflow and stamps the version from `buildspec.json` and file dates into `index.html`, `llms.txt`, and `sitemap.xml`. Don't hand-edit those values for releases, and add a changelog entry to `pages/changelog/` and `pages/changelog.md` with each release.
 - See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `pages/`, and this file in sync with project changes.
