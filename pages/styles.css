@@ -747,6 +747,8 @@ kbd {
 
 .card h3 { margin-bottom: .5rem; }
 .card p { font-size: .875rem; color: var(--text-muted); }
+.card a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+.card a:hover { color: var(--text); }
 
 .card-lg { padding: 1.75rem; }
 .card-lg p { font-size: .9375rem; line-height: 1.65; }
@@ -1014,13 +1016,121 @@ kbd {
 .footer-disclaimer { max-width: 46rem; line-height: 1.6; }
 
 /* ============================================================
+   Subpages — page head, long-form prose, comparison table,
+   changelog entries
+   ============================================================ */
+
+.page-head { padding: clamp(3.5rem, 8vw, 6rem) 0 clamp(1rem, 3vw, 2rem); }
+.page-head .hero-lead { max-width: 40rem; }
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: .8125rem;
+  color: var(--text-faint);
+}
+.crumbs li + li::before { content: "/"; margin-right: .5rem; color: var(--gray-500); }
+.crumbs a { transition: color .15s ease; }
+.crumbs a:hover { color: var(--text); }
+
+.prose { max-width: 44rem; }
+.prose h2 {
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 1rem;
+  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+  letter-spacing: -0.035em;
+}
+.prose > h2:first-child { margin-top: 0; }
+.prose p,
+.prose li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.prose p + p,
+.prose ul + p,
+.prose ol + p { margin-top: 1rem; }
+/* The first paragraph under a heading is the direct answer */
+.prose h2 + p { color: var(--text); }
+.prose strong { color: var(--text); font-weight: 500; }
+.prose a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+.prose a:hover { color: var(--text); }
+.prose ul,
+.prose ol {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+}
+.compare {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+.compare th,
+.compare td {
+  padding: .875rem 1.25rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.compare thead th {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg-subtle);
+}
+.compare tbody th { width: 28%; font-weight: 400; color: var(--text-faint); }
+.compare td { color: var(--text-muted); }
+.compare tbody tr:last-child th,
+.compare tbody tr:last-child td { border-bottom: 0; }
+
+.prose + .table-wrap,
+.table-wrap + .prose { margin-top: 2.5rem; }
+
+.release {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem 2rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border);
+}
+.release:first-child { border-top: 0; padding-top: 0; }
+.release-meta h2 { font-size: 1.5rem; letter-spacing: -0.035em; }
+.release-meta time {
+  display: block;
+  margin-top: .375rem;
+  font-size: .8125rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.release .prose { max-width: 40rem; }
+.release .prose p,
+.release .prose li { font-size: .9375rem; }
+.release .prose > p:first-child { color: var(--text); }
+
+/* ============================================================
    Responsive
    ============================================================ */
 
 @media (min-width: 48rem) {
   .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
   .card-grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .footer-grid { grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 3rem; }
+  .release { grid-template-columns: 11rem 1fr; }
+  .footer-grid { grid-template-columns: repeat(4, 1fr); gap: 3rem; }
+  .footer-brand-col { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 2rem; }
   .footer-bottom p:first-child { flex-shrink: 0; }
 }
@@ -1031,6 +1141,8 @@ kbd {
   .feature-row-reverse .feature-row-copy { order: 2; }
   .feature-row-reverse .feature-row-media { order: 1; }
   .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .footer-grid { grid-template-columns: 1.5fr repeat(4, 1fr); }
+  .footer-brand-col { grid-column: auto; }
 }
 
 /* Below the desktop breakpoint the header nav links are dropped in

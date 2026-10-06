@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Replay Buffer Pro Changelog | Release History</title>
+    <meta name="description" content="Release history for Replay Buffer Pro, the OBS Studio plugin for saving replay buffer clips at any length, from 1.0.0 to the latest version.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="../scripts/index.js" type="module" defer></script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-NKMH5L72');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Replay Buffer Pro Changelog | Release History">
+    <meta property="og:description" content="Release history for Replay Buffer Pro, the OBS Studio plugin for saving replay buffer clips at any length, from 1.0.0 to the latest version.">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/changelog/">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Replay Buffer Pro Changelog | Release History">
+    <meta name="twitter:description" content="Release history for Replay Buffer Pro, the OBS Studio plugin for saving replay buffer clips at any length, from 1.0.0 to the latest version.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+
+    <meta name="author" content="Joshua Potter">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/changelog/">
+    <link rel="alternate" type="text/markdown" href="../changelog.md" title="Markdown version of this page">
+    <link rel="alternate" type="text/plain" href="../llms.txt" title="LLM-optimized documentation">
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "headline": "Changelog",
+        "name": "Replay Buffer Pro Changelog | Release History",
+        "description": "Release history for Replay Buffer Pro, the OBS Studio plugin for saving replay buffer clips at any length, from 1.0.0 to the latest version.",
+        "url": "https://joshuapotter.github.io/replay-buffer-pro/changelog/",
+        "mainEntityOfPage": "https://joshuapotter.github.io/replay-buffer-pro/changelog/",
+        "inLanguage": "en",
+        "datePublished": "2026-10-05",
+        "author": {
+          "@type": "Person",
+          "name": "Joshua Potter"
+        },
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Replay Buffer Pro",
+          "url": "https://joshuapotter.github.io/replay-buffer-pro/"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Replay Buffer Pro",
+            "item": "https://joshuapotter.github.io/replay-buffer-pro/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Changelog",
+            "item": "https://joshuapotter.github.io/replay-buffer-pro/changelog/"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body id="top">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKMH5L72"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="../">
+          <span class="brand-name">Replay Buffer Pro</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Sections">
+          <a href="../#how-it-works">How it works</a>
+          <a href="../#install">Install</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-secondary btn-icon-only" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank" aria-label="View on GitHub">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+            </svg>
+          </a>
+          <div class="download-split" data-download-split>
+            <a id="download-top" class="btn btn-primary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+            <button type="button" class="btn btn-primary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+              <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <ul class="download-split-menu" role="menu" hidden>
+              <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+              <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page-head">
+        <div class="container">
+          <nav aria-label="Breadcrumb">
+            <ol class="crumbs">
+              <li><a href="../">Replay Buffer Pro</a></li>
+              <li aria-current="page">Changelog</li>
+            </ol>
+          </nav>
+          <h1>Changelog</h1>
+          <p class="hero-lead">What changed in each release of Replay Buffer Pro. Full release notes and downloads are on GitHub.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <section class="release" id="v1-8-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.8.0" rel="noopener" target="_blank">1.8.0</a></h2>
+              <time datetime="2026-10-04">October 4, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Save clips from other apps through obs-websocket.</p>
+            <ul><li><strong>Save clips from other apps.</strong> obs-websocket clients can save a clip of any whole-second length from 1 second to 6 hours with <code>CallVendorRequest</code>, using vendor <code>replay-buffer-pro</code>, request <code>SaveClip</code>, and data <code>{"durationSeconds": 120}</code>. Clips go through the same save-and-trim path as the dock buttons.</li><li><strong>Longer than the buffer.</strong> If a request asks for more than the buffer holds, the whole buffer is saved and the response includes <code>"clamped": true</code>.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-7-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.7.0" rel="noopener" target="_blank">1.7.0</a></h2>
+              <time datetime="2026-09-25">September 25, 2026</time>
+            </div>
+            <div class="prose">
+            <p>More reliable trimming on slow storage, and clips that end when you press save.</p>
+            <ul><li><strong>Reliable trimming on slow storage.</strong> Clips are no longer left untrimmed when OBS takes longer than 30 seconds to write the file. Each save is matched to a file the way OBS produces them, with no time limit on writes.</li><li><strong>Clips end when you press save.</strong> A save pressed while OBS is still writing an earlier clip waits for that write, then is trimmed to end at the moment you pressed it. Time with recording paused is excluded.</li><li><strong>Dropped saves are refused up front.</strong> When the replay buffer is off or recording is paused, the save is refused and logged right away.</li><li><strong>Saves from outside the plugin are left alone.</strong> Files saved with OBS's own Save Replay hotkey, the tray menu, or obs-websocket are never mistaken for plugin clips.</li><li><strong>Clearer logs.</strong> New <code>TRIM VERDICT</code> reasons and <code>SAVE STATE</code> lines explain what happened to every save.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-6-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.6.0" rel="noopener" target="_blank">1.6.0</a></h2>
+              <time datetime="2026-08-11">August 11, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Trimming reliability fixes and a dock that looks more like a native OBS dock.</p>
+            <ul><li><strong>Reliable replay trimming.</strong> Saves are matched through an expiring request queue instead of a single slot, so overlapping saves or dropped requests can no longer apply the wrong trim duration or skip trimming. Fixed a keyframe cut-point bug that could collapse a trim to the full buffer length while still logging success. Trims are committed through a verified temporary file.</li><li><strong>Improved trim logging.</strong> A <code>TRIM VERDICT</code> line is logged for every save, so a bad clip can be diagnosed from the OBS log alone.</li><li><strong>Dock refresh.</strong> The dock sits in a padded, bordered frame matching built-in OBS docks, and the buffer length slider is replaced by a spinbox.</li><li><strong>Smaller Windows download.</strong> Debug symbols are no longer included in the release ZIP.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-5-1">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.5.1" rel="noopener" target="_blank">1.5.1</a></h2>
+              <time datetime="2026-07-23">July 23, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Compatibility fix for OBS Studio 32.2.0.</p>
+            <ul><li><strong>Rebuilt against OBS Studio 32.2.0 and FFmpeg 8.</strong> Version 1.5.0 failed to load on OBS Studio 32.2.0 because it linked against FFmpeg libraries that OBS no longer ships.</li><li><strong>New minimum OBS version: 32.2.0.</strong> This build does not load on older OBS Studio versions. Stay on 1.5.0 if you are not ready to update OBS.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-5-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.5.0" rel="noopener" target="_blank">1.5.0</a></h2>
+              <time datetime="2026-06-28">June 28, 2026</time>
+            </div>
+            <div class="prose">
+            <p>macOS support and a new Windows install location.</p>
+            <ul><li><strong>macOS support.</strong> A universal binary for Apple Silicon and Intel, distributed as a <code>.pkg</code> installer.</li><li><strong>Clearer hotkey labels.</strong> Save-clip hotkeys are prefixed with the plugin name, for example <code>Replay Buffer Pro: Save 30 Seconds</code>.</li><li><strong>Windows install path changed</strong> to <code>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\</code>. Delete the old DLL from <code>C:\Program Files\obs-studio\obs-plugins\64bit\</code> before installing, or OBS loads two copies of the plugin.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-4-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.4.0" rel="noopener" target="_blank">1.4.0</a></h2>
+              <time datetime="2026-02-28">February 28, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Customizable save button durations.</p>
+            <ul><li><strong>Customizable save buttons.</strong> Set each save button to the duration you want.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-3-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.3.0" rel="noopener" target="_blank">1.3.0</a></h2>
+              <time datetime="2026-02-06">February 6, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Multi-track output support and a smaller download.</p>
+            <ul><li><strong>Multi-track output support.</strong></li><li><strong>Smaller plugin.</strong> The bundled FFmpeg dependency was removed.</li><li><strong>Asynchronous trimming</strong> and a fix for corrupted frames.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-2-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.2.0" rel="noopener" target="_blank">1.2.0</a></h2>
+              <time datetime="2025-10-10">October 10, 2025</time>
+            </div>
+            <div class="prose">
+            <p>Fixes a crash on OBS 32.0.x.</p>
+            <ul><li><strong>Crash fix.</strong> Removed the deprecated <code>obs_frontend_add_dock</code> call that crashed the plugin on OBS 32.0.x.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-1-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.1.0" rel="noopener" target="_blank">1.1.0</a></h2>
+              <time datetime="2025-03-17">March 17, 2025</time>
+            </div>
+            <div class="prose">
+            <p>Interface polish.</p>
+            <ul><li>Added ticks under the replay buffer length slider for quickly setting precise values.</li><li>Improved the Save Clips buttons and the buffer length input field.</li><li>Adjusted labels.</li></ul>
+            </div>
+          </section>
+          <section class="release" id="v1-0-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.0.0" rel="noopener" target="_blank">1.0.0</a></h2>
+              <time datetime="2025-03-06">March 6, 2025</time>
+            </div>
+            <div class="prose">
+            <p>Initial release.</p>
+            <ul><li>First public release of Replay Buffer Pro.</li></ul>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ============ CLOSING CTA ============ -->
+      <section class="section section-cta">
+        <div class="container">
+          <div class="cta-panel">
+            <h2>Stop losing the good takes</h2>
+            <p>Install the plugin, set your durations, and clip the last thirty seconds without breaking stride.</p>
+            <div class="cta-row cta-row-center">
+              <div class="download-split" data-download-split>
+                <a class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+                <button type="button" class="btn btn-primary btn-lg download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <ul class="download-split-menu" role="menu" hidden>
+                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+                </ul>
+              </div>
+              <a class="btn btn-secondary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View source</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand-col">
+            <a class="brand" href="../">
+              <span class="brand-name">Replay Buffer Pro</span>
+            </a>
+            <p class="footer-blurb">An OBS Studio plugin for saving replay buffer clips at any length, without re-encoding.</p>
+            <div class="download-split footer-download-split" data-download-split>
+              <a class="btn btn-secondary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" rel="noopener" target="_blank">Download</a>
+              <button type="button" class="btn btn-secondary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <ul class="download-split-menu" role="menu" hidden>
+                <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Quickstart</h4>
+            <ul>
+              <li><a href="../#how-it-works">How it works</a></li>
+              <li><a href="../#install">Install</a></li>
+              <li><a href="../#faq">FAQ</a></li>
+              <li><a href="../#troubleshooting">Troubleshooting</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+              <li><a href="../obs-replay-buffer-guide/">Replay buffer guide</a></li>
+              <li><a href="../compare/">Compare</a></li>
+              <li><a href="../integrations/">Community integrations</a></li>
+              <li><a href="../changelog/">Changelog</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub repository</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an issue</a></li>
+              <li><a href="../llms.txt">llms.txt</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" rel="noopener" target="_blank">GPL-2.0-or-later</a></li>
+              <li><a href="#" class="scroll-to-top">Back to top</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
+          <p class="footer-disclaimer">Replay Buffer Pro is an independent project, not affiliated with, endorsed by, or sponsored by OBS Studio or its developers. All product names and trademarks are the property of their respective owners.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
