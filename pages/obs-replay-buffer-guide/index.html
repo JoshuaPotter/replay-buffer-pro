@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OBS Replay Buffer Guide: Save Clips at Any Length | Replay Buffer Pro</title>
+    <meta name="description" content="How the OBS Studio replay buffer works, its limits, and how to save clips of different lengths without re-encoding.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="../scripts/index.js" type="module" defer></script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-NKMH5L72');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="OBS Replay Buffer Guide: Save Clips at Any Length | Replay Buffer Pro">
+    <meta property="og:description" content="How the OBS Studio replay buffer works, its limits, and how to save clips of different lengths without re-encoding.">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OBS Replay Buffer Guide: Save Clips at Any Length | Replay Buffer Pro">
+    <meta name="twitter:description" content="How the OBS Studio replay buffer works, its limits, and how to save clips of different lengths without re-encoding.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+
+    <meta name="author" content="Joshua Potter">
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/">
+    <link rel="alternate" type="text/markdown" href="../obs-replay-buffer-guide.md" title="Markdown version of this page">
+    <link rel="alternate" type="text/plain" href="../llms.txt" title="LLM-optimized documentation">
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "How the OBS replay buffer works, and how to save clips of any length",
+        "name": "OBS Replay Buffer Guide: Save Clips at Any Length | Replay Buffer Pro",
+        "description": "How the OBS Studio replay buffer works, its limits, and how to save clips of different lengths without re-encoding.",
+        "url": "https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/",
+        "mainEntityOfPage": "https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/",
+        "inLanguage": "en",
+        "datePublished": "2026-10-05",
+        "author": {
+          "@type": "Person",
+          "name": "Joshua Potter"
+        },
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Replay Buffer Pro",
+          "url": "https://joshuapotter.github.io/replay-buffer-pro/"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Replay Buffer Pro",
+            "item": "https://joshuapotter.github.io/replay-buffer-pro/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Replay buffer guide",
+            "item": "https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body id="top">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKMH5L72"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="../">
+          <span class="brand-name">Replay Buffer Pro</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Sections">
+          <a href="../#how-it-works">How it works</a>
+          <a href="../#install">Install</a>
+          <a href="../usage/">Usage</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-secondary btn-icon-only" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank" aria-label="View on GitHub">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+            </svg>
+          </a>
+          <div class="download-split" data-download-split>
+            <a id="download-top" class="btn btn-primary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+            <button type="button" class="btn btn-primary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+              <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <ul class="download-split-menu" role="menu" hidden>
+              <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+              <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page-head">
+        <div class="container">
+          <nav aria-label="Breadcrumb">
+            <ol class="crumbs">
+              <li><a href="../">Replay Buffer Pro</a></li>
+              <li aria-current="page">Replay buffer guide</li>
+            </ol>
+          </nav>
+          <h1>How the OBS replay buffer works, and how to save clips of any length</h1>
+          <p class="hero-lead">The built-in replay buffer saves one fixed length. This guide explains how it works and how to get clips of different lengths from the same buffer.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="prose">
+          <h2>What is the OBS replay buffer?</h2>
+          <p>The OBS Studio replay buffer keeps a rolling window of your most recent footage in memory. When you save it, OBS writes that footage to disk as a video file. Older footage is overwritten as new footage comes in, so the buffer always holds the last stretch of time you set as its length.</p>
+          <p>It works like an instant replay. You don't have to start recording before something happens, because the last few seconds or minutes are already captured.</p>
+          <h2>How do I turn on the replay buffer in OBS Studio?</h2>
+          <p>Open <strong>Settings → Output</strong>, enable the replay buffer, and set the maximum replay time. Then start the replay buffer from OBS. The buffer only captures footage while it is running.</p>
+          <p>The maximum replay time is the buffer length. With Replay Buffer Pro installed you can also change it from the plugin's dock while the buffer is stopped.</p>
+          <h2>How do I save a replay in OBS Studio?</h2>
+          <p>Press the Save Replay hotkey, which you set under <strong>Settings → Hotkeys</strong>, or use the Save Replay entry in the OBS tray menu. OBS writes the whole buffer to a file in your Replay Buffer save directory, which is set in the Output settings.</p>
+          <h2>What are the limits of the built-in replay buffer?</h2>
+          <p>The built-in replay buffer saves one length: the length the buffer is set to. A 10-minute buffer gives you a 10-minute file every time, even when you only wanted the last 30 seconds.</p>
+          <p>To get a shorter clip you can change the buffer length in Settings before each session, or save the full file and trim it afterwards in a video editor.</p>
+          <h2>How can I save clips of different lengths in OBS Studio?</h2>
+          <p>Keep one long replay buffer and trim each save to the length you want. <a href="https://joshuapotter.github.io/replay-buffer-pro/">Replay Buffer Pro</a> is a free, open-source OBS Studio plugin that does this with a button and a hotkey for each length.</p>
+          <ol><li>Set the buffer to the longest clip you will want, for example 10 minutes.</li><li>Start the replay buffer in OBS.</li><li>Click a save button such as <strong>Last 30 Seconds</strong>, or press its hotkey.</li><li>Replay Buffer Pro saves the buffer, trims it to the last 30 seconds, and keeps only the trimmed clip, named with a <code>_trimmed</code> suffix.</li></ol>
+          <p>Each save button can be set to any duration from 1 second to 6 hours. Hotkeys are bound in OBS under <strong>Settings → Hotkeys</strong> by searching for Replay Buffer Pro.</p>
+          <p>If you would rather not install a plugin, you can save the full replay and cut it in a video editor, or with FFmpeg using <code>-c copy</code> to avoid re-encoding. That adds a manual step to every clip.</p>
+          <h2>Does trimming a replay reduce quality?</h2>
+          <p>No. Replay Buffer Pro trims with a stream copy through FFmpeg's libavformat, the equivalent of <code>-c copy</code>. The footage is repackaged rather than re-encoded, so the clip keeps the bitrate, codec, and quality of the original and is ready quickly.</p>
+          <p>A stream copy can only cut on keyframes, so a very long encoder keyframe interval can make a trim fail. If the OBS log shows <code>failed reason=output-too-long</code>, set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. A failed trim always leaves the original full-length clip in place.</p>
+          <h2>How much does saving write to disk?</h2>
+          <p>OBS Studio can only save the whole replay buffer, so every save writes the full buffer first. Replay Buffer Pro then writes the shorter clip and deletes the full-length file. A 15-minute buffer at 40 Mbps is about 4.5 GB per save.</p>
+          <p>If you save often at high bitrates, keep the buffer length modest or point the Replay Buffer save directory at another drive.</p>
+          <h2>Which platforms and OBS versions are supported?</h2>
+          <p>Replay Buffer Pro runs on Windows 10/11 (64-bit) and macOS 13.0 or later, on Apple Silicon and Intel, and requires OBS Studio 32.2.0 or later. It is free and licensed GPL v2 or later.</p>
+          <p>See the <a href="https://joshuapotter.github.io/replay-buffer-pro/#install">install steps</a>, the <a href="https://joshuapotter.github.io/replay-buffer-pro/compare/">comparison with the built-in replay buffer</a>, or the <a href="https://joshuapotter.github.io/replay-buffer-pro/changelog/">changelog</a>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CLOSING CTA ============ -->
+      <section class="section section-cta">
+        <div class="container">
+          <div class="cta-panel">
+            <h2>Stop losing the good takes</h2>
+            <p>Install the plugin, set your durations, and clip the last thirty seconds without breaking stride.</p>
+            <div class="cta-row cta-row-center">
+              <div class="download-split" data-download-split>
+                <a class="btn btn-primary btn-lg download-split-main" data-download-auto data-download-label data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Download</a>
+                <button type="button" class="btn btn-primary btn-lg download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                  <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <ul class="download-split-menu" role="menu" hidden>
+                  <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                  <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+                </ul>
+              </div>
+              <a class="btn btn-secondary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View source</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand-col">
+            <a class="brand" href="../">
+              <span class="brand-name">Replay Buffer Pro</span>
+            </a>
+            <p class="footer-blurb">An OBS Studio plugin for saving replay buffer clips at any length, without re-encoding.</p>
+            <div class="download-split footer-download-split" data-download-split>
+              <a class="btn btn-secondary download-split-main" data-download-auto data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest" rel="noopener" target="_blank">Download</a>
+              <button type="button" class="btn btn-secondary download-split-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+                <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <ul class="download-split-menu" role="menu" hidden>
+                <li role="none"><a role="menuitem" data-download="windows" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">Windows (x64)<span class="dl-ext">.zip</span></a></li>
+                <li role="none"><a role="menuitem" data-download="macos" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest">macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Quickstart</h4>
+            <ul>
+              <li><a href="../#how-it-works">How it works</a></li>
+              <li><a href="../#install">Install</a></li>
+              <li><a href="../#faq">FAQ</a></li>
+              <li><a href="../#troubleshooting">Troubleshooting</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+              <li><a href="../usage/">Usage</a></li>
+              <li><a href="../obs-replay-buffer-guide/">Replay buffer guide</a></li>
+              <li><a href="../compare/">Compare</a></li>
+              <li><a href="../integrations/">Community integrations</a></li>
+              <li><a href="../changelog/">Changelog</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub repository</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases</a></li>
+              <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an issue</a></li>
+              <li><a href="../llms.txt">llms.txt</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" rel="noopener" target="_blank">GPL-2.0-or-later</a></li>
+              <li><a href="#" class="scroll-to-top">Back to top</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
+          <p class="footer-disclaimer">Replay Buffer Pro is an independent project, not affiliated with, endorsed by, or sponsored by OBS Studio or its developers. All product names and trademarks are the property of their respective owners.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -63,20 +63,23 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 ## Usage
 
+Full guide: https://joshuapotter.github.io/replay-buffer-pro/usage/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/usage.md))
+
 ### Basic Workflow
 
 1. Open OBS Studio
 2. Show the Replay Buffer Pro dock: **Docks → Replay Buffer Pro**
 3. Adjust the Replay Buffer length using the numeric field (optional)
 4. Start the Replay Buffer from OBS
-5. Click a save button (e.g., "Last 30 Seconds") or trigger its hotkey to save a clip
+5. Save a clip with any of the ways below
 
-### Setting Up Hotkeys
+### Ways to Save a Clip
 
-1. Go to **OBS Studio Settings → Hotkeys**
-2. Search for "Replay Buffer Pro"
-3. Assign keys for each save button duration
-4. Click OK to save
+- **Dock save buttons**: click a button (e.g., "Last 30 Seconds"). Six buttons, each customizable from 1 second to 6 hours with the Customize button. Trimmed.
+- **Hotkeys**: **OBS Studio Settings → Hotkeys**, search "Replay Buffer Pro", and bind each "Replay Buffer Pro: Save ..." entry. Trimmed.
+- **obs-websocket**: a `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and `{"durationSeconds": N}` (see the FAQ below). Trimmed.
+- **Save Replay Buffer button**: saves the whole buffer. Not trimmed, and it has no hotkey.
+- **OBS's own Save Replay** (hotkey, tray menu, `SaveReplayBuffer` request): not trimmed, logged as `no-pending-request`.
 
 ### Important Notes
 
@@ -158,6 +161,11 @@ cmake --install build_x64 --config RelWithDebInfo
 ## Links
 
 - **Website**: https://joshuapotter.github.io/replay-buffer-pro/
+- **Usage: dock, hotkeys, and obs-websocket**: https://joshuapotter.github.io/replay-buffer-pro/usage/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/usage.md))
+- **Guide: how the OBS replay buffer works and how to save clips of any length**: https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/obs-replay-buffer-guide.md))
+- **Comparison with the built-in OBS replay buffer**: https://joshuapotter.github.io/replay-buffer-pro/compare/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/compare.md))
+- **Community integrations (Stream Deck, OBS scripts; not necessarily endorsed or tested by the maintainer)**: https://joshuapotter.github.io/replay-buffer-pro/integrations/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/integrations.md))
+- **Changelog and release history**: https://joshuapotter.github.io/replay-buffer-pro/changelog/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/changelog.md))
 - **GitHub Repository**: https://github.com/JoshuaPotter/replay-buffer-pro
 - **Latest Release**: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest
 - **Issue Tracker**: https://github.com/JoshuaPotter/replay-buffer-pro/issues
@@ -175,6 +183,6 @@ Replay Buffer Pro is an independent project and is not affiliated with, endorsed
 
 ---
 
-Last Updated: 2026-10-03
+Last Updated: 2026-10-04
 Version: 1.8.0
 

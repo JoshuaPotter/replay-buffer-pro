@@ -17,35 +17,19 @@ The project website is currently hosted via GitHub Pages.
 
 ## Usage
 
-### Saving Clips
-1. Start the Replay Buffer in OBS
-2. Click any save clip button (customizable durations) or use the assigned hotkey
-3. Use the Customize button to set your preferred clip lengths
-4. The plugin will:
-   - Save the full replay buffer
-   - Automatically trim to the selected duration (Without re-encoding)
-   - Replace the original file with the trimmed version
+Full guide: [How to use Replay Buffer Pro](https://joshuapotter.github.io/replay-buffer-pro/usage/).
 
-### Buffer Length
-- Quickly adjust built-in replay buffer length (1s to 6h) without digging through the settings
+Start the Replay Buffer in OBS, then save a clip any of these ways. Each one is trimmed to its duration without re-encoding, and the trimmed `_trimmed` file replaces the original.
 
-### Hotkeys
-- Assign hotkeys to each save duration button in OBS Settings > Hotkeys
+- **Dock buttons.** **Docks → Replay Buffer Pro** has six save buttons. Use **Customize** to set each to any length from 1 second to 6 hours, and the numeric field to set the buffer length (while the buffer is stopped).
+- **Hotkeys.** Bind each **Replay Buffer Pro: Save …** entry in **Settings → Hotkeys**.
+- **obs-websocket.** Send `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and data `{"durationSeconds": 120}`. Durations are whole seconds from 1 to 21600, and a request longer than the buffer saves the whole buffer. The response is `{"accepted": true, ...}` or `{"accepted": false, "error": "..."}`; the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) lists the errors and has examples.
+- **Save Replay Buffer button.** Saves the whole buffer, untrimmed.
 
-### WebSocket command
-Authenticated OBS WebSocket clients can save an arbitrary whole-second duration
-with `CallVendorRequest`: vendor `replay-buffer-pro`, request `SaveClip`, data
-`{"durationSeconds": 120}`. This uses the same save-and-trim path as the buttons.
-Durations must be 1–21600 seconds. A duration longer than the configured buffer
-saves the whole buffer instead of failing.
-The vendor result (`responseData.responseData`) is
-`{"accepted": true, "durationSeconds": <saved>, "clamped": <bool>}`, where `clamped`
-means the buffer was shorter than requested, or
-`{"accepted": false, "error": "<reason>"}`, where the reason is `invalid-duration`,
-`buffer-inactive`, `save-refused` (for example, recording is paused),
-`unavailable` (OBS is shutting down) or `timeout` (OBS was busy, nothing was
-saved). Acceptance is not file completion; existing
-coalescing and deferred-save behavior still applies.
+Saves made with OBS's own Save Replay hotkey or tray menu are not trimmed.
+
+### Community integrations
+Other people have built tools that work with Replay Buffer Pro, including a Stream Deck plugin and the Smart Replay Mover OBS script. These are not necessarily endorsed or tested by this project. See the [community integrations page](https://joshuapotter.github.io/replay-buffer-pro/integrations/) for the list and how Stream Deck fits in.
 
 ## Installation
 

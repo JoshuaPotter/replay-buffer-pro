@@ -65,7 +65,11 @@
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+",
         "softwareVersion": "1.8.0",
-        "datePublished": "2024-01-01",
+        "datePublished": "2025-03-06",
+        "isAccessibleForFree": true,
+        "sameAs": [
+          "https://github.com/JoshuaPotter/replay-buffer-pro"
+        ],
         "author": {
           "@type": "Person",
           "name": "Joshua Potter"
@@ -223,6 +227,7 @@
         <nav class="header-nav" aria-label="Sections">
           <a href="#how-it-works">How it works</a>
           <a href="#install">Install</a>
+          <a href="usage/">Usage</a>
           <a href="#faq">FAQ</a>
         </nav>
 
@@ -582,7 +587,7 @@
                     <li><span>Save Last 30 Seconds</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>2</kbd></span></li>
                     <li><span>Save Last 1 Minute</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>3</kbd></span></li>
                     <li><span>Save Last 5 Minutes</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>4</kbd></span></li>
-                    <li><span>Save Replay Buffer</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>B</kbd></span></li>
+                    <li><span>Save Last 15 Minutes</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>5</kbd></span></li>
                   </ul>
                 </div>
               </div>
@@ -715,7 +720,7 @@
             </details>
             <details>
               <summary>Can other apps save clips through OBS WebSocket?<span class="faq-icon" aria-hidden="true"></span></summary>
-              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"durationSeconds": 120}</code>. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See the <a href="https://github.com/JoshuaPotter/replay-buffer-pro#websocket-command" rel="noopener" target="_blank">README</a> for the response format.</p></div>
+              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"durationSeconds": 120}</code>. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
             </details>
           </div>
         </div>
@@ -797,12 +802,23 @@
           </div>
 
           <div class="footer-col">
-            <h4>Plugin</h4>
+            <h4>Quickstart</h4>
             <ul>
               <li><a href="#how-it-works">How it works</a></li>
               <li><a href="#install">Install</a></li>
               <li><a href="#faq">FAQ</a></li>
               <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+              <li><a href="usage/">Usage</a></li>
+              <li><a href="obs-replay-buffer-guide/">Replay buffer guide</a></li>
+              <li><a href="compare/">Compare</a></li>
+              <li><a href="integrations/">Community integrations</a></li>
+              <li><a href="changelog/">Changelog</a></li>
             </ul>
           </div>
 
