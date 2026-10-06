@@ -42,8 +42,9 @@ User-facing description of the interfaces below lives in `pages/usage/index.html
 1. A client sends `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and `{"durationSeconds": N}`.
 2. The callback (obs-websocket thread) validates N as a whole number of seconds in 1..`MAX_BUFFER_LENGTH`.
 3. It posts the save to the Qt main thread and waits only until `saveSegment(...)` returns, never for file I/O. A null parent means no message boxes. N is clamped to the current buffer length, so a request longer than the buffer saves the whole buffer instead of failing (unlike the dock buttons, which refuse).
-4. The response is `{"accepted": true, "durationSeconds": saved, "clamped": bool}` or `{"accepted": false, "error": ...}` (`invalid-duration`, `buffer-inactive`, `save-refused`, `unavailable`).
+4. The response is `{"accepted": true, "durationSeconds": saved, "clamped": bool}` or `{"accepted": false, "error": ...}` (`invalid-duration`, `buffer-inactive`, `save-refused`, `unavailable`, `timeout`).
 5. `OBS_FRONTEND_EVENT_EXIT` and the dock destructor unregister the request and release any waiting callback, because OBS may stop servicing Qt events before it joins the WebSocket threads.
+6. The wait is bounded to 2 seconds, because obs-websocket restarts its server on the main thread (settings dialog) and waits for in-flight requests. A timed-out request answers `timeout` and is abandoned, so it never saves later.
 
 ### Save full buffer
 1. User clicks “Save Replay Buffer”.
