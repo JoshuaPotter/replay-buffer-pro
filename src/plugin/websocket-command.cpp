@@ -2,6 +2,7 @@
 #include "managers/replay-buffer-manager.hpp"
 #include "managers/settings-manager.hpp"
 #include "config/config.hpp"
+#include "utils/duration-parse.hpp"
 #include "utils/logger.hpp"
 
 #include <QObject>
@@ -46,15 +47,40 @@ namespace ReplayBufferPro
       return saveManager->saveSegment(saved, nullptr) ? nullptr : "save-refused";
     }
 
+    // Returns the requested seconds, or 0 unless the request names exactly one
+    // valid duration. durationSeconds must be a whole number; duration also takes
+    // a fractional number or text such as "5:22" or "1h30m", rounded to the
+    // nearest second. Either must land in 1..MAX_BUFFER_LENGTH.
+    int requestedDuration(obs_data_t *request)
+    {
+      obs_data_item_t *strict = obs_data_item_byname(request, "durationSeconds");
+      obs_data_item_t *flexible = obs_data_item_byname(request, "duration");
+      double seconds = 0;
+      if (strict && !flexible && obs_data_item_gettype(strict) == OBS_DATA_NUMBER)
+      {
+        seconds = obs_data_item_get_double(strict);
+        if (std::floor(seconds) != seconds)
+          seconds = 0;
+      }
+      else if (flexible && !strict && obs_data_item_gettype(flexible) == OBS_DATA_NUMBER)
+      {
+        seconds = std::floor(obs_data_item_get_double(flexible) + 0.5);
+      }
+      else if (flexible && !strict && obs_data_item_gettype(flexible) == OBS_DATA_STRING)
+      {
+        seconds = parseDurationSeconds(obs_data_item_get_string(flexible)).value_or(0);
+      }
+      obs_data_item_release(&strict);
+      obs_data_item_release(&flexible);
+      // Written so NaN fails both comparisons; infinity fails the upper bound.
+      return seconds >= 1 && seconds <= Config::MAX_BUFFER_LENGTH ? static_cast<int>(seconds) : 0;
+    }
+
     void saveClip(obs_data_t *request, obs_data_t *response, void *)
     {
       obs_data_set_bool(response, "accepted", false);
-      obs_data_item_t *item = obs_data_item_byname(request, "durationSeconds");
-      const bool numeric = obs_data_item_gettype(item) == OBS_DATA_NUMBER;
-      const double seconds = obs_data_item_get_double(item);
-      obs_data_item_release(&item);
-      if (!numeric || !std::isfinite(seconds) || seconds < 1 ||
-          seconds > Config::MAX_BUFFER_LENGTH || std::floor(seconds) != seconds)
+      const int duration = requestedDuration(request);
+      if (!duration)
       {
         obs_data_set_string(response, "error", "invalid-duration");
         return;
@@ -69,7 +95,6 @@ namespace ReplayBufferPro
         return;
       }
 
-      const int duration = static_cast<int>(seconds);
       if (QThread::currentThread() == dispatchTarget->thread())
       {
         result->error = save(duration, result->saved);
@@ -105,6 +130,7 @@ namespace ReplayBufferPro
         return;
       }
       obs_data_set_int(response, "durationSeconds", result->saved);
+      obs_data_set_int(response, "requestedSeconds", duration);
       obs_data_set_bool(response, "clamped", result->saved < duration);
     }
   }

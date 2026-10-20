@@ -164,7 +164,7 @@
             "name": "Can other apps save clips through OBS WebSocket?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then have your app send a CallVendorRequest with vendorName replay-buffer-pro, requestType SaveClip and requestData {\"durationSeconds\": 120}. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer."
+              "text": "Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then have your app send a CallVendorRequest with vendorName replay-buffer-pro, requestType SaveClip and requestData {\"duration\": \"2:00\"}. The duration can be seconds (120) or text such as \"5:22\", \"1:05:00\" or \"1h30m\", from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer."
             }
           }
         ]
@@ -720,7 +720,7 @@
             </details>
             <details>
               <summary>Can other apps save clips through OBS WebSocket?<span class="faq-icon" aria-hidden="true"></span></summary>
-              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"durationSeconds": 120}</code>. Durations are whole seconds from 1 to 21600 (6 hours). The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
+              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
             </details>
           </div>
         </div>
