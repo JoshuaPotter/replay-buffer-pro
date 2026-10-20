@@ -6,6 +6,7 @@ project(${_name} VERSION ${_version})
 
 option(ENABLE_FRONTEND_API "Use obs-frontend-api for UI functionality" ON)
 option(ENABLE_QT "Use Qt functionality" ON)
+option(ENABLE_TESTS "Build unit tests" OFF)
 
 include(compilerconfig)
 include(defaults)
@@ -84,6 +85,8 @@ target_sources(
     src/utils/obs-utils.hpp
     src/utils/duration-format.cpp
     src/utils/duration-format.hpp
+    src/utils/duration-parse.cpp
+    src/utils/duration-parse.hpp
     src/utils/video-trimmer.cpp
     src/utils/video-trimmer.hpp
     src/utils/status-reporter.cpp
@@ -105,6 +108,14 @@ target_sources(
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
+
+# Unit tests for code with no OBS or Qt dependency
+if(ENABLE_TESTS)
+  enable_testing()
+  add_executable(duration-parse-test tests/duration-parse-test.cpp src/utils/duration-parse.cpp)
+  target_include_directories(duration-parse-test PRIVATE src)
+  add_test(NAME duration-parse COMMAND duration-parse-test)
+endif()
 
 # Release package configuration (Windows only)
 if(OS_WINDOWS)

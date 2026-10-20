@@ -10,7 +10,7 @@ Replay Buffer Pro trims clips three ways: dock buttons, hotkeys, and an obs-webs
 | --- | --- | --- | --- |
 | Dock save buttons | Clicking a length while OBS is in front | Yes | Replay buffer running |
 | Hotkeys | Clipping mid-game without leaving it | Yes | A binding for each **Replay Buffer Pro: Save …** hotkey |
-| obs-websocket `SaveClip` | Scripts, Stream Deck plugins, and other apps | Yes, any whole number of seconds from 1 to 21600 | obs-websocket server turned on |
+| obs-websocket `SaveClip` | Scripts, Stream Deck plugins, and other apps | Yes, any length from 1 second to 6 hours | obs-websocket server turned on |
 | Save Replay Buffer button | Keeping the whole buffer | No, saved at full buffer length | Replay buffer running |
 | OBS's own Save Replay (hotkey, tray menu, `SaveReplayBuffer` request) | Nothing in this plugin; it is OBS's save | No, logged as `skipped reason=no-pending-request` | Replay buffer running |
 
@@ -48,7 +48,7 @@ Turn on the server under **Tools → WebSocket Server Settings**, connect with a
     "requestData": {
       "vendorName": "replay-buffer-pro",
       "requestType": "SaveClip",
-      "requestData": { "durationSeconds": 120 }
+      "requestData": { "duration": "2:00" }
     }
   }
 }
@@ -65,18 +65,36 @@ await obs.connect('ws://127.0.0.1:4455', 'your-password');
 const { responseData: clip } = await obs.call('CallVendorRequest', {
   vendorName: 'replay-buffer-pro',
   requestType: 'SaveClip',
-  requestData: { durationSeconds: 120 },
+  requestData: { duration: '2:00' },
 });
 
-console.log(clip); // { accepted: true, durationSeconds: 120, clamped: false }
+console.log(clip); // { accepted: true, durationSeconds: 120, requestedSeconds: 120, clamped: false }
 ```
 
-`durationSeconds` must be a whole number from 1 to 21600. Anything else is rejected as `invalid-duration`. The plugin answers with one of these results. Because it is an application-level result, the obs-websocket request itself still succeeds when `accepted` is `false`.
+## How do I write the duration?
+
+Send `duration` as a number of seconds or as text in any of these forms. Case and surrounding spaces do not matter, and fractions are rounded to the nearest second.
+
+| Form | Examples | Seconds |
+| --- | --- | --- |
+| Seconds | `120`, `"120"`, `"120.6"` | 120, 120, 121 |
+| Minutes and seconds (`m:ss`) | `"5:22"`, `"5:22.6"`, `"90:00"` | 322, 323, 5400 |
+| Hours, minutes and seconds (`h:mm:ss`) | `"1:05:00"` | 3900 |
+| Units, largest first | `"90s"`, `"5m"`, `"1.5h"`, `"1h30m"`, `"5m 22s"`, `"2 min"` | 90, 300, 5400, 5400, 322, 120 |
+
+- A time with one colon is always minutes and seconds, and one with two colons is hours, minutes and seconds. The parts after the first colon are two digits from `00` to `59`, so `5:2` is rejected rather than guessed.
+- Units are `s`, `sec`, `secs`, `second`, `seconds`, `m`, `min`, `mins`, `minute`, `minutes`, `h`, `hr`, `hrs`, `hour` and `hours`. Each unit appears at most once.
+- After rounding, the duration must be from 1 to 21600 seconds (6 hours), so `"0.4"` is rejected and `"0.5"` saves 1 second.
+- Negative numbers, decimal commas (`5,5`), mixed forms (`1:30m`) and ISO 8601 durations (`PT5M`) are rejected.
+
+The older `durationSeconds` field still works and accepts only a whole JSON number of seconds. Send `duration` or `durationSeconds`, not both.
+
+The plugin answers with one of these results. Because it is an application-level result, the obs-websocket request itself still succeeds when `accepted` is `false`.
 
 | Result | Meaning |
 | --- | --- |
-| `{"accepted": true, "durationSeconds": 120, "clamped": false}` | The save started. `durationSeconds` is the length being saved. `clamped` is `true` when the buffer was shorter than requested. |
-| `{"accepted": false, "error": "invalid-duration"}` | The duration is missing, not a number, not whole, or outside 1 to 21600. |
+| `{"accepted": true, ...}` | The save started. `durationSeconds` is the length being saved and `requestedSeconds` is how the plugin read your duration. `clamped` is `true` when the buffer was shorter than requested. |
+| `{"accepted": false, "error": "invalid-duration"}` | Neither or both duration fields were sent, the duration is not in a form above, or it is outside 1 to 21600 seconds. |
 | `{"accepted": false, "error": "buffer-inactive"}` | The replay buffer is not running. |
 | `{"accepted": false, "error": "save-refused"}` | OBS would drop the save, for example because recording is paused. |
 | `{"accepted": false, "error": "unavailable"}` | OBS is shutting down. |
