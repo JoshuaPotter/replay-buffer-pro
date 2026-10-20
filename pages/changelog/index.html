@@ -138,6 +138,16 @@
 
       <section class="section">
         <div class="container">
+          <section class="release" id="v1-9-0">
+            <div class="release-meta">
+              <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.9.0" rel="noopener" target="_blank">1.9.0</a></h2>
+              <time datetime="2026-10-20">October 20, 2026</time>
+            </div>
+            <div class="prose">
+            <p>Write clip durations the way your tools show them.</p>
+            <ul><li><strong>Flexible durations for <code>SaveClip</code>.</strong> A new <code>duration</code> field accepts seconds (<code>120</code> or <code>"120"</code>), clock times (<code>"5:22"</code>, <code>"1:05:00"</code>) or units (<code>"90s"</code>, <code>"1.5h"</code>, <code>"1h30m"</code>). Fractions round to the nearest second, so timer output like <code>"5:22.6"</code> can be sent as is. <code>durationSeconds</code> works as before.</li><li><strong>See how your duration was read.</strong> Accepted responses include <code>requestedSeconds</code>, so a client can check the parsed value even when the save is clamped to the buffer.</li></ul>
+            </div>
+          </section>
           <section class="release" id="v1-8-1">
             <div class="release-meta">
               <h2><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/1.8.1" rel="noopener" target="_blank">1.8.1</a></h2>

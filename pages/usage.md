@@ -106,7 +106,7 @@ Accepted means the save started, not that the file exists. The request returns w
 
 ## Can I use a Stream Deck or other tools?
 
-Yes, in two ways. Bind a **Replay Buffer Pro: Save …** hotkey and have the tool send that key combination, or have it send `SaveClip` over obs-websocket, which needs Replay Buffer Pro 1.8.0 or later and no OBS hotkeys.
+Yes, in two ways. Bind a **Replay Buffer Pro: Save …** hotkey and have the tool send that key combination, or have it send `SaveClip` over obs-websocket, which needs Replay Buffer Pro 1.8.0 or later (1.9.0 for the `duration` field) and no OBS hotkeys.
 
 The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the full buffer without trimming, because the save comes from outside Replay Buffer Pro. See [community integrations](https://joshuapotter.github.io/replay-buffer-pro/integrations/) for tools built for this plugin.
 

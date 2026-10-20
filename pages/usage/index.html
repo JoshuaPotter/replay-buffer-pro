@@ -255,7 +255,7 @@ console.log(clip); // { accepted: true, durationSeconds: 120, requestedSeconds: 
             <p>Accepted means the save started, not that the file exists. The request returns without waiting for the file, and trimming runs in the background once OBS has written the replay. Wait for the <code>_trimmed</code> file described below. If obs-websocket is not available, the plugin logs a warning at load and the dock and hotkeys work as usual.</p>
 
             <h2>Can I use a Stream Deck or other tools?</h2>
-            <p>Yes, in two ways. Bind a <strong>Replay Buffer Pro: Save …</strong> hotkey and have the tool send that key combination, or have it send <code>SaveClip</code> over obs-websocket, which needs Replay Buffer Pro 1.8.0 or later and no OBS hotkeys.</p>
+            <p>Yes, in two ways. Bind a <strong>Replay Buffer Pro: Save …</strong> hotkey and have the tool send that key combination, or have it send <code>SaveClip</code> over obs-websocket, which needs Replay Buffer Pro 1.8.0 or later (1.9.0 for the <code>duration</code> field) and no OBS hotkeys.</p>
             <p>The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the full buffer without trimming, because the save comes from outside Replay Buffer Pro. See <a href="../integrations/">community integrations</a> for tools built for this plugin.</p>
 
             <h2>Where do the clips go?</h2>
