@@ -2,6 +2,13 @@
 
 What changed in each release of Replay Buffer Pro. Full release notes and downloads: https://github.com/JoshuaPotter/replay-buffer-pro/releases
 
+## 1.9.0 (2026-10-20)
+
+Write clip durations the way your tools show them.
+
+- **Flexible durations for `SaveClip`.** A new `duration` field accepts seconds (`120` or `"120"`), clock times (`"5:22"`, `"1:05:00"`) or units (`"90s"`, `"1.5h"`, `"1h30m"`). Fractions round to the nearest second, so timer output like `"5:22.6"` can be sent as is. `durationSeconds` works as before.
+- **See how your duration was read.** Accepted responses include `requestedSeconds`, so a client can check the parsed value even when the save is clamped to the buffer.
+
 ## 1.8.1 (2026-10-06)
 
 A fix for a rare obs-websocket deadlock.
