@@ -213,28 +213,7 @@ code.click-to-copy:hover svg {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.surface-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 3px rgba(69, 165, 87, .18);
-  flex-shrink: 0;
-}
 .surface-body { padding: 1.25rem; }
-/* The hero's OBS dock frame */
-.surface-chrome .surface-body {
-  display: flex;
-  justify-content: center;
-  padding: 1.75rem 1.25rem;
-  background:
-    linear-gradient(var(--gray-100) 1px, transparent 1px) 0 0 / 100% 24px,
-    linear-gradient(90deg, var(--gray-100) 1px, transparent 1px) 0 0 / 24px 100%;
-}
-
-@media (max-width: 30rem) {
-  .surface-chrome .surface-body { padding: 1rem .75rem; }
-}
 
 .log {
   margin: 0;

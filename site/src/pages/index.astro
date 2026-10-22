@@ -4,6 +4,7 @@ import DownloadSplit from '../components/DownloadSplit.astro';
 import SocialMeta from '../components/SocialMeta.astro';
 import FactStrip from '../components/FactStrip.astro';
 import FeatureRow from '../components/FeatureRow.astro';
+import HeroField from '../components/HeroField.astro';
 import CodeSample from '../components/CodeSample.astro';
 import PluginDemo from '../components/PluginDemo.astro';
 import ButtonLink from '../components/ui/ButtonLink.astro';
@@ -197,8 +198,9 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
 
   <!-- ============ HERO ============ -->
   <section class="hero">
+    <HeroField />
     <div class="container hero-inner">
-      <div class="hero-copy">
+      <div class="hero-copy" data-hero-calm>
         <ExternalLink class="release-pill" href={RELEASES_URL}>
           <span class="release-version" data-prefix="v">v{VERSION}</span>
           <span class="release-pill-text">available now</span>
@@ -217,15 +219,15 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       </div>
 
       <div class="hero-media">
-        <!-- Framed product surface, mimicking the OBS dock in situ -->
-        <Surface label="OBS Studio — Docks → Replay Buffer Pro" chrome bodyClass="plugin-ui-stage-wrap">
+        <!-- The OBS dock floats on the halftone flare, which centres on it -->
+        <div class="hero-dock" data-hero-flare>
           <PluginDemo />
-        </Surface>
+        </div>
       </div>
     </div>
 
     <!-- Fact strip, in place of Vercel's customer logo band -->
-    <div class="container">
+    <div class="container hero-facts">
       <FactStrip facts={facts} />
     </div>
   </section>
@@ -418,7 +420,13 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
 </BaseLayout>
 
 <style>
-  .hero { padding: clamp(3.5rem, 8vw, 7rem) 0 0; }
+  .hero {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(3.5rem, 8vw, 7rem) 0 0;
+  }
+  .hero-inner,
+  .hero-facts { position: relative; z-index: 1; }
   .hero-inner {
     display: grid;
     grid-template-columns: 1fr;
@@ -449,7 +457,11 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     color: var(--text-faint);
   }
   .hero-media { min-width: 0; }
-  :global(.plugin-ui-stage-wrap) { position: relative; }
+  .hero-dock {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
   .subhead {
     margin: clamp(2.5rem, 5vw, 3.5rem) 0 1.25rem;
     font-size: 1.125rem;
