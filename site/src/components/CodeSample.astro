@@ -4,8 +4,14 @@ import Surface from './ui/Surface.astro';
 
 interface Props {
   label: string;
+  /** Wrap long lines instead of scrolling them, for log lines too long to read in a scroll. */
+  wrap?: boolean;
 }
 
-const { label } = Astro.props;
+const { label, wrap = false } = Astro.props;
 ---
-<Surface label={label} mono><pre class="log"><slot /></pre></Surface>
+<Surface label={label} mono><pre class:list={['log', { 'log-wrap': wrap }]}><slot /></pre></Surface>
+
+<style>
+  .log-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>

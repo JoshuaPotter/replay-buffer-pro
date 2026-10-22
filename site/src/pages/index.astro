@@ -265,7 +265,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
               <span>oldest frame in buffer</span><span>now</span>
             </div>
             <div class="timeline-out">
-              <span class="mono">clip-2026-08-14-21-04-33_trimmed.mkv</span>
+              <span class="mono">Replay 2026-08-14 21-04-33_trimmed.mkv</span>
               <span class="tag tag-ok">saved · 30.0s</span>
             </div>
           </div>
@@ -282,11 +282,11 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       ]}
     >
       <Fragment slot="statement"><strong>Nothing gets re-rendered.</strong> Replay Buffer Pro just repackages the footage your buffer already captured, so the clip keeps the exact bitrate, codec, and quality of the original — and lands in about the time it takes to write the file.</Fragment>
-      <CodeSample slot="media" label="OBS Studio log"><code><span class="log-dim">21:04:33.118</span> <span class="log-key">[replay-buffer-pro]</span> save requested: 30s
-<span class="log-dim">21:04:33.301</span> <span class="log-key">[replay-buffer-pro]</span> buffer written, 2:00:00 total
-<span class="log-dim">21:04:33.302</span> <span class="log-key">[replay-buffer-pro]</span> trimming to last 30s
-<span class="log-dim">21:04:33.304</span> <span class="log-key">[replay-buffer-pro]</span> stream copy, no re-encode
-<span class="log-dim">21:04:33.489</span> <span class="log-ok">[replay-buffer-pro]</span> done in 187ms → clip-2026-08-14-21-04-33.mkv</code></CodeSample>
+      <CodeSample slot="media" label="OBS Studio log" wrap><code><span class="log-dim">21:04:33.118:</span> <span class="log-key">[ReplayBufferPro]</span> SAVE STATE: armed gen=1 duration=30s
+<span class="log-dim">21:04:33.301:</span> <span class="log-key">[ReplayBufferPro]</span> Trimming replay buffer save to 30 seconds
+<span class="log-dim">21:04:33.302:</span> <span class="log-key">[ReplayBufferPro]</span> Input video duration: 600.02 seconds
+<span class="log-dim">21:04:33.303:</span> <span class="log-key">[ReplayBufferPro]</span> Cutting at keyframe 570.00 seconds (requested 570.02, drift 0.02)
+<span class="log-dim">21:04:33.489:</span> <span class="log-ok">[ReplayBufferPro]</span> TRIM VERDICT: ok file='Replay 2026-08-14 21-04-33_trimmed.mkv' requested=30s actual=30.0s source=600.0s cut_at=570.0s elapsed=0.4s</code></CodeSample>
     </FeatureRow>
 
     <FeatureRow
@@ -298,7 +298,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       ]}
     >
       <Fragment slot="statement"><strong>Every save button gets a hotkey.</strong> Bind them in OBS Studio's own hotkey settings and clip mid-broadcast without alt-tabbing or touching your mouse.</Fragment>
-      <Surface slot="media" label="Settings → Hotkeys">
+      <Surface slot="media" label="Settings → Hotkeys · example bindings">
         <ul class="keymap">
           {hotkeys.map(({ label, keys }) => (
             <li><span>{label}</span><span class="keys">{keys.map((key) => <kbd>{key}</kbd>)}</span></li>
@@ -358,7 +358,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       <ol class="os-tabpanel" role="tabpanel" id="panel-macos" aria-labelledby="tab-macos" data-os-panel="macos">
         <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
         <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-        <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
+        <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically. If macOS blocks it as coming from an unidentified developer, Control-click the <code>.pkg</code>, choose <strong>Open</strong>, and confirm.</span></li>
         <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
       </ol>
     </div>
@@ -388,7 +388,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   <Section id="troubleshooting" title="Troubleshooting">
     <div class="issue-list">
       <Issue title="Plugin not loading">
-        <p>Confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>), then restart OBS Studio.</p>
+        <p>On Windows, confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>). On macOS, confirm <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> exists. Then restart OBS Studio.</p>
       </Issue>
       <Issue title="A clip wasn't trimmed">
         <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
@@ -397,7 +397,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
         <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Settings → Advanced → Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
       </Issue>
       <Issue title="Check the logs">
-        <p>Open the OBS Studio log file and search for <code>Replay Buffer Pro</code> entries to see load messages and errors.</p>
+        <p>Open the OBS Studio log file (<strong>Help → Log Files → Show Log Files</strong>) and search for <code>[ReplayBufferPro]</code> to see load messages and errors.</p>
       </Issue>
       <Issue title="Report an issue">
         <p>Still stuck? <ExternalLink href={ISSUES_URL}>File an issue on GitHub</ExternalLink> with your OBS Studio version, plugin version, and any relevant log lines.</p>

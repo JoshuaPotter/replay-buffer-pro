@@ -56,7 +56,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 1. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest (choose `replay-buffer-pro-<version>-macos-universal.pkg`)
 2. Close OBS Studio completely
 3. Open the `.pkg` installer and follow the prompts
-4. The installer automatically places files in `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro/`
+4. The installer automatically places the plugin at `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin`. If macOS blocks it as coming from an unidentified developer, Control-click the `.pkg`, choose **Open**, and confirm
 5. Open OBS Studio
 
 **Note**: The plugin is universal (supports both Apple Silicon and Intel Macs) and requires macOS 13.0 or later.
@@ -124,8 +124,9 @@ A: Windows 10/11 (64-bit) and macOS 13.0+ (universal, supports Apple Silicon and
 
 **Plugin Not Loading**
 - Ensure `replay-buffer-pro.dll` is in `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\` (typically `C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\`)
+- On macOS, ensure `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` exists
 - Restart OBS Studio after placing the file
-- Check OBS logs for "Replay Buffer Pro" entries
+- Check the OBS log (**Help → Log Files → Show Log Files**) for `[ReplayBufferPro]` entries
 
 **A Clip Wasn't Trimmed**
 - Every replay save writes one `TRIM VERDICT` line to the OBS log. Search the log for `TRIM VERDICT` and read the `reason` field on the line for that clip
