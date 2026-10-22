@@ -61,6 +61,12 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 **Note**: The plugin is universal (supports both Apple Silicon and Intel Macs) and requires macOS 13.0 or later.
 
+### Uninstall
+
+- Windows: quit OBS Studio, then delete `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\`
+- macOS: quit OBS Studio, then delete `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin`
+- Settings: hotkey bindings and button durations stay in `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` (Windows) or `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` (macOS). Delete that folder too to remove them.
+
 ## Usage
 
 Full guide: https://joshuapotter.github.io/replay-buffer-pro/usage/ ([Markdown](https://joshuapotter.github.io/replay-buffer-pro/usage.md))
@@ -114,11 +120,17 @@ A: Yes. Use the **Customize** button in the Save Clips section to set each butto
 **Q: Where are clips saved?**
 A: In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.
 
+**Q: Why do my clips end in _trimmed?**
+A: Each trimmed clip keeps the name OBS Studio gave the replay, with `_trimmed` added before the extension, for example `Replay 2026-08-14 21-04-33_trimmed.mkv`. The full-length original is deleted once the trimmed clip is in place, so tools that sort or move replays should wait for the `_trimmed` file. Replays saved with **Save Replay Buffer** or with OBS Studio's own Save Replay keep their original name and length.
+
 **Q: Can other apps save clips through OBS WebSocket?**
 A: Yes. Turn on the server in **Tools → WebSocket Server Settings**, then have your app send a `CallVendorRequest` with `vendorName` `replay-buffer-pro`, `requestType` `SaveClip` and `requestData` `{"duration": "2:00"}`. The duration can be seconds (`120`) or text such as `"5:22"`, `"1:05:00"` or `"1h30m"`, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See [how to use Replay Buffer Pro](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) for the full request and response format. In full, `duration` is a number of seconds or text: seconds (`"120"`), `m:ss` (`"5:22"`), `h:mm:ss` (`"1:05:00"`) or units largest first (`"90s"`, `"1.5h"`, `"1h30m"`). Fractions round to the nearest second, and the result must be from 1 to 21600 seconds (6 hours). The older `{"durationSeconds": 120}` still works and takes only a whole number; send one field, not both. The vendor response is `{"accepted": true, "durationSeconds": N, "requestedSeconds": N, "clamped": bool}` or `{"accepted": false, "error": "invalid-duration" | "buffer-inactive" | "save-refused" | "unavailable" | "timeout"}`.
 
 **Q: What platforms are supported?**
 A: Windows 10/11 (64-bit) and macOS 13.0+ (universal, supports Apple Silicon and Intel).
+
+**Q: Is there a Linux version?**
+A: No. Replay Buffer Pro runs on Windows 10/11 (64-bit) and macOS 13.0 or later. On Linux, OBS Studio's built-in replay buffer still works, and it saves the whole buffer each time.
 
 ## Troubleshooting
 

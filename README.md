@@ -62,6 +62,12 @@ obs-studio/
 
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
+### Uninstall
+
+1. Quit OBS Studio.
+2. Delete the plugin: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` on macOS.
+3. Optionally, delete its settings (hotkey bindings and button durations): `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` on macOS.
+
 ## Building from Source
 
 The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. All dependencies (OBS Studio source, prebuilt obs-deps, Qt6) are **automatically downloaded** at configure time.

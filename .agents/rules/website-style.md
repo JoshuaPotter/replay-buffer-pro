@@ -6,7 +6,7 @@ Applies to everything under `site/`. The homepage (`site/src/pages/index.astro`)
 - Surfaces: `--bg`, `--bg-raised`, `--bg-subtle`. Text: `--text`, `--text-muted`, `--text-faint`. Lines: `--border`, `--border-strong`. Neutrals: `--gray-100…1000`.
 - Radii: `--r-sm/md/lg/xl/full`. Cards, surfaces, and list panels use `--r-xl`; buttons use `--r-md`.
 - Accent colours (`--blue`, `--blue-light`, `--green`, `--amber`, `--red`) mark state or links only (success, warning, inline links). Never decoration.
-- No raw hex values, gradients, box-shadows, or glows in new CSS. (The only hex literals in use are `#000`/`#fff` for button text on a light primary button.)
+- No raw hex values, gradients, box-shadows, or glows in new CSS. (The only hex literals in use are `#000`/`#fff` for button text on a light primary button, and the colours of the `PluginDemo` dock, which copies OBS Studio's own theme.)
 
 ## Type
 - Geist and Geist Mono, loaded from the Google Fonts link already in the homepage `<head>`. Weights 400, 450, 500, 600.
