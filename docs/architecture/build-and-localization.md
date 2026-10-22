@@ -117,9 +117,18 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 
 ### CI / GitHub Actions
 
-- **Push to main/master**: Triggers build for both Windows and macOS, uploads artifacts.
+- **Push to main/develop**: Triggers build for both Windows and macOS, uploads artifacts.
 - **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with Windows zip, macOS `.tar.xz`, and macOS `.pkg` attached with checksums.
 - **Pull requests**: Triggers build for both platforms to validate the PR.
+
+Website-only changes skip the plugin build. `push.yaml` and `pr-pull.yaml` list `site/**`,
+`.github/workflows/pages.yaml` and `.github/workflows/site-check.yaml` under `paths-ignore`, so a
+branch push or pull request builds only when at least one changed file falls outside them; a change
+that mixes site and plugin files builds as usual. Tag pushes always build, because GitHub does not
+evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so
+making the plugin build a required status check would block site-only pull requests. Before
+requiring it, replace the filter with an always-running job that inspects the changed files and
+skips the build with `if:` (a job skipped by a condition reports success).
 
 macOS CI does not use ccache: Xcode 26 injects deployment-target environment variables into
 shell-wrapped compiler invocations, and a ccache launcher script triggers a `conflicting deployment

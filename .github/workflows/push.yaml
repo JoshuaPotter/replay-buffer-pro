@@ -7,6 +7,12 @@ on:
       - develop
     tags:
       - '*'
+    # Skips branch pushes that only change the website. GitHub never applies
+    # path filters to tag pushes, so every tag still builds and releases.
+    paths-ignore:
+      - site/**
+      - .github/workflows/pages.yaml
+      - .github/workflows/site-check.yaml
 permissions:
   contents: write
 jobs:

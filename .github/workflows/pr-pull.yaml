@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - develop
+    # Skips pull requests that only change the website.
+    paths-ignore:
+      - site/**
+      - .github/workflows/pages.yaml
+      - .github/workflows/site-check.yaml
 permissions:
   contents: read
 jobs:
