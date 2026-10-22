@@ -71,8 +71,9 @@ const menuGroups = [
     top: 0;
     z-index: 50;
     background: color-mix(in srgb, var(--bg) 72%, transparent);
+    /* Unprefixed only: the CSS minifier keeps just the last of a prefixed pair
+       and adds any prefix the build's browser targets need. */
     backdrop-filter: saturate(180%) blur(12px);
-    -webkit-backdrop-filter: saturate(180%) blur(12px);
     border-bottom: 1px solid var(--border);
   }
   .header-inner {
