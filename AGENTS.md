@@ -89,8 +89,8 @@ User-facing description of the interfaces below lives in `site/src/pages/usage.a
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
 - Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
 - `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
-- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**` or `.claude/**` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
-- Releases: the `release` skill (`.claude/skills/release/`, `/release`) cuts one end to end from a develop commit: a `release/X.Y.Z` PR into `main`, a tag on the merge commit, a back-merge into `develop`, and notes on the draft release CI creates. Its `references/writing-style.md` is the house style for release notes and changelog entries.
+- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**`, `.agents/**` or `.claude/**` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
+- Releases: the `release` skill (`.agents/skills/release/`, `/release`) cuts one end to end from a develop commit: a `release/X.Y.Z` PR into `main`, a tag on the merge commit, a back-merge into `develop`, and notes on the draft release CI creates. Its `references/writing-style.md` is the house style for release notes and changelog entries.
 - macOS CI uses Xcode's built-in compilation cache (CAS), not ccache — a ccache compiler-wrapper triggers a "conflicting deployment targets" error under Xcode 26.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 - C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
@@ -124,10 +124,11 @@ npm run build       # Static output in site/dist/
 
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.
-- Project website source lives in `site/` and should be updated when relevant. Follow `.claude/rules/website-style.md` when adding or changing anything under it.
+- Project website source lives in `site/` and should be updated when relevant. Follow `.agents/rules/website-style.md` when adding or changing anything under it.
 - Site pages are `site/src/pages/<slug>.astro`: `index.astro` (home), `usage.astro` (every way to save a clip: dock, hotkeys, obs-websocket; keep it the single detailed reference for these), `obs-replay-buffer-guide.astro`, `compare.astro`, `integrations.astro` and `changelog.astro`. Subpages use `SubpageLayout`; the shared head, header, closing CTA and footer live in `site/src/layouts/` and `site/src/components/`.
 - Each subpage has a hand-written Markdown twin at `site/public/<slug>.md`, except the changelog: `site/src/content/changelog.md` is its single source, rendered into the page and served as `changelog.md`. Add a `## x.y.z (YYYY-MM-DD)` section to it with each release.
 - The homepage FAQ is the `faq` array in the frontmatter of `index.astro`, which renders both the visible `#faq` list and the `FAQPage` JSON-LD (answers with tags stripped). Edit it there only, and copy the wording into the FAQ in `site/src/content/llms.txt` by hand.
 - A new page needs a `PAGES` entry in `site/src/data/site.ts` (adds it to the footer, breadcrumbs and `sitemap.xml`), its twin, and a link in `site/src/content/llms.txt`.
 - The build fills in the version from `buildspec.json` (homepage, `llms.txt`) and dates from git history (`sitemap.xml`, `llms.txt`). Don't hand-edit them; `llms.txt` keeps `{{RELEASE_DATE}}` and `{{VERSION}}` placeholders and CRLF line endings.
-- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `site/`, and this file in sync with project changes.
+- See `.agents/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `site/`, and this file in sync with project changes.
+- Agent rules and skills live in `.agents/rules/` and `.agents/skills/` so any agent tool can read them. `.claude/rules` is a symlink to `.agents/rules` for Claude Code, and each skill in `.claude/skills/` is a symlink to its folder under `.agents/skills/` (Claude Code documents per-skill links, not a linked `skills` folder). Edit the files under `.agents/`, and add a `.claude/skills/<name>` link when you add a skill.

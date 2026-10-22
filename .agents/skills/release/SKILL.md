@@ -35,7 +35,7 @@ If the user asked for only one piece, such as release notes or a changelog entry
 ## 1. Gather context
 
 ```bash
-.claude/skills/release/scripts/release-context.sh [commit]
+.agents/skills/release/scripts/release-context.sh [commit]
 ```
 
 The script prints the last tag, the version and OBS dependency at the commit, every commit since the tag, the paths that would trigger a plugin build, and each PR and issue the commits cite, with PR bodies and author associations (`OWNER`, `CONTRIBUTOR`, `NONE`) included. Read all of it, then check these before going on:
@@ -139,7 +139,7 @@ gh run watch <run-id> --exit-status
 When it succeeds, `gh release view X.Y.Z --json isDraft,assets` must show a draft with `replay-buffer-pro-X.Y.Z-macos-universal.pkg` and `replay-buffer-pro-X.Y.Z-windows-x64.zip`. Then put the finished body and the bare-version title on it, and leave it as a draft:
 
 ```bash
-.claude/skills/release/scripts/compose-release-body.sh X.Y.Z "$tmp/notes.md" > "$tmp/body.md"
+.agents/skills/release/scripts/compose-release-body.sh X.Y.Z "$tmp/notes.md" > "$tmp/body.md"
 gh release edit X.Y.Z --title X.Y.Z --notes-file "$tmp/body.md"
 ```
 

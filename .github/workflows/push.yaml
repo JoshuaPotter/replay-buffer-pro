@@ -16,6 +16,7 @@ on:
       - .github/workflows/site-check.yaml
       - '**.md'
       - docs/**
+      - .agents/**
       - .claude/**
 permissions:
   contents: write

@@ -37,7 +37,7 @@ echo
 # Mirrors push.yaml's paths-ignore, plus pages/, where the website lived before site/.
 echo "## Paths changed that push.yaml would build for"
 plugin_paths="$(git log --format= --name-only "${range[@]}" | sort -u \
-  | grep -vE '^(site/|docs/|pages/|\.claude/)|^\.github/workflows/(pages|site-check)\.yaml$|\.md$' || true)"
+  | grep -vE '^(site/|docs/|pages/|\.agents/|\.claude/)|^\.github/workflows/(pages|site-check)\.yaml$|\.md$' || true)"
 echo "${plugin_paths:-(none: website and docs only, so there is no plugin change to release)}"
 
 # Pull requests and issues cited in commit messages, plus issues cited in

@@ -124,7 +124,7 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 
 Changes that only touch the website, docs or agent config skip the plugin build. `push.yaml` and
 `pr-pull.yaml` list `site/**`, `.github/workflows/pages.yaml`, `.github/workflows/site-check.yaml`,
-`'**.md'`, `docs/**` and `.claude/**` under `paths-ignore`, so a branch push or pull request builds
+`'**.md'`, `docs/**`, `.agents/**` and `.claude/**` under `paths-ignore`, so a branch push or pull request builds
 only when at least one changed file falls outside them; a change that mixes these with plugin files
 builds as usual. Tag pushes always build, because GitHub does not
 evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so
