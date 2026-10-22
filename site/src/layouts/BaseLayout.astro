@@ -1,0 +1,54 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Relative path to the site root: '' on the homepage, '../' on subpages. Links stay relative. */
+  root: string;
+}
+
+const { title, description, root } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{title}</title>
+    <meta name="description" content={description}>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
+    <link rel="stylesheet" href={`${root}styles.css`}>
+    <script is:inline src={`${root}scripts/index.js`} type="module" defer></script>
+    <!-- Google Tag Manager -->
+    <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-NKMH5L72');</script>
+    <!-- End Google Tag Manager -->
+    <slot name="head" />
+  </head>
+  <body id="top">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NKMH5L72"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <SiteHeader root={root} />
+
+    <main id="main">
+      <slot />
+
+      <ClosingCta />
+    </main>
+
+    <SiteFooter root={root} />
+  </body>
+</html>

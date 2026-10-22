@@ -1,0 +1,61 @@
+---
+import SubpageLayout from '../layouts/SubpageLayout.astro';
+---
+<SubpageLayout
+  slug="integrations"
+  title="Community Integrations for Replay Buffer Pro"
+  description="Stream Deck, OBS scripts, and other community integrations for Replay Buffer Pro. Made by other people and not necessarily endorsed or tested by the maintainer."
+  headline="Community integrations"
+  lead="Tools other people have built to work with Replay Buffer Pro."
+  schemaType="WebPage"
+  datePublished="2026-10-05"
+>
+  <section class="section">
+    <div class="container">
+      <div class="surface">
+        <div class="surface-bar"><span class="surface-label">Please note</span></div>
+        <div class="surface-body"><p>These integrations were made by other people. They are not necessarily endorsed, tested, or supported by the maintainer of Replay Buffer Pro, and they can stop working when either project changes. Check each project&#x27;s own page for its status and support, and test it yourself before relying on it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-intro">
+        <h2>Integrations</h2>
+        <p>Projects that work with Replay Buffer Pro, as described by their authors.</p>
+      </div>
+      <div class="card-grid card-grid-2">
+        <article class="card card-lg">
+          <span class="card-eyebrow">Stream Deck</span>
+          <h3>OBS Replay Buffer Pro for Stream Deck</h3>
+          <p>A Stream Deck plugin by @jerptrs, released under the MIT license. It has keys to turn the OBS replay buffer on and off and to save the last 15 seconds, 30 seconds, 60 seconds, 5, 15, or 30 minutes, or a custom length from 1 second to 6 hours. It talks to OBS through obs-websocket using the <code>SaveClip</code> request, so it needs Replay Buffer Pro 1.8.0 or later and no OBS hotkeys.</p>
+          <p><a href="https://github.com/jerptrs/streamdeck-replay-buffer-pro" rel="noopener" target="_blank">Stream Deck plugin on GitHub</a> · <a href="https://github.com/JoshuaPotter/replay-buffer-pro/discussions/49" rel="noopener" target="_blank">Announcement</a></p>
+        </article>
+        <article class="card card-lg">
+          <span class="card-eyebrow">OBS script</span>
+          <h3>Smart Replay Mover</h3>
+          <p>A free OBS Lua script by SlonickLab that moves saved replays into folders by game. Since version 2.10.0 it detects Replay Buffer Pro, waits for the trim to finish, then moves the final <code>_trimmed</code> clip and can optionally remove the suffix.</p>
+          <p><a href="https://github.com/SlonickLab/Smart-Replay-Mover" rel="noopener" target="_blank">Smart Replay Mover on GitHub</a> · <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues/23" rel="noopener" target="_blank">Compatibility thread</a></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="prose">
+      <h2>Can I use a Stream Deck with Replay Buffer Pro?</h2>
+      <p>Yes, in a few ways. Bind a <strong>Replay Buffer Pro: Save…</strong> hotkey in OBS under <strong>Settings → Hotkeys</strong> and have the Stream Deck send that key combination, use the community Stream Deck plugin above, which sends obs-websocket <code>SaveClip</code> requests and needs version 1.8.0 or later, or use another tool that sends obs-websocket requests.</p>
+      <p>The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the full buffer without trimming, because the save comes from outside Replay Buffer Pro.</p>
+      <h2>Can other apps save clips through obs-websocket?</h2>
+      <p>Yes. Since version 1.8.0, any obs-websocket client can send a <code>SaveClip</code> request for a clip of any whole-second length from 1 to 21600. See <a href="../usage/#obs-websocket">how to use Replay Buffer Pro</a> for the request, the response format, and examples.</p>
+      <h2>What do file-organizing tools need to know about the output files?</h2>
+      <p>Each trimmed clip appears as <code>&lt;name&gt;_trimmed.&lt;ext&gt;</code> next to where OBS saved the replay. It is written to a <code>.rbp-partial.&lt;ext&gt;</code> scratch file first and renamed into place, so the <code>_trimmed</code> file is complete the moment it exists. After that, the original full-length file is deleted. Tools that move or rename replays should wait for the <code>_trimmed</code> file rather than acting on the original.</p>
+      <p>If the <code>_trimmed</code> suffix, the original-file deletion, or the timing of the final file changes, the developer documentation asks contributors to open an issue at Smart Replay Mover so its author can update.</p>
+      <h2>How do I get my integration listed here?</h2>
+      <p>Open a thread in <a href="https://github.com/JoshuaPotter/replay-buffer-pro/discussions" rel="noopener" target="_blank">GitHub Discussions</a> with a link to your project, what it does, and which Replay Buffer Pro version you have used it with. Listings are informational and don't imply endorsement or testing.</p>
+      </div>
+    </div>
+  </section>
+</SubpageLayout>

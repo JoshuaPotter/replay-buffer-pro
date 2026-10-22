@@ -5,9 +5,8 @@ on:
     branches:
       - main
     paths:
-      - pages/**
+      - site/**
       - buildspec.json
-      - .github/scripts/stamp-pages
       - .github/workflows/pages.yaml
   workflow_dispatch:
 permissions:
@@ -24,14 +23,33 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      ASTRO_TELEMETRY_DISABLED: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # sitemap.xml and llms.txt dates come from git history.
           fetch-depth: 0
 
-      - name: Stamp version and dates
-        run: .github/scripts/stamp-pages
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: site/.nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Check site
+        working-directory: site
+        run: npm run check
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -39,7 +57,7 @@ jobs:
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: pages
+          path: site/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
