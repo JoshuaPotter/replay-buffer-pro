@@ -68,6 +68,20 @@ By participating in this project, you agree to maintain a respectful and constru
    - CMake 3.16 or newer
    - OBS Studio development files
 
+### Website
+
+The project website in `site/` is an Astro project, separate from the plugin build. It needs Node 24 (see `site/.nvmrc`).
+
+```bash
+cd site
+npm ci          # install pinned dependencies
+npm run dev     # http://localhost:4321/replay-buffer-pro/
+npm run check   # type-check
+npm run build   # static output in site/dist/
+```
+
+Follow `.claude/rules/website-style.md` for page structure and styling.
+
 ## Coding Standards
 
 - Use consistent indentation (spaces, not tabs)
@@ -120,7 +134,8 @@ From `develop`:
 git checkout develop
 git pull
 git checkout -b release/x.y.z
-# bump version in CMakeLists.txt: project(replay-buffer-pro VERSION x.y.z)
+# bump "version" in buildspec.json, and add a "## x.y.z (YYYY-MM-DD)" section
+# to site/src/content/changelog.md (the website deploys when main is pushed)
 git commit -am "chore: bump version to x.y.z"
 
 # package the release (from your build dir)

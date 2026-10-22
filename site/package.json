@@ -1,0 +1,23 @@
+{
+  "name": "replay-buffer-pro-site",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/node": "24.19.1",
+    "typescript": "6.0.3"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.3",
+    "astro": "7.3.7"
+  }
+}
