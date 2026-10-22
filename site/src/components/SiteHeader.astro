@@ -2,8 +2,11 @@
 import DownloadSplit from './DownloadSplit.astro';
 import Brand from './ui/Brand.astro';
 import ButtonLink from './ui/ButtonLink.astro';
+import ExternalLink from './ui/ExternalLink.astro';
+import Close from '../icons/close.svg';
 import GitHub from '../icons/github.svg';
-import { REPO_URL, SECTION_LINKS } from '../data/site';
+import Menu from '../icons/menu.svg';
+import { PAGES, REPO_URL, SECTION_LINKS } from '../data/site';
 
 interface Props {
   /** Relative path to the site root: '' on the homepage, '../' on subpages. */
@@ -16,10 +19,18 @@ const nav = [
   { href: `${root}${howItWorks.hash}`, label: howItWorks.label },
   { href: `${root}${install.hash}`, label: install.label },
   { href: `${root}usage/`, label: 'Usage' },
+  { href: `${root}obs-replay-buffer-guide/`, label: 'Guide' },
+  { href: `${root}compare/`, label: 'Compare' },
   { href: `${root}${faq.hash}`, label: faq.label },
 ];
+
+// The mobile menu lists every homepage section and page, grouped like the footer.
+const menuGroups = [
+  { heading: 'Quickstart', links: Object.values(SECTION_LINKS).map(({ hash, label }) => ({ href: `${root}${hash}`, label })) },
+  { heading: 'Explore', links: PAGES.map(({ slug, label }) => ({ href: `${root}${slug}/`, label })) },
+];
 ---
-<header class="site-header">
+<header class="site-header" data-site-header>
   <div class="container header-inner">
     <Brand root={root} />
 
@@ -28,12 +39,30 @@ const nav = [
     </nav>
 
     <div class="header-actions">
-      <ButtonLink variant="secondary" iconOnly external href={REPO_URL} aria-label="View on GitHub">
+      <ButtonLink class="header-github" variant="secondary" iconOnly external href={REPO_URL} aria-label="View on GitHub">
         <GitHub />
       </ButtonLink>
       <DownloadSplit variant="header" />
+      <button type="button" class="btn btn-secondary btn-icon-only menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu" data-menu-toggle>
+        <Menu class="menu-icon-open" />
+        <Close class="menu-icon-close" />
+      </button>
     </div>
   </div>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Site" hidden data-menu>
+    <div class="container mobile-menu-inner">
+      {menuGroups.map(({ heading, links }) => (
+        <div class="mobile-menu-group">
+          <h2>{heading}</h2>
+          <ul>
+            {links.map(({ href, label }) => <li><a href={href}>{label}</a></li>)}
+          </ul>
+        </div>
+      ))}
+      <ExternalLink class="mobile-menu-github" href={REPO_URL}><GitHub /> GitHub repository</ExternalLink>
+    </div>
+  </nav>
 </header>
 
 <style>
@@ -41,7 +70,7 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(0, 0, 0, .72);
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
     backdrop-filter: saturate(180%) blur(12px);
     -webkit-backdrop-filter: saturate(180%) blur(12px);
     border-bottom: 1px solid var(--border);
@@ -70,11 +99,91 @@ const nav = [
     gap: .5rem;
     flex-shrink: 0;
   }
+  .menu-toggle { display: none; }
+  .menu-toggle[aria-expanded="true"] .menu-icon-open,
+  .menu-toggle[aria-expanded="false"] .menu-icon-close { display: none; }
+
+  /* The menu panel drops below the header bar and scrolls on its own when it
+     is taller than the screen. */
+  .mobile-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-menu[hidden] { display: none; }
+  .mobile-menu-inner {
+    display: grid;
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .mobile-menu-group h2 {
+    margin-bottom: .5rem;
+    font-size: .8125rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-faint);
+  }
+  .mobile-menu-group ul { margin: 0; padding: 0; list-style: none; }
+  .mobile-menu-group a,
+  .mobile-menu :global(.mobile-menu-github) {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .625rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .9375rem;
+    color: var(--text-muted);
+    transition: color .15s ease;
+  }
+  .mobile-menu-group a:hover,
+  .mobile-menu :global(.mobile-menu-github:hover) { color: var(--text); }
+  .mobile-menu :global(.mobile-menu-github) { border-bottom: 0; }
 
   @media (max-width: 60rem) {
-    /* Below the desktop breakpoint the header nav links are dropped in
-       favour of the download action, which is what the page is for. */
-    .header-nav { display: none; }
+    /* Below the desktop breakpoint the header nav links move into the menu
+       panel, next to the download action, which is what the page is for. */
+    .header-nav,
+    .header-actions > :global(.header-github) { display: none; }
     .header-inner > :global(.brand) { margin-right: auto; }
+    .menu-toggle { display: inline-flex; }
+  }
+
+  @media (min-width: 60.0625rem) {
+    .mobile-menu { display: none; }
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-site-header]').forEach((header) => {
+    const toggle = header.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+    const menu = header.querySelector<HTMLElement>('[data-menu]');
+    if (!toggle || !menu) return;
+
+    const setOpen = (open: boolean) => {
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+
+    // Close after following a link (most are same-page anchors), on Escape, or
+    // when the window grows past the breakpoint that hides the toggle.
+    menu.addEventListener('click', (e) => {
+      if ((e.target as Element).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || menu.hidden) return;
+      setOpen(false);
+      toggle.focus();
+    });
+    matchMedia('(min-width: 60.0625rem)').addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+  });
+</script>

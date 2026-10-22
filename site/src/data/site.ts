@@ -17,7 +17,10 @@ export const LATEST_RELEASE_URL = `${RELEASES_URL}/latest`;
 export const ISSUES_URL = `${REPO_URL}/issues`;
 export const DISCUSSIONS_URL = `${REPO_URL}/discussions`;
 
-/** Social card and JSON-LD screenshot. */
+/** Open Graph and Twitter card image, 1200×630, made from site/og/og-image.html. */
+export const OG_IMAGE_URL = `${SITE_URL}og-image.png`;
+
+/** Screenshot of the plugin dock, for the SoftwareApplication JSON-LD. */
 export const SCREENSHOT_URL = 'https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png';
 
 /** Homepage sections linked from the header nav and the footer's Quickstart column. */

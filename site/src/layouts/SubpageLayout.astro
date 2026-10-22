@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import SocialMeta from '../components/SocialMeta.astro';
 import JsonLd from '../components/ui/JsonLd.astro';
 import { AUTHOR, SITE_URL, pageBySlug } from '../data/site';
+import { gitDate } from '../lib/repo';
 
 interface Props {
   slug: string;
@@ -16,7 +17,7 @@ interface Props {
 }
 
 const { slug, title, description, headline, lead, schemaType, datePublished } = Astro.props;
-const { label } = pageBySlug(slug);
+const { label, sources } = pageBySlug(slug);
 const url = `${SITE_URL}${slug}/`;
 
 const pageSchema = {
@@ -29,6 +30,8 @@ const pageSchema = {
   mainEntityOfPage: url,
   inLanguage: 'en',
   datePublished,
+  // The last commit to the page's sources, the same date its sitemap.xml entry uses.
+  dateModified: gitDate(sources),
   author: { '@type': 'Person', name: AUTHOR },
   about: { '@type': 'SoftwareApplication', name: 'Replay Buffer Pro', url: SITE_URL },
 };

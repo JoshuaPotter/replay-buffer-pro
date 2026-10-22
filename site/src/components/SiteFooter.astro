@@ -15,7 +15,6 @@ interface FooterLink {
   href: string;
   label: string;
   external?: boolean;
-  class?: string;
 }
 
 const columns: { heading: string; links: FooterLink[] }[] = [
@@ -41,7 +40,6 @@ const columns: { heading: string; links: FooterLink[] }[] = [
     heading: 'Legal',
     links: [
       { href: 'https://www.gnu.org/licenses/old-licenses/gpl-2.0.html', label: 'GPL-2.0-or-later', external: true },
-      { href: '#', label: 'Back to top', class: 'scroll-to-top' },
     ],
   },
 ];
@@ -57,7 +55,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
 
       {columns.map(({ heading, links }) => (
         <div class="footer-col">
-          <h4>{heading}</h4>
+          <h2>{heading}</h2>
           <ul>
             {links.map(({ label, external, ...attrs }) => {
               const Link = external ? ExternalLink : 'a';
@@ -71,6 +69,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
     <div class="footer-bottom">
       <p>© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
       <p class="footer-disclaimer">Replay Buffer Pro is an independent project, not affiliated with, endorsed by, or sponsored by OBS Studio or its developers. All product names and trademarks are the property of their respective owners.</p>
+      <p><a class="footer-top" href="#top">Back to top</a></p>
     </div>
   </div>
 </footer>
@@ -93,10 +92,11 @@ const columns: { heading: string; links: FooterLink[] }[] = [
     line-height: 1.6;
     color: var(--text-faint);
   }
-  .footer-col h4 {
+  .footer-col h2 {
     margin-bottom: 1rem;
     font-size: .8125rem;
     font-weight: 500;
+    letter-spacing: -0.02em;
     color: var(--text);
   }
   .footer-col ul {
@@ -122,12 +122,15 @@ const columns: { heading: string; links: FooterLink[] }[] = [
   }
   .footer-bottom p { font-size: .75rem; color: var(--text-faint); }
   .footer-disclaimer { max-width: 46rem; line-height: 1.6; }
+  .footer-top { transition: color .15s ease; }
+  .footer-top:hover { color: var(--text); }
 
   @media (min-width: 48rem) {
     .footer-grid { grid-template-columns: repeat(4, 1fr); gap: 3rem; }
     .footer-brand-col { grid-column: 1 / -1; }
     .footer-bottom { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 2rem; }
-    .footer-bottom p:first-child { flex-shrink: 0; }
+    .footer-bottom p:first-child,
+    .footer-bottom p:last-child { flex-shrink: 0; }
   }
 
   @media (min-width: 60rem) {
@@ -139,12 +142,5 @@ const columns: { heading: string; links: FooterLink[] }[] = [
 <script>
   document.querySelectorAll('.year').forEach((el) => {
     el.textContent = String(new Date().getFullYear());
-  });
-
-  document.querySelectorAll('.scroll-to-top').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
   });
 </script>

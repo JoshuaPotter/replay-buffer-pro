@@ -22,7 +22,7 @@ const softwareApplication = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Replay Buffer Pro",
-  "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding. Perfect for streamers, gamers, and content creators.",
+  "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding, for streamers, gamers, and content creators.",
   "applicationCategory": "MultimediaApplication",
   "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+",
   "softwareVersion": VERSION,
@@ -134,8 +134,16 @@ const faq = [
     answer: `In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.`
   },
   {
+    question: "Why do my clips end in _trimmed?",
+    answer: `Each trimmed clip keeps the name OBS Studio gave the replay, with <code>_trimmed</code> added before the extension, for example <code>Replay 2026-08-14 21-04-33_trimmed.mkv</code>. The full-length original is deleted once the trimmed clip is in place, so tools that sort or move replays should wait for the <code>_trimmed</code> file. Replays saved with <strong>Save Replay Buffer</strong> or with OBS Studio's own Save Replay keep their original name and length.`
+  },
+  {
     question: "Can other apps save clips through OBS WebSocket?",
     answer: `Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.`
+  },
+  {
+    question: "Is there a Linux version?",
+    answer: `No. Replay Buffer Pro runs on Windows 10/11 (64-bit) and macOS 13.0 or later. On Linux, OBS Studio's built-in replay buffer still works, and it saves the whole buffer each time.`
   }
 ];
 
@@ -177,26 +185,9 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       url={SITE_URL}
     />
 
-    <!-- Enhanced meta -->
-    <meta name="keywords" content="OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, twitch, youtube, instant replay, obs plugin, video clipping, content creation, gaming clips">
     <meta name="application-name" content="Replay Buffer Pro">
-    <meta name="msapplication-TileColor" content="#000000">
-
-    <!-- Canonical URL -->
     <link rel="canonical" href={SITE_URL}>
-
-    <!-- LLM-optimized content -->
     <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-optimized documentation">
-
-    <!-- AI-Specific Meta Tags -->
-    <meta property="product:category" content="Software">
-    <meta property="product:price:amount" content="0">
-    <meta property="product:price:currency" content="USD">
-
-    <!-- Schema.org Item Properties -->
-    <meta itemprop="name" content="Replay Buffer Pro">
-    <meta itemprop="description" content="OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding">
-    <meta itemprop="image" content={SCREENSHOT_URL}>
 
     <JsonLd data={softwareApplication} />
     <JsonLd data={sourceCode} />
@@ -265,7 +256,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
               <span>oldest frame in buffer</span><span>now</span>
             </div>
             <div class="timeline-out">
-              <span class="mono">clip-2026-08-14-21-04-33_trimmed.mkv</span>
+              <span class="mono">Replay 2026-08-14 21-04-33_trimmed.mkv</span>
               <span class="tag tag-ok">saved · 30.0s</span>
             </div>
           </div>
@@ -282,11 +273,11 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       ]}
     >
       <Fragment slot="statement"><strong>Nothing gets re-rendered.</strong> Replay Buffer Pro just repackages the footage your buffer already captured, so the clip keeps the exact bitrate, codec, and quality of the original — and lands in about the time it takes to write the file.</Fragment>
-      <CodeSample slot="media" label="OBS Studio log"><code><span class="log-dim">21:04:33.118</span> <span class="log-key">[replay-buffer-pro]</span> save requested: 30s
-<span class="log-dim">21:04:33.301</span> <span class="log-key">[replay-buffer-pro]</span> buffer written, 2:00:00 total
-<span class="log-dim">21:04:33.302</span> <span class="log-key">[replay-buffer-pro]</span> trimming to last 30s
-<span class="log-dim">21:04:33.304</span> <span class="log-key">[replay-buffer-pro]</span> stream copy, no re-encode
-<span class="log-dim">21:04:33.489</span> <span class="log-ok">[replay-buffer-pro]</span> done in 187ms → clip-2026-08-14-21-04-33.mkv</code></CodeSample>
+      <CodeSample slot="media" label="OBS Studio log" wrap><code><span class="log-dim">21:04:33.118:</span> <span class="log-key">[ReplayBufferPro]</span> SAVE STATE: armed gen=1 duration=30s
+<span class="log-dim">21:04:33.301:</span> <span class="log-key">[ReplayBufferPro]</span> Trimming replay buffer save to 30 seconds
+<span class="log-dim">21:04:33.302:</span> <span class="log-key">[ReplayBufferPro]</span> Input video duration: 600.02 seconds
+<span class="log-dim">21:04:33.303:</span> <span class="log-key">[ReplayBufferPro]</span> Cutting at keyframe 570.00 seconds (requested 570.02, drift 0.02)
+<span class="log-dim">21:04:33.489:</span> <span class="log-ok">[ReplayBufferPro]</span> TRIM VERDICT: ok file='Replay 2026-08-14 21-04-33_trimmed.mkv' requested=30s actual=30.0s source=600.0s cut_at=570.0s elapsed=0.4s</code></CodeSample>
     </FeatureRow>
 
     <FeatureRow
@@ -298,7 +289,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       ]}
     >
       <Fragment slot="statement"><strong>Every save button gets a hotkey.</strong> Bind them in OBS Studio's own hotkey settings and clip mid-broadcast without alt-tabbing or touching your mouse.</Fragment>
-      <Surface slot="media" label="Settings → Hotkeys">
+      <Surface slot="media" label="Settings → Hotkeys · example bindings">
         <ul class="keymap">
           {hotkeys.map(({ label, keys }) => (
             <li><span>{label}</span><span class="keys">{keys.map((key) => <kbd>{key}</kbd>)}</span></li>
@@ -358,7 +349,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       <ol class="os-tabpanel" role="tabpanel" id="panel-macos" aria-labelledby="tab-macos" data-os-panel="macos">
         <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
         <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-        <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
+        <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically. If macOS blocks it as coming from an unidentified developer, Control-click the <code>.pkg</code>, choose <strong>Open</strong>, and confirm.</span></li>
         <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
       </ol>
     </div>
@@ -370,6 +361,26 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       <li><span>Start the Replay Buffer from OBS Studio's controls.</span></li>
       <li><span>Hit a save button — or its hotkey — to write the clip.</span></li>
     </ol>
+
+    <h3 class="subhead">To uninstall</h3>
+    <div class="os-tabs" data-os-tabs>
+      <div class="os-tablist" role="tablist" aria-label="Choose your operating system for uninstalling">
+        <button type="button" class="os-tab" role="tab" id="tab-uninstall-windows" aria-controls="panel-uninstall-windows" data-os-tab="windows">Windows</button>
+        <button type="button" class="os-tab" role="tab" id="tab-uninstall-macos" aria-controls="panel-uninstall-macos" data-os-tab="macos">macOS</button>
+      </div>
+
+      <ol class="os-tabpanel" role="tabpanel" id="panel-uninstall-windows" aria-labelledby="tab-uninstall-windows" data-os-panel="windows">
+        <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Delete <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\</CopyCode> to remove the plugin.</span></li>
+        <li><span class="os-step-text">Optionally, delete <CopyCode>%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\</CopyCode> to remove your hotkeys and button durations too.</span></li>
+      </ol>
+
+      <ol class="os-tabpanel" role="tabpanel" id="panel-uninstall-macos" aria-labelledby="tab-uninstall-macos" data-os-panel="macos">
+        <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Delete <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> to remove the plugin.</span></li>
+        <li><span class="os-step-text">Optionally, delete <CopyCode>~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/</CopyCode> to remove your hotkeys and button durations too.</span></li>
+      </ol>
+    </div>
   </Section>
 
   <!-- ============ FAQ ============ -->
@@ -388,7 +399,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   <Section id="troubleshooting" title="Troubleshooting">
     <div class="issue-list">
       <Issue title="Plugin not loading">
-        <p>Confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>), then restart OBS Studio.</p>
+        <p>On Windows, confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>). On macOS, confirm <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> exists. Then restart OBS Studio.</p>
       </Issue>
       <Issue title="A clip wasn't trimmed">
         <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
@@ -397,7 +408,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
         <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Settings → Advanced → Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
       </Issue>
       <Issue title="Check the logs">
-        <p>Open the OBS Studio log file and search for <code>Replay Buffer Pro</code> entries to see load messages and errors.</p>
+        <p>Open the OBS Studio log file (<strong>Help → Log Files → Show Log Files</strong>) and search for <code>[ReplayBufferPro]</code> to see load messages and errors.</p>
       </Issue>
       <Issue title="Report an issue">
         <p>Still stuck? <ExternalLink href={ISSUES_URL}>File an issue on GitHub</ExternalLink> with your OBS Studio version, plugin version, and any relevant log lines.</p>
@@ -691,21 +702,35 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   import { detectOS } from '../scripts/os';
   import { getLatestRelease } from '../scripts/release';
 
-  // Windows/macOS tabs for the install steps, defaulting to the visitor's OS.
-  const tabs = document.querySelectorAll<HTMLElement>('[data-os-tab]');
-  const panels = document.querySelectorAll<HTMLElement>('[data-os-panel]');
-  const selectOS = (os: string) => {
-    tabs.forEach((tab) => {
-      const selected = tab.dataset.osTab === os;
-      tab.setAttribute('aria-selected', String(selected));
-      tab.tabIndex = selected ? 0 : -1;
+  // Windows/macOS tabs for the install and uninstall steps, each group defaulting to the visitor's OS.
+  document.querySelectorAll<HTMLElement>('[data-os-tabs]').forEach((group) => {
+    const tabs = [...group.querySelectorAll<HTMLElement>('[data-os-tab]')];
+    const panels = group.querySelectorAll<HTMLElement>('[data-os-panel]');
+    const selectOS = (os: string) => {
+      tabs.forEach((tab) => {
+        const selected = tab.dataset.osTab === os;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.osPanel !== os;
+      });
+    };
+    tabs.forEach((tab) => tab.addEventListener('click', () => selectOS(tab.dataset.osTab ?? '')));
+
+    // Arrow keys, Home and End move between tabs and select the one they land on.
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        const next = { ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last }[e.key];
+        if (next === undefined) return;
+        e.preventDefault();
+        selectOS(tabs[next].dataset.osTab ?? '');
+        tabs[next].focus();
+      });
     });
-    panels.forEach((panel) => {
-      panel.hidden = panel.dataset.osPanel !== os;
-    });
-  };
-  tabs.forEach((tab) => tab.addEventListener('click', () => selectOS(tab.dataset.osTab ?? '')));
-  selectOS(detectOS());
+    selectOS(detectOS());
+  });
 
   // Show the latest release's version in the hero pill.
   getLatestRelease().then((release) => {
