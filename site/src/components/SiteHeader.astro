@@ -116,13 +116,14 @@ const menuGroups = [
   .menu-toggle[aria-expanded="false"] .menu-icon-close { display: none; }
 
   /* The menu panel drops below the header bar and scrolls on its own when it
-     is taller than the screen. */
+     is taller than the screen. It starts below the header's 1px bottom border,
+     which top: 100% alone would cover, so the border separates the two. */
   .mobile-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 1px);
     left: 0;
     right: 0;
-    max-height: calc(100dvh - var(--header-h));
+    max-height: calc(100dvh - var(--header-h) - 1px);
     overflow-y: auto;
     border-bottom: 1px solid var(--border);
   }
