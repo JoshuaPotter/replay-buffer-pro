@@ -1,0 +1,65 @@
+---
+import DownloadSplit from './DownloadSplit.astro';
+import { PAGES } from '../data/site';
+
+interface Props {
+  /** Relative path to the site root: '' on the homepage, '../' on subpages. */
+  root: string;
+}
+
+const { root } = Astro.props;
+---
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <a class="brand" href={root || '#top'}>
+          <span class="brand-name">Replay Buffer Pro</span>
+        </a>
+        <p class="footer-blurb">An OBS Studio plugin for saving replay buffer clips at any length, without re-encoding.</p>
+        <DownloadSplit variant="footer" />
+      </div>
+
+      <div class="footer-col">
+        <h4>Quickstart</h4>
+        <ul>
+          <li><a href={`${root}#how-it-works`}>How it works</a></li>
+          <li><a href={`${root}#install`}>Install</a></li>
+          <li><a href={`${root}#faq`}>FAQ</a></li>
+          <li><a href={`${root}#troubleshooting`}>Troubleshooting</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          {PAGES.map((page) => <li><a href={`${root}${page.slug}/`}>{page.label}</a></li>)}
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">GitHub repository</a></li>
+          <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro#replay-buffer-pro" rel="noopener" target="_blank">Documentation</a></li>
+          <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">Releases</a></li>
+          <li><a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" rel="noopener" target="_blank">Report an issue</a></li>
+          <li><a href={`${root}llms.txt`}>llms.txt</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" rel="noopener" target="_blank">GPL-2.0-or-later</a></li>
+          <li><a href="#" class="scroll-to-top">Back to top</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© <span class="year"></span> Replay Buffer Pro. Licensed under GPL v2 or later.</p>
+      <p class="footer-disclaimer">Replay Buffer Pro is an independent project, not affiliated with, endorsed by, or sponsored by OBS Studio or its developers. All product names and trademarks are the property of their respective owners.</p>
+    </div>
+  </div>
+</footer>

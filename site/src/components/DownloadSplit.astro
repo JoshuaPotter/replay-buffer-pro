@@ -1,0 +1,29 @@
+---
+// The split Download button with a platform menu, in the four places it appears.
+interface Props {
+  variant: 'header' | 'hero' | 'cta' | 'footer';
+}
+
+const { variant } = Astro.props;
+const btn = {
+  header: 'btn btn-primary',
+  hero: 'btn btn-primary btn-lg',
+  cta: 'btn btn-primary btn-lg',
+  footer: 'btn btn-secondary',
+}[variant];
+const id = variant === 'header' ? 'download-top' : variant === 'hero' ? 'download-cta' : undefined;
+// Large buttons swap their text for the visitor's platform (utils.js).
+const label = variant === 'hero' || variant === 'cta';
+const footer = variant === 'footer';
+const latest = 'https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest';
+---
+<div class:list={['download-split', { 'footer-download-split': footer }]} data-download-split>
+  <a id={id} class={`${btn} download-split-main`} data-download-auto data-download-label={label ? '' : undefined} data-download="windows" href={latest} rel={footer ? 'noopener' : undefined} target={footer ? '_blank' : undefined}>Download</a>
+  <button type="button" class={`${btn} download-split-toggle`} aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
+    <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <ul class="download-split-menu" role="menu" hidden>
+    <li role="none"><a role="menuitem" data-download="windows" href={latest}>Windows (x64)<span class="dl-ext">.zip</span></a></li>
+    <li role="none"><a role="menuitem" data-download="macos" href={latest}>macOS — Universal<span class="dl-ext">.pkg</span></a></li>
+  </ul>
+</div>
