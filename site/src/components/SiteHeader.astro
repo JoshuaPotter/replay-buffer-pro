@@ -70,11 +70,22 @@ const menuGroups = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 72%, transparent);
-    /* Unprefixed only: the CSS minifier keeps just the last of a prefixed pair
-       and adds any prefix the build's browser targets need. */
-    backdrop-filter: saturate(180%) blur(12px);
     border-bottom: 1px solid var(--border);
+  }
+  /* The frosted backdrop sits on a layer behind the bar, not on the header itself:
+     a backdrop-filter on the header would stop the menu panel inside it from
+     blurring the page. Unprefixed only: the CSS minifier keeps just the last of a
+     prefixed pair and adds any prefix the build's browser targets need. */
+  .site-header::before,
+  .mobile-menu {
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    backdrop-filter: saturate(180%) blur(12px);
+  }
+  .site-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
   }
   .header-inner {
     display: flex;
@@ -113,7 +124,6 @@ const menuGroups = [
     right: 0;
     max-height: calc(100dvh - var(--header-h));
     overflow-y: auto;
-    background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
   .mobile-menu[hidden] { display: none; }
