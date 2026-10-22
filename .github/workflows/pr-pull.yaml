@@ -5,11 +5,14 @@ on:
     branches:
       - main
       - develop
-    # Skips pull requests that only change the website.
+    # Skips pull requests that only change the website, docs or agent config.
     paths-ignore:
       - site/**
       - .github/workflows/pages.yaml
       - .github/workflows/site-check.yaml
+      - '**.md'
+      - docs/**
+      - .claude/**
 permissions:
   contents: read
 jobs:
