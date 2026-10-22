@@ -77,23 +77,25 @@ const footer = variant === 'footer';
 </style>
 
 <script>
-  import { detectOS } from '../scripts/os';
+  import { detectPlatform } from '../scripts/os';
   import { getLatestRelease } from '../scripts/release';
 
   const OS_LABELS = {
     windows: 'Download for Windows (x64)',
     macos: 'Download for macOS',
+    other: 'Download for Windows or macOS',
   };
 
   // Release asset names are versioned (e.g. replay-buffer-pro-1.5.0-windows-x64.zip), so
   // each [data-download] link is pointed at its platform's asset once the release loads.
-  // Links with no matching asset keep their href to the latest release page.
+  // Links with no matching asset, including 'other' (phones, Linux), keep their href
+  // to the latest release page.
   const ASSET_MATCHERS: Record<string, RegExp> = {
     windows: /windows.*\.zip$/i,
     macos: /macos.*\.pkg$/i,
   };
 
-  const os = detectOS();
+  const os = detectPlatform();
   const splits = document.querySelectorAll<HTMLElement>('[data-download-split]');
 
   splits.forEach((split) => {
