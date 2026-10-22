@@ -111,27 +111,53 @@ const footer = variant === 'footer';
     const menu = split.querySelector<HTMLUListElement>('.download-split-menu');
     if (!toggle || !menu) return;
 
+    const items = [...menu.querySelectorAll<HTMLAnchorElement>('[role="menuitem"]')];
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
     const close = () => {
       menu.hidden = true;
       toggle.setAttribute('aria-expanded', 'false');
     };
-    const open = () => {
+    // Opening moves focus into the menu, to the first item unless asked for another.
+    const open = (focusIndex = 0) => {
       menu.hidden = false;
       toggle.setAttribute('aria-expanded', 'true');
+      items[focusIndex]?.focus();
     };
 
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      menu.hidden ? open() : close();
+      isOpen() ? close() : open();
+    });
+    toggle.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      open(e.key === 'ArrowUp' ? items.length - 1 : 0);
     });
 
-    // Close after picking an option, when clicking elsewhere, or on Escape.
+    // Arrow keys, Home and End move between items. Escape closes and returns
+    // focus to the caret; Tab closes and lets focus move on.
+    menu.addEventListener('keydown', (e) => {
+      const i = items.indexOf(document.activeElement as HTMLAnchorElement);
+      const last = items.length - 1;
+      const next = { ArrowDown: i === last ? 0 : i + 1, ArrowUp: i <= 0 ? last : i - 1, Home: 0, End: last }[e.key];
+      if (next !== undefined) {
+        e.preventDefault();
+        items[next].focus();
+      } else if (e.key === 'Escape') {
+        close();
+        toggle.focus();
+      } else if (e.key === 'Tab') {
+        close();
+      }
+    });
+
+    // Close after picking an option, or when clicking or pressing Escape elsewhere.
     menu.addEventListener('click', close);
     document.addEventListener('click', (e) => {
       if (!split.contains(e.target as Node)) close();
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape' && isOpen() && !menu.contains(document.activeElement)) close();
     });
   });
 

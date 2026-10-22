@@ -705,6 +705,19 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     });
   };
   tabs.forEach((tab) => tab.addEventListener('click', () => selectOS(tab.dataset.osTab ?? '')));
+
+  // Arrow keys, Home and End move between tabs and select the one they land on.
+  const tabList = [...tabs];
+  tabList.forEach((tab, i) => {
+    tab.addEventListener('keydown', (e) => {
+      const last = tabList.length - 1;
+      const next = { ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      selectOS(tabList[next].dataset.osTab ?? '');
+      tabList[next].focus();
+    });
+  });
   selectOS(detectOS());
 
   // Show the latest release's version in the hero pill.
