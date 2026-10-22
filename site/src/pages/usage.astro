@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
     <link rel="stylesheet" href="../styles.css">
-    <script src="../scripts/index.js" type="module" defer></script>
+    <script is:inline src="../scripts/index.js" type="module" defer></script>
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -38,7 +38,7 @@
     <link rel="alternate" type="text/markdown" href="../usage.md" title="Markdown version of this page">
     <link rel="alternate" type="text/plain" href="../llms.txt" title="LLM-optimized documentation">
 
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "TechArticle",
@@ -60,7 +60,7 @@
         }
       }
     </script>
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -183,7 +183,7 @@
             <p>Turn on the server under <strong>Tools → WebSocket Server Settings</strong>, connect with any obs-websocket v5 client, and send a <code>CallVendorRequest</code> with vendor <code>replay-buffer-pro</code> and request <code>SaveClip</code>. It uses the same save-and-trim path as the dock buttons.</p>
             <div class="surface">
               <div class="surface-bar"><span class="surface-label mono">Request</span></div>
-              <div class="surface-body"><pre class="log"><code>{
+              <div class="surface-body"><pre class="log"><code is:raw>{
   "op": 6,
   "d": {
     "requestType": "CallVendorRequest",
@@ -199,7 +199,7 @@
             <p>With <a href="https://github.com/obs-websocket-community-projects/obs-websocket-js" rel="noopener" target="_blank">obs-websocket-js</a>, the same call looks like this. The plugin's reply is the <code>responseData</code> field of the result.</p>
             <div class="surface">
               <div class="surface-bar"><span class="surface-label mono">TypeScript</span></div>
-              <div class="surface-body"><pre class="log"><code>import OBSWebSocket from 'obs-websocket-js';
+              <div class="surface-body"><pre class="log"><code is:raw>import OBSWebSocket from 'obs-websocket-js';
 
 const obs = new OBSWebSocket();
 await obs.connect('ws://127.0.0.1:4455', 'your-password');
@@ -242,12 +242,12 @@ console.log(clip); // { accepted: true, durationSeconds: 120, requestedSeconds: 
                   <tr><th scope="col">Result</th><th scope="col">Meaning</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td><code>{"accepted": true, ...}</code></td><td>The save started. <code>durationSeconds</code> is the length being saved and <code>requestedSeconds</code> is how the plugin read your duration. <code>clamped</code> is <code>true</code> when the buffer was shorter than requested.</td></tr>
-                  <tr><td><code>{"accepted": false, "error": "invalid-duration"}</code></td><td>Neither or both duration fields were sent, the duration is not in a form above, or it is outside 1 to 21600 seconds.</td></tr>
-                  <tr><td><code>{"accepted": false, "error": "buffer-inactive"}</code></td><td>The replay buffer is not running.</td></tr>
-                  <tr><td><code>{"accepted": false, "error": "save-refused"}</code></td><td>OBS would drop the save, for example because recording is paused.</td></tr>
-                  <tr><td><code>{"accepted": false, "error": "unavailable"}</code></td><td>OBS is shutting down.</td></tr>
-                  <tr><td><code>{"accepted": false, "error": "timeout"}</code></td><td>OBS was busy and did not start the save within 2 seconds. Nothing was saved.</td></tr>
+                  <tr><td><code is:raw>{"accepted": true, ...}</code></td><td>The save started. <code>durationSeconds</code> is the length being saved and <code>requestedSeconds</code> is how the plugin read your duration. <code>clamped</code> is <code>true</code> when the buffer was shorter than requested.</td></tr>
+                  <tr><td><code is:raw>{"accepted": false, "error": "invalid-duration"}</code></td><td>Neither or both duration fields were sent, the duration is not in a form above, or it is outside 1 to 21600 seconds.</td></tr>
+                  <tr><td><code is:raw>{"accepted": false, "error": "buffer-inactive"}</code></td><td>The replay buffer is not running.</td></tr>
+                  <tr><td><code is:raw>{"accepted": false, "error": "save-refused"}</code></td><td>OBS would drop the save, for example because recording is paused.</td></tr>
+                  <tr><td><code is:raw>{"accepted": false, "error": "unavailable"}</code></td><td>OBS is shutting down.</td></tr>
+                  <tr><td><code is:raw>{"accepted": false, "error": "timeout"}</code></td><td>OBS was busy and did not start the save within 2 seconds. Nothing was saved.</td></tr>
                 </tbody>
               </table>
             </div>

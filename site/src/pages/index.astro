@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
     <link rel="stylesheet" href="styles.css">
-    <script src="scripts/index.js" type="module" defer></script>
+    <script is:inline src="scripts/index.js" type="module" defer></script>
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -56,7 +56,7 @@
     <meta itemprop="image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
 
     <!-- Enhanced JSON-LD with multiple schemas -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
@@ -87,7 +87,7 @@
     </script>
 
     <!-- Source Code Schema -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
@@ -106,7 +106,7 @@
     </script>
 
     <!-- FAQ Schema -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "FAQPage",
@@ -172,7 +172,7 @@
     </script>
 
     <!-- Installation HowTo Schema -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "HowTo",
@@ -720,7 +720,7 @@
             </details>
             <details>
               <summary>Can other apps save clips through OBS WebSocket?<span class="faq-icon" aria-hidden="true"></span></summary>
-              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
+              <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code is:raw>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
             </details>
           </div>
         </div>

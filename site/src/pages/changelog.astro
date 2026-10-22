@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
     <link rel="stylesheet" href="../styles.css">
-    <script src="../scripts/index.js" type="module" defer></script>
+    <script is:inline src="../scripts/index.js" type="module" defer></script>
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -38,7 +38,7 @@
     <link rel="alternate" type="text/markdown" href="../changelog.md" title="Markdown version of this page">
     <link rel="alternate" type="text/plain" href="../llms.txt" title="LLM-optimized documentation">
 
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
@@ -60,7 +60,7 @@
         }
       }
     </script>
-    <script type="application/ld+json">
+    <script type="application/ld+json" is:inline>
       {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -165,7 +165,7 @@
             </div>
             <div class="prose">
             <p>Save clips from other apps through obs-websocket.</p>
-            <ul><li><strong>Save clips from other apps.</strong> obs-websocket clients can save a clip of any whole-second length from 1 second to 6 hours with <code>CallVendorRequest</code>, using vendor <code>replay-buffer-pro</code>, request <code>SaveClip</code>, and data <code>{"durationSeconds": 120}</code>. Clips go through the same save-and-trim path as the dock buttons.</li><li><strong>Longer than the buffer.</strong> If a request asks for more than the buffer holds, the whole buffer is saved and the response includes <code>"clamped": true</code>.</li></ul>
+            <ul><li><strong>Save clips from other apps.</strong> obs-websocket clients can save a clip of any whole-second length from 1 second to 6 hours with <code>CallVendorRequest</code>, using vendor <code>replay-buffer-pro</code>, request <code>SaveClip</code>, and data <code is:raw>{"durationSeconds": 120}</code>. Clips go through the same save-and-trim path as the dock buttons.</li><li><strong>Longer than the buffer.</strong> If a request asks for more than the buffer holds, the whole buffer is saved and the response includes <code>"clamped": true</code>.</li></ul>
             </div>
           </section>
           <section class="release" id="v1-7-0">
