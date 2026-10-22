@@ -1,10 +1,13 @@
-import { readRepoFile } from '../lib/repo';
+import { gitDate, readRepoFile } from '../lib/repo';
 
 /** Absolute URL of the homepage, built from `site` and `base` in astro.config.mjs. */
 export const SITE_URL = new URL(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/`, import.meta.env.SITE).href;
 
 /** Plugin version from buildspec.json, so the site always shows the version being released. */
 export const VERSION: string = JSON.parse(readRepoFile('buildspec.json')).version;
+
+/** Date of the last site or version change; dates the homepage and llms.txt. */
+export const RELEASE_DATE = gitDate(['site', 'buildspec.json']);
 
 export interface Page {
   slug: string;

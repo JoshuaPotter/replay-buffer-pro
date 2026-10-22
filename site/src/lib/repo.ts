@@ -9,3 +9,9 @@ export const repoRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { 
 export function readRepoFile(path: string): string {
   return readFileSync(join(repoRoot, path), 'utf8');
 }
+
+/** Committer date (YYYY-MM-DD) of the last commit touching any of `paths` (repo-relative); today if none, e.g. uncommitted. */
+export function gitDate(paths: string[]): string {
+  const date = execFileSync('git', ['log', '-1', '--format=%cs', '--', ...paths], { cwd: repoRoot, encoding: 'utf8' }).trim();
+  return date || new Date().toISOString().slice(0, 10);
+}
