@@ -6,6 +6,18 @@
       "sourceType": "github",
       "skillPath": "skills/astro/SKILL.md",
       "computedHash": "ebefe26b231d32379c14e41a46c2de7b4b0184543bedab7febdabe4fb21fba4e"
+    },
+    "vgpu": {
+      "source": "vercel-labs/vgpu",
+      "sourceType": "github",
+      "skillPath": "skills/vgpu/SKILL.md",
+      "computedHash": "d7e9f06fe05c0b6ad5c44ffbd75e1946e731847fda769db130bf7bf622f651cd"
+    },
+    "vgpu-agent-flow": {
+      "source": "vercel-labs/vgpu",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/vgpu-agent-flow/SKILL.md",
+      "computedHash": "4460a8604b35b8be40b53c41c283fbe305c1b4225bcd77cf9228c32e2cb42029"
     }
   }
 }

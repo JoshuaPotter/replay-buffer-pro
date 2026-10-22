@@ -14,10 +14,12 @@
   "devDependencies": {
     "@astrojs/check": "0.9.10",
     "@types/node": "24.19.1",
+    "@vgpu/wgsl": "0.6.0",
     "typescript": "6.0.3"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.3",
-    "astro": "7.3.7"
+    "astro": "7.3.7",
+    "vgpu": "0.6.0"
   }
 }
