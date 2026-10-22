@@ -1,0 +1,44 @@
+name: Site Check
+run-name: ${{ github.head_ref }} site check
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - site/**
+      - buildspec.json
+      - .github/workflows/site-check.yaml
+permissions:
+  contents: read
+concurrency:
+  group: site-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-24.04
+    env:
+      ASTRO_TELEMETRY_DISABLED: 1
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: site/.nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci
+
+      - name: Check site
+        run: npm run check
+
+      - name: Build site
+        run: npm run build

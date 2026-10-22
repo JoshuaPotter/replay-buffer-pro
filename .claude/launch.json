@@ -2,10 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "docs-site",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "pages"],
-      "port": 8099
+      "name": "site",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "site", "run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "site-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "site", "run", "preview", "--", "--port", "4322"],
+      "port": 4322
     }
   ]
 }
