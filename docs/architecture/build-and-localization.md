@@ -122,12 +122,13 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 - **Pull requests**: Triggers build for both platforms to validate the PR.
 - **Website**: a push to `main` that touches `site/**` or `buildspec.json` builds `site/` with Astro and deploys GitHub Pages. Pull requests touching the same paths run a build-only Site Check. The site is a separate Node project (Node version in `site/.nvmrc`); it reads the plugin version from `buildspec.json` and page dates from git history at build time, so the deploy checks out full history.
 
-Website-only changes skip the plugin build. `push.yaml` and `pr-pull.yaml` list `site/**`,
-`.github/workflows/pages.yaml` and `.github/workflows/site-check.yaml` under `paths-ignore`, so a
-branch push or pull request builds only when at least one changed file falls outside them; a change
-that mixes site and plugin files builds as usual. Tag pushes always build, because GitHub does not
+Changes that only touch the website, docs or agent config skip the plugin build. `push.yaml` and
+`pr-pull.yaml` list `site/**`, `.github/workflows/pages.yaml`, `.github/workflows/site-check.yaml`,
+`'**.md'`, `docs/**` and `.claude/**` under `paths-ignore`, so a branch push or pull request builds
+only when at least one changed file falls outside them; a change that mixes these with plugin files
+builds as usual. Tag pushes always build, because GitHub does not
 evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so
-making the plugin build a required status check would block site-only pull requests. Before
+making the plugin build a required status check would block pull requests that only touch these paths. Before
 requiring it, replace the filter with an always-running job that inspects the changed files and
 skips the build with `if:` (a job skipped by a condition reports success).
 
