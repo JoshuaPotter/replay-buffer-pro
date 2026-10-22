@@ -90,6 +90,7 @@ User-facing description of the interfaces below lives in `site/src/pages/usage.a
 - Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
 - `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
 - GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**` or `.claude/**` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
+- Releases: the `release` skill (`.claude/skills/release/`, `/release`) cuts one end to end from a develop commit: a `release/X.Y.Z` PR into `main`, a tag on the merge commit, a back-merge into `develop`, and notes on the draft release CI creates. Its `references/writing-style.md` is the house style for release notes and changelog entries.
 - macOS CI uses Xcode's built-in compilation cache (CAS), not ccache — a ccache compiler-wrapper triggers a "conflicting deployment targets" error under Xcode 26.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 - C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
