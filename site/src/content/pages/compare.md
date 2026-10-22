@@ -1,6 +1,11 @@
-# Replay Buffer Pro vs the built-in OBS replay buffer
-
-The built-in OBS Studio replay buffer saves one fixed length. Replay Buffer Pro adds a button and hotkey for any length, trimmed without re-encoding.
+---
+title: "Replay Buffer Pro vs the Built-in OBS Replay Buffer"
+description: "A side-by-side comparison of Replay Buffer Pro and the built-in OBS Studio replay buffer, including when the built-in buffer is enough."
+headline: "Replay Buffer Pro vs the built-in OBS replay buffer"
+lead: "The built-in OBS Studio replay buffer saves one fixed length. Replay Buffer Pro adds a button and hotkey for any length, trimmed without re-encoding."
+schemaType: "WebPage"
+datePublished: "2026-10-05"
+---
 
 ## What is the difference?
 

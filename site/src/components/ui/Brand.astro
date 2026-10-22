@@ -1,0 +1,28 @@
+---
+interface Props {
+  /** Relative path to the site root: '' on the homepage, '../' on subpages. */
+  root: string;
+}
+
+const { root } = Astro.props;
+---
+<a class="brand" href={root || '#top'}>
+  <span class="brand-name">Replay Buffer Pro</span>
+</a>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .9375rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 30rem) {
+    .brand-name { font-size: .875rem; }
+  }
+</style>

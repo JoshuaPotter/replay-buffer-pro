@@ -1,0 +1,7 @@
+---
+// A link that opens in a new tab.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'>;
+---
+<a {...Astro.props} rel="noopener" target="_blank"><slot /></a>

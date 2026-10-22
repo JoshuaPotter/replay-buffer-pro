@@ -1,0 +1,366 @@
+/* ============================================================
+   Design tokens
+   A Geist-flavoured monochrome dark scale: flat black surfaces,
+   hairline borders, no gradients or glows. Colour is reserved for
+   state (success / warning / links).
+   ============================================================ */
+:root {
+  /* Surfaces */
+  --bg: #000;
+  --bg-raised: #0a0a0a;
+  --bg-subtle: #0f0f0f;
+
+  /* Neutral scale */
+  --gray-100: #1a1a1a;
+  --gray-200: #1f1f1f;
+  --gray-300: #292929;
+  --gray-400: #2e2e2e;
+  --gray-500: #454545;
+  --gray-600: #878787;
+  --gray-700: #8f8f8f;
+  --gray-900: #a1a1a1;
+  --gray-1000: #ededed;
+
+  /* Semantic */
+  --text: var(--gray-1000);
+  --text-muted: var(--gray-900);
+  --text-faint: var(--gray-700);
+  --border: var(--gray-200);
+  --border-strong: var(--gray-400);
+
+  --blue: #0072f5;
+  --blue-light: #52a8ff;
+  --green: #45a557;
+  --amber: #ffb224;
+  --red: #e5484d;
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-full: 999px;
+
+  /* Layout */
+  --page-width: 1200px;
+  --page-margin: 24px;
+  --header-h: 64px;
+
+  /* Type */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+/* ============================================================
+   Base
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+h1 {
+  font-size: clamp(2.5rem, 6.2vw, 4rem);
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+}
+h2 {
+  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+  letter-spacing: -0.045em;
+}
+h3 { font-size: 1rem; letter-spacing: -0.02em; }
+p { margin: 0; line-height: 1.6; }
+a { color: inherit; text-decoration: none; }
+.mono { font-family: var(--font-mono); font-size: .9em; }
+code {
+  font-family: var(--font-mono);
+  font-size: .875em;
+  padding: .1em .35em;
+  border-radius: var(--r-sm);
+  background: var(--gray-100);
+  border: 1px solid var(--border);
+  color: var(--gray-1000);
+}
+code.click-to-copy svg {
+  margin-left: .25rem;
+}
+code.click-to-copy:hover svg {
+  stroke: #fff;
+}
+::selection { background: var(--gray-1000); color: #000; }
+:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: .75rem 1rem;
+  background: var(--gray-1000);
+  color: #000;
+  font-size: .875rem;
+  font-weight: 500;
+  border-radius: 0 0 var(--r-md) 0;
+}
+.skip-link:focus { left: 0; }
+.container {
+  width: 100%;
+  max-width: calc(var(--page-width) + var(--page-margin) * 2);
+  margin: 0 auto;
+  padding: 0 var(--page-margin);
+}
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  height: 2rem;
+  padding: 0 .75rem;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.btn-primary {
+  background: var(--gray-1000);
+  color: #000;
+}
+.btn-primary:hover { background: #fff; }
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.btn-secondary:hover { background: var(--gray-100); border-color: var(--gray-500); }
+.btn-lg { height: 2.5rem; padding: 0 1.125rem; font-size: .9375rem; }
+.btn-icon-only { width: 2rem; padding: 0; color: var(--text-muted); }
+.btn-icon-only:hover { color: var(--text); }
+.hero-lead {
+  margin-top: 1.25rem;
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.6vw, 1.125rem);
+  line-height: 1.55;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  margin-top: 2rem;
+}
+.cta-row-center { justify-content: center; }
+/* ============================================================
+   Surfaces and code panels
+   Global, because Markdown pages render them too (lib/prose-plugin.ts).
+   ============================================================ */
+.surface {
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+.surface-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  height: 2.375rem;
+  padding: 0 .875rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.surface-label {
+  font-size: .75rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.surface-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(69, 165, 87, .18);
+  flex-shrink: 0;
+}
+.surface-body { padding: 1.25rem; }
+/* The hero's OBS dock frame */
+.surface-chrome .surface-body {
+  display: flex;
+  justify-content: center;
+  padding: 1.75rem 1.25rem;
+  background:
+    linear-gradient(var(--gray-100) 1px, transparent 1px) 0 0 / 100% 24px,
+    linear-gradient(90deg, var(--gray-100) 1px, transparent 1px) 0 0 / 24px 100%;
+}
+
+@media (max-width: 30rem) {
+  .surface-chrome .surface-body { padding: 1rem .75rem; }
+}
+
+.log {
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  line-height: 1.85;
+  color: var(--text-muted);
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+}
+.log code { background: none; border: 0; padding: 0; font-size: inherit; color: inherit; }
+.log-dim { color: var(--gray-600); }
+.log-key { color: var(--blue-light); }
+.log-ok { color: var(--green); }
+
+/* ============================================================
+   Sections
+   ============================================================ */
+.section { padding: clamp(3.5rem, 8vw, 6rem) 0; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: .1875rem .5rem;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+  font-size: .6875rem;
+  font-weight: 450;
+  font-family: var(--font-mono);
+}
+.tag-ok { color: var(--green); border-color: rgba(69, 165, 87, .35); background: rgba(69, 165, 87, .08); }
+/* ============================================================
+   Cards
+   ============================================================ */
+.card-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+/* Text keeps a reading measure; tables use the full container width. */
+.prose > :not(.table-wrap) { max-width: 44rem; }
+.prose h2 {
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 1rem;
+  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+  letter-spacing: -0.035em;
+}
+.prose > h2:first-child { margin-top: 0; }
+.prose p,
+.prose li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.prose p + p,
+.prose ul + p,
+.prose ol + p { margin-top: 1rem; }
+/* The first paragraph under a heading is the direct answer */
+.prose h2 + p { color: var(--text); }
+.prose strong { color: var(--text); font-weight: 500; }
+.prose a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+.prose a:hover { color: var(--text); }
+.prose ul,
+.prose ol {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+}
+.compare {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+.compare th,
+.compare td {
+  padding: .875rem 1.25rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.compare thead th {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg-subtle);
+}
+.compare tbody th { width: 28%; font-weight: 400; color: var(--text-faint); }
+.compare td { color: var(--text-muted); }
+.compare tbody tr:last-child th,
+.compare tbody tr:last-child td { border-bottom: 0; }
+.prose + .table-wrap,
+.table-wrap + .prose { margin-top: 2.5rem; }
+/* Code panels and tables nested in long-form prose (usage page) */
+.prose .surface,
+.prose .table-wrap { margin-top: 1.5rem; }
+.prose .surface + p,
+.prose .table-wrap + p { margin-top: 1.5rem; }
+.prose .compare td code { white-space: nowrap; }
+.compare a { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+.compare a:hover { color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (min-width: 48rem) {
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 60rem) {
+  .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 30rem) {
+  :root { --page-margin: 16px; }
+  .cta-row > * { width: 100%; }
+}

@@ -1,6 +1,11 @@
-# How to use Replay Buffer Pro
-
-Every way to save a clip, and what each one does.
+---
+title: "How to Use Replay Buffer Pro"
+description: "Every way to save a clip with Replay Buffer Pro: the OBS dock, per-duration hotkeys, the Save Replay Buffer button, and the obs-websocket SaveClip request."
+headline: "How to use Replay Buffer Pro"
+lead: "Every way to save a clip, and what each one does."
+schemaType: "TechArticle"
+datePublished: "2026-10-06"
+---
 
 ## Ways to save a clip
 
@@ -35,11 +40,11 @@ Open **Settings → Hotkeys** in OBS Studio and search for **Replay Buffer Pro**
 
 The Save Replay Buffer button has no hotkey of its own. To save the full buffer from a key, use OBS's built-in **Save Replay** hotkey, which also saves it untrimmed.
 
-## How do I save clips over obs-websocket?
+## How do I save clips over obs-websocket? {#obs-websocket}
 
 Turn on the server under **Tools → WebSocket Server Settings**, connect with any obs-websocket v5 client, and send a `CallVendorRequest` with vendor `replay-buffer-pro` and request `SaveClip`. It uses the same save-and-trim path as the dock buttons.
 
-```json
+```json title="Request"
 {
   "op": 6,
   "d": {
@@ -56,7 +61,7 @@ Turn on the server under **Tools → WebSocket Server Settings**, connect with a
 
 With [obs-websocket-js](https://github.com/obs-websocket-community-projects/obs-websocket-js), the same call looks like this. The plugin's reply is the `responseData` field of the result.
 
-```ts
+```ts title="TypeScript"
 import OBSWebSocket from 'obs-websocket-js';
 
 const obs = new OBSWebSocket();
@@ -71,7 +76,7 @@ const { responseData: clip } = await obs.call('CallVendorRequest', {
 console.log(clip); // { accepted: true, durationSeconds: 120, requestedSeconds: 120, clamped: false }
 ```
 
-## How do I write the duration?
+## How do I write the duration? {#duration-formats}
 
 Send `duration` as a number of seconds or as text in any of these forms. Case and surrounding spaces do not matter, and fractions are rounded to the nearest second.
 

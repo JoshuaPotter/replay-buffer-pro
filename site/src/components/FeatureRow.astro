@@ -1,0 +1,76 @@
+---
+// A homepage feature: copy and a check list beside a visual, which alternates sides with `reverse`.
+interface Props {
+  title: string;
+  points: string[];
+  reverse?: boolean;
+}
+
+const { title, points, reverse } = Astro.props;
+---
+<div class:list={['feature-row', { 'feature-row-reverse': reverse }]}>
+  <div class="feature-row-copy">
+    <h2>{title}</h2>
+    <p class="feature-statement"><slot name="statement" /></p>
+    <ul class="check-list">
+      {points.map((point) => <li>{point}</li>)}
+    </ul>
+  </div>
+  <div class="feature-row-media">
+    <slot name="media" />
+  </div>
+</div>
+
+<style>
+  /* Alternating feature rows */
+  .feature-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0;
+    border-top: 1px solid var(--border);
+  }
+  .feature-row:first-child { border-top: 0; padding-top: 0; }
+  .feature-row-copy { max-width: 34rem; }
+  .feature-statement {
+    margin-top: 1.25rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--text-faint);
+    text-wrap: pretty;
+  }
+  .feature-statement :global(strong) { color: var(--text); font-weight: 450; }
+  .feature-row-media { min-width: 0; }
+  .check-list {
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .625rem;
+  }
+  .check-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: .9375rem;
+    color: var(--text-muted);
+  }
+  .check-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: .4375rem;
+    width: .625rem;
+    height: .375rem;
+    border-left: 1.5px solid var(--gray-1000);
+    border-bottom: 1.5px solid var(--gray-1000);
+    transform: rotate(-45deg);
+  }
+
+  @media (min-width: 60rem) {
+    .feature-row { grid-template-columns: 1fr 1fr; }
+    .feature-row-reverse .feature-row-copy { order: 2; }
+    .feature-row-reverse .feature-row-media { order: 1; }
+  }
+</style>

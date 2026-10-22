@@ -1,0 +1,31 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+<div class="issue">
+  <div class="issue-title">{title}</div>
+  <slot />
+</div>
+
+<style>
+  .issue {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .issue:last-child { border-bottom: 0; }
+  .issue-title {
+    margin-bottom: .5rem;
+    font-size: .9375rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .issue :global(p) { font-size: .875rem; color: var(--text-muted); }
+  .issue :global(p + p) { margin-top: .75rem; }
+  .issue :global(p strong) { color: var(--text); font-weight: 500; }
+  .issue :global(p em) { color: var(--text); font-style: italic; }
+  .issue :global(a) { color: var(--blue-light); text-decoration: underline; text-underline-offset: 2px; }
+  .issue :global(a:hover) { color: var(--text); }
+</style>

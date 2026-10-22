@@ -1,6 +1,9 @@
 ---
 import { getCollection, render } from 'astro:content';
 import SubpageLayout from '../layouts/SubpageLayout.astro';
+import ExternalLink from '../components/ui/ExternalLink.astro';
+import Section from '../components/ui/Section.astro';
+import { RELEASES_URL } from '../data/site';
 
 const releases = await Promise.all(
   (await getCollection('changelog'))
@@ -19,19 +22,44 @@ const longDate = (date: string) =>
   schemaType="WebPage"
   datePublished="2026-10-05"
 >
-  <section class="section">
-    <div class="container">
-      {releases.map(({ version, date, Content }) => (
-        <section class="release" id={`v${version.replaceAll('.', '-')}`}>
-          <div class="release-meta">
-            <h2><a href={`https://github.com/JoshuaPotter/replay-buffer-pro/releases/tag/${version}`} rel="noopener" target="_blank">{version}</a></h2>
-            <time datetime={date}>{longDate(date)}</time>
-          </div>
-          <div class="prose">
-            <Content />
-          </div>
-        </section>
-      ))}
-    </div>
-  </section>
+  <Section>
+    {releases.map(({ version, date, Content }) => (
+      <section class="release" id={`v${version.replaceAll('.', '-')}`}>
+        <div class="release-meta">
+          <h2><ExternalLink href={`${RELEASES_URL}/tag/${version}`}>{version}</ExternalLink></h2>
+          <time datetime={date}>{longDate(date)}</time>
+        </div>
+        <div class="prose">
+          <Content />
+        </div>
+      </section>
+    ))}
+  </Section>
 </SubpageLayout>
+
+<style>
+  .release {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem 2rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .release:first-child { border-top: 0; padding-top: 0; }
+  .release-meta h2 { font-size: 1.5rem; letter-spacing: -0.035em; }
+  .release-meta time {
+    display: block;
+    margin-top: .375rem;
+    font-size: .8125rem;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .release .prose { max-width: 40rem; }
+  .release .prose :global(p),
+  .release .prose :global(li) { font-size: .9375rem; }
+  .release .prose > :global(p:first-child) { color: var(--text); }
+
+  @media (min-width: 48rem) {
+    .release { grid-template-columns: 11rem 1fr; }
+  }
+</style>

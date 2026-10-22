@@ -74,7 +74,7 @@ In `$tmp/release`:
 
 - Set `"version"` in `buildspec.json` to `X.Y.Z`. Change that one line only.
 - Add the changelog entry to `site/src/content/changelog.md`.
-- If this release adds something the usage page documents, note the version that introduced it in **both** `site/src/pages/usage.astro` and its twin `site/public/usage.md`. For example, 1.9.0 changed "needs Replay Buffer Pro 1.8.0 or later" to "…1.8.0 or later (1.9.0 for the `duration` field)". Skip this when no documented interface changed.
+- If this release adds something the usage page documents, note the version that introduced it in `site/src/content/pages/usage.md`, which builds both the page and its `usage.md` twin. For example, 1.9.0 changed "needs Replay Buffer Pro 1.8.0 or later" to "…1.8.0 or later (1.9.0 for the `duration` field)". Skip this when no documented interface changed.
 
 Commit everything as `chore: bump version to X.Y.Z`, then push and open the PR:
 

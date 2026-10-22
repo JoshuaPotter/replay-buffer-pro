@@ -9,22 +9,41 @@ export const VERSION: string = JSON.parse(readRepoFile('buildspec.json')).versio
 /** Date of the last site or version change; dates the homepage and llms.txt. */
 export const RELEASE_DATE = gitDate(['site', 'buildspec.json']);
 
+export const AUTHOR = 'Joshua Potter';
+
+export const REPO_URL = 'https://github.com/JoshuaPotter/replay-buffer-pro';
+export const RELEASES_URL = `${REPO_URL}/releases`;
+export const LATEST_RELEASE_URL = `${RELEASES_URL}/latest`;
+export const ISSUES_URL = `${REPO_URL}/issues`;
+export const DISCUSSIONS_URL = `${REPO_URL}/discussions`;
+
+/** Social card and JSON-LD screenshot. */
+export const SCREENSHOT_URL = 'https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png';
+
+/** Homepage sections linked from the header nav and the footer's Quickstart column. */
+export const SECTION_LINKS = {
+  howItWorks: { hash: '#how-it-works', label: 'How it works' },
+  install: { hash: '#install', label: 'Install' },
+  faq: { hash: '#faq', label: 'FAQ' },
+  troubleshooting: { hash: '#troubleshooting', label: 'Troubleshooting' },
+};
+
 export interface Page {
   slug: string;
   /** Footer "Explore" link, breadcrumb, and BreadcrumbList name. */
   label: string;
   changefreq: 'weekly' | 'monthly';
   priority: string;
-  /** Repo-relative paths whose last commit dates the page in sitemap.xml. */
+  /** Repo-relative paths whose last commit dates the page in sitemap.xml (older paths keep its history). */
   sources: string[];
 }
 
 /** Content subpages, in footer and sitemap order. */
 export const PAGES: Page[] = [
-  { slug: 'usage', label: 'Usage', changefreq: 'monthly', priority: '0.8', sources: ['site/src/pages/usage.astro'] },
-  { slug: 'obs-replay-buffer-guide', label: 'Replay buffer guide', changefreq: 'monthly', priority: '0.8', sources: ['site/src/pages/obs-replay-buffer-guide.astro'] },
-  { slug: 'compare', label: 'Compare', changefreq: 'monthly', priority: '0.8', sources: ['site/src/pages/compare.astro'] },
-  { slug: 'integrations', label: 'Community integrations', changefreq: 'monthly', priority: '0.6', sources: ['site/src/pages/integrations.astro'] },
+  { slug: 'usage', label: 'Usage', changefreq: 'monthly', priority: '0.8', sources: ['site/src/content/pages/usage.md', 'site/src/pages/usage.astro'] },
+  { slug: 'obs-replay-buffer-guide', label: 'Replay buffer guide', changefreq: 'monthly', priority: '0.8', sources: ['site/src/content/pages/obs-replay-buffer-guide.md', 'site/src/pages/obs-replay-buffer-guide.astro'] },
+  { slug: 'compare', label: 'Compare', changefreq: 'monthly', priority: '0.8', sources: ['site/src/content/pages/compare.md', 'site/src/pages/compare.astro'] },
+  { slug: 'integrations', label: 'Community integrations', changefreq: 'monthly', priority: '0.6', sources: ['site/src/content/pages/integrations.md', 'site/src/pages/integrations.astro'] },
   { slug: 'changelog', label: 'Changelog', changefreq: 'monthly', priority: '0.6', sources: ['site/src/pages/changelog.astro', 'site/src/content/changelog.md'] },
 ];
 

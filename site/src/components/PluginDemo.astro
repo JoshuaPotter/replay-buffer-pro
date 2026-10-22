@@ -1,0 +1,625 @@
+---
+// The interactive OBS dock on the homepage. scripts/plugin-demo.ts relabels the save
+// buttons from the Customize dialog and shows toasts when they are clicked.
+import ChevronDown from '../icons/chevron-down.svg';
+import ChevronUp from '../icons/chevron-up.svg';
+import Close from '../icons/close.svg';
+import Popout from '../icons/popout.svg';
+import { clipButtons } from '../data/demo';
+---
+<div class="plugin-ui-stage">
+  <div class="plugin-ui-demo" id="plugin-ui-demo">
+    <div class="plugin-header">
+      <span class="plugin-title">Replay Buffer Pro</span>
+      <div class="plugin-controls">
+        <button class="plugin-control-btn" aria-label="Popout"><Popout /></button>
+        <button class="plugin-control-btn" aria-label="Close"><Close width="16" height="16" /></button>
+      </div>
+    </div>
+
+    <div class="plugin-body">
+      <div class="plugin-section">
+        <h3 class="plugin-section-title">Replay Buffer Settings</h3>
+
+        <div class="buffer-length-container">
+          <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
+          <div class="buffer-number-input" id="buffer-number-input">
+            <input
+              type="number"
+              class="buffer-length-value-input"
+              id="buffer-length-input"
+              value="7200"
+              min="1"
+              max="21600"
+              step="1"
+            >
+            <span class="buffer-length-unit">sec</span>
+            <div class="buffer-number-steppers">
+              <button type="button" class="buffer-number-step" id="buffer-step-up" aria-label="Increase buffer length"><ChevronUp /></button>
+              <button type="button" class="buffer-number-step" id="buffer-step-down" aria-label="Decrease buffer length"><ChevronDown /></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plugin-section">
+        <div class="plugin-section-header">
+          <h3 class="plugin-section-title">Save Clips</h3>
+          <button type="button" class="customize-btn" id="customize-btn" aria-haspopup="dialog">Customize</button>
+        </div>
+
+        <div class="clip-buttons-grid">
+          {clipButtons.map(({ label }) => <button class="clip-btn">{label}</button>)}
+        </div>
+
+        <button class="save-buffer-btn">Save Replay Buffer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customize Save Buttons Modal (panel-scoped) -->
+  <div id="customize-modal" class="demo-modal-overlay" aria-hidden="true">
+    <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="demo-modal-header">
+        <span id="modal-title" class="demo-modal-title">Customize Save Buttons</span>
+        <button type="button" class="demo-modal-close" id="modal-close" aria-label="Close"><Close /></button>
+      </div>
+      <div class="demo-modal-body">
+        <div class="demo-modal-form" id="modal-form">
+          {clipButtons.map(({ seconds }, i) => (
+            <div class="demo-modal-row">
+              <label class="demo-modal-label" for={`btn-input-${i}`}>Button {i + 1}</label>
+              <div class="demo-modal-input-wrap">
+                <input type="number" class="demo-modal-input" id={`btn-input-${i}`} min="1" max="21600" value={seconds}>
+                <span class="demo-modal-unit">sec</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="demo-modal-footer">
+        <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-cancel">Cancel</button>
+        <button type="button" class="demo-modal-btn demo-modal-save" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .plugin-ui-demo {
+    width: 100%;
+    background: #2b2f38;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.5);
+    border: 0.0625rem solid rgba(0, 0, 0, 0.4);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    transform-origin: center bottom;
+    transition:
+      transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+      filter 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .plugin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    background: #1e2229;
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.3);
+  }
+  .plugin-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #d4d8de;
+    letter-spacing: 0.00625rem;
+  }
+  .plugin-controls {
+    display: flex;
+    gap: 0.375rem;
+    align-items: center;
+  }
+  .plugin-control-btn {
+    padding: 0.1875rem;
+    background: transparent;
+    border: none;
+    color: #b4bec9; /* Lightened from #9aa0aa for better contrast */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.1875rem;
+    transition: all 0.15s ease;
+  }
+  .plugin-control-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d8de;
+  }
+  .plugin-body {
+    padding: 0.875rem;
+  }
+  .plugin-section {
+    margin-bottom: 1rem;
+  }
+  .plugin-section:last-child {
+    margin-bottom: 0;
+  }
+  .plugin-section-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #d4d8de;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: 0.00625rem;
+  }
+  /* Buffer Length Number Input Styles */
+  .buffer-length-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+  }
+  .buffer-length-label {
+    font-size: 0.75rem;
+    color: #b4bec9;
+  }
+  .buffer-number-input {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #d4d8de;
+    font-weight: 500;
+    background: #3a3f4a;
+    padding: 0.1875rem 0.375rem 0.1875rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    width: fit-content;
+    flex-shrink: 0;
+  }
+  .buffer-length-value-input {
+    background: transparent;
+    border: none;
+    color: #d4d8de;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    width: 2.75rem;
+    text-align: right;
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .buffer-length-value-input::-webkit-outer-spin-button,
+  .buffer-length-value-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .buffer-length-unit {
+    color: #d4d8de;
+    font-weight: 500;
+  }
+  .buffer-number-steppers {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0.125rem;
+  }
+  .buffer-number-step {
+    background: none;
+    border: none;
+    color: #9aa7b2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 0.75rem;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 0.125rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .buffer-number-step:hover {
+    background: #4a505c;
+    color: #c4cdd6;
+  }
+  .buffer-number-step:active {
+    background: #565d6a;
+  }
+  /* Clip Buttons Grid */
+  .clip-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+  }
+  /* Plugin Demo Buttons - Shared Styles */
+  .clip-btn,
+  .save-buffer-btn {
+    padding: 0.5rem 0.75rem;
+    background: #4a5060;
+    border: 0.0625rem solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
+    color: #e8eaed;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .clip-btn:hover,
+  .save-buffer-btn:hover {
+    background: #555c6e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .clip-btn:active,
+  .save-buffer-btn:active {
+    opacity: 0.9;
+  }
+  .save-buffer-btn {
+    width: 100%;
+  }
+  /* Add subtle button press effect */
+  .clip-btn,
+  .save-buffer-btn {
+    transition: transform 0.1s ease, background-color 0.2s ease, opacity 0.2s ease;
+    cursor: pointer;
+  }
+  .clip-btn:active,
+  .save-buffer-btn:active {
+    transform: scale(0.95);
+  }
+  /* Disabled clip button state */
+  .clip-btn:disabled,
+  .clip-btn.disabled {
+    opacity: 1; /* Changed from 0.4 for better text contrast */
+    cursor: not-allowed;
+    background: #2d3139; /* Changed from rgba(255, 255, 255, 0.05) for better contrast */
+    color: #7e8490; /* Changed from rgba(255, 255, 255, 0.5) for better contrast */
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+  .clip-btn:disabled:hover,
+  .clip-btn.disabled:hover {
+    background: #2d3139;
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: none;
+  }
+  .clip-btn:disabled:active,
+  .clip-btn.disabled:active {
+    transform: none;
+  }
+  .plugin-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .plugin-section-header .plugin-section-title {
+    margin-bottom: 0;
+  }
+  .customize-btn {
+    background: #4a5060;
+    border: 0.0625rem solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
+    color: #e8eaed;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 0.1875rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .customize-btn:hover {
+    background: #555c6e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .customize-btn:active {
+    opacity: 0.9;
+  }
+  .plugin-ui-stage {
+    max-width: 26rem;
+    zoom: 1.125;
+    /* Extra vertical room so the modal card can overflow the panel top edge */
+    padding-top: 0.5rem;
+  }
+  /* Panel recession effect when modal is open */
+  .plugin-ui-demo.panel-recessed {
+    transform: scale(0.94);
+    filter: blur(3px) brightness(0.55);
+    box-shadow:
+      0 2.5rem 6rem rgba(0, 0, 0, 0.8),
+      0 0 0 0.0625rem rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    overflow: visible;
+  }
+  .demo-modal-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .demo-modal-overlay.show {
+    pointer-events: auto;
+  }
+  .demo-modal {
+    background: #2b2f38;
+    border: 0.0625rem solid rgba(255, 255, 255, 0.13);
+    border-radius: 0.5rem;
+    box-shadow:
+      0 0 0 0.0625rem rgba(0, 0, 0, 0.35),
+      0 0.5rem 1.25rem rgba(0, 0, 0, 0.35);
+    width: 100%;
+    max-width: 14rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    opacity: 0;
+    transform: scale(1.06);
+    transition:
+      opacity 0.22s ease,
+      transform 0.28s cubic-bezier(0.2, 0, 0.3, 1);
+  }
+  .demo-modal-overlay.show .demo-modal {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .demo-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.875rem 0.625rem;
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.3);
+    background: #1e2229;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+  .demo-modal-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #d4d8de;
+    letter-spacing: 0.00625rem;
+  }
+  .demo-modal-close {
+    background: transparent;
+    border: none;
+    color: #9aa7b2;
+    cursor: pointer;
+    padding: 0.1875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.1875rem;
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+  .demo-modal-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d8de;
+  }
+  .demo-modal-body {
+    padding: 0.75rem 0.875rem;
+  }
+  .demo-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .demo-modal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .demo-modal-label {
+    font-size: 0.75rem;
+    color: #b4bec9;
+    flex: 1;
+    min-width: 0;
+  }
+  .demo-modal-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #3a3f4a;
+    border: 0.0625rem solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    transition: border-color 0.15s ease;
+  }
+  .demo-modal-input-wrap:focus-within {
+    border-color: rgba(107, 163, 255, 0.5);
+    box-shadow: 0 0 0 0.125rem rgba(107, 163, 255, 0.15);
+  }
+  .demo-modal-input {
+    background: transparent;
+    border: none;
+    color: #d4d8de;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-family: inherit;
+    width: 3rem;
+    text-align: right;
+    outline: none;
+    padding: 0;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .demo-modal-input::-webkit-outer-spin-button,
+  .demo-modal-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .demo-modal-unit {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #9aa7b2;
+    white-space: nowrap;
+  }
+  .demo-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem 0.75rem;
+    border-top: 0.0625rem solid rgba(0, 0, 0, 0.3);
+  }
+  .demo-modal-btn {
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 0.0625rem solid transparent;
+  }
+  .demo-modal-cancel {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #9aa7b2;
+  }
+  .demo-modal-cancel:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #c4cdd6;
+  }
+  .demo-modal-save {
+    background: #4a5060;
+    border-color: rgba(0, 0, 0, 0.3);
+    color: #e8eaed;
+  }
+  .demo-modal-save:hover {
+    background: #555c6e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .demo-modal-save:active {
+    opacity: 0.9;
+  }
+</style>
+
+<style is:global>
+  /* Toasts are created by scripts/plugin-demo.ts at the end of <body>, outside this component. */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 360px;
+    max-height: 80vh;
+    z-index: 9999;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px;
+
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+  .toast-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .toast-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toast-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  .toast-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .clip-toast {
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    opacity: 0;
+    transform: translateX(20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 360px;
+  }
+  .clip-toast.show {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  .clip-toast.fade-out {
+    opacity: 0;
+    transform: translateX(20px) scale(0.9);
+  }
+  .clip-toast.achievement-toast {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.95) 0%, rgba(99, 102, 241, 0.95) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: achievement-pulse 0.6s ease-out;
+  }
+  @keyframes achievement-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .toast-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: #10b981;
+  }
+  .achievement-toast .toast-icon {
+    font-size: 24px;
+    color: #fff;
+  }
+  .toast-icon svg {
+    display: block;
+  }
+  .toast-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .toast-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+  .toast-subtitle {
+    font-size: 12px;
+    opacity: 0.85;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+  }
+
+  @media (max-width: 768px) {
+    /* Mobile adjustments */
+    .toast-container {
+      bottom: 16px;
+      right: 16px;
+      left: 16px;
+      width: auto;
+      max-height: 50vh;
+    }
+    .clip-toast {
+      min-width: auto;
+    }
+  }
+</style>
+
+<script>
+  import { initPluginDemo } from '../scripts/plugin-demo';
+
+  initPluginDemo();
+</script>

@@ -1,0 +1,11 @@
+---
+// A labelled code or log panel. The page writes the <code> element, so it can use is:raw.
+import Surface from './ui/Surface.astro';
+
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+<Surface label={label} mono><pre class="log"><slot /></pre></Surface>

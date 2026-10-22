@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { satteri } from '@astrojs/markdown-satteri';
+import { prosePlugin } from './src/lib/prose-plugin';
 
 export default defineConfig({
   site: 'https://joshuapotter.github.io',
@@ -13,9 +14,12 @@ export default defineConfig({
   // across newlines and changes rendered text. Keep markup exactly as written.
   compressHTML: false,
   markdown: {
-    // The site uses straight quotes everywhere.
-    processor: satteri({ features: { smartPunctuation: false } }),
-    // Shiki writes inline colour styles; the site styles code with styles.css only.
+    processor: satteri({
+      // The site uses straight quotes everywhere. `{#id}` after a heading sets its anchor.
+      features: { smartPunctuation: false, headingAttributes: true },
+      hastPlugins: [prosePlugin],
+    }),
+    // Shiki writes inline colour styles; the site styles code panels in global.css (.log).
     syntaxHighlight: false,
   },
 });

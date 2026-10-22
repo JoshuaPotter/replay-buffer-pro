@@ -1,4 +1,7 @@
 ---
+import Caret from '../icons/caret.svg';
+import { LATEST_RELEASE_URL as latest } from '../data/site';
+
 // The split Download button with a platform menu, in the four places it appears.
 interface Props {
   variant: 'header' | 'hero' | 'cta' | 'footer';
@@ -12,18 +15,130 @@ const btn = {
   footer: 'btn btn-secondary',
 }[variant];
 const id = variant === 'header' ? 'download-top' : variant === 'hero' ? 'download-cta' : undefined;
-// Large buttons swap their text for the visitor's platform (utils.js).
+// Large buttons swap their text for the visitor's platform (the script below).
 const label = variant === 'hero' || variant === 'cta';
 const footer = variant === 'footer';
-const latest = 'https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest';
 ---
 <div class:list={['download-split', { 'footer-download-split': footer }]} data-download-split>
   <a id={id} class={`${btn} download-split-main`} data-download-auto data-download-label={label ? '' : undefined} data-download="windows" href={latest} rel={footer ? 'noopener' : undefined} target={footer ? '_blank' : undefined}>Download</a>
   <button type="button" class={`${btn} download-split-toggle`} aria-haspopup="true" aria-expanded="false" aria-label="Choose a platform">
-    <svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <Caret class="caret" />
   </button>
   <ul class="download-split-menu" role="menu" hidden>
     <li role="none"><a role="menuitem" data-download="windows" href={latest}>Windows (x64)<span class="dl-ext">.zip</span></a></li>
     <li role="none"><a role="menuitem" data-download="macos" href={latest}>macOS — Universal<span class="dl-ext">.pkg</span></a></li>
   </ul>
 </div>
+
+<style>
+  /* Split download button: primary action + caret that opens a platform menu */
+  .download-split { position: relative; display: inline-flex; align-items: stretch; }
+  .download-split-main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .download-split-toggle {
+    padding: 0 .5rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: 1px;
+  }
+  .download-split-toggle :global(.caret) { transition: transform .15s ease; }
+  .download-split-toggle[aria-expanded="true"] :global(.caret) { transform: rotate(180deg); }
+  .download-split-menu {
+    position: absolute;
+    top: calc(100% + .375rem);
+    right: 0;
+    min-width: 100%;
+    margin: 0;
+    padding: .25rem;
+    list-style: none;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .6);
+    z-index: 60;
+  }
+  .download-split-menu[hidden] { display: none; }
+  .download-split-menu a {
+    display: block;
+    padding: .5rem .625rem;
+    white-space: nowrap;
+    color: var(--text-muted);
+    border-radius: var(--r-md);
+    font-size: .8125rem;
+    font-weight: 450;
+  }
+  .download-split-menu a:hover { background: var(--gray-200); color: var(--text); }
+  .download-split-menu .dl-ext { color: var(--text-faint); margin-left: .375rem; font-family: var(--font-mono); font-size: .75rem; }
+  .footer-download-split { margin-top: 1.5rem; }
+
+  @media (max-width: 30rem) {
+    :global(.cta-row) .download-split { width: 100%; }
+    :global(.cta-row) .download-split-main { flex: 1; }
+  }
+</style>
+
+<script>
+  import { detectOS } from '../scripts/os';
+  import { getLatestRelease } from '../scripts/release';
+
+  const OS_LABELS = {
+    windows: 'Download for Windows (x64)',
+    macos: 'Download for macOS',
+  };
+
+  // Release asset names are versioned (e.g. replay-buffer-pro-1.5.0-windows-x64.zip), so
+  // each [data-download] link is pointed at its platform's asset once the release loads.
+  // Links with no matching asset keep their href to the latest release page.
+  const ASSET_MATCHERS: Record<string, RegExp> = {
+    windows: /windows.*\.zip$/i,
+    macos: /macos.*\.pkg$/i,
+  };
+
+  const os = detectOS();
+  const splits = document.querySelectorAll<HTMLElement>('[data-download-split]');
+
+  splits.forEach((split) => {
+    // The main button targets the visitor's OS. This runs before the release lands,
+    // so the button already shows the right platform.
+    split.querySelectorAll<HTMLElement>('[data-download-auto]').forEach((el) => {
+      el.dataset.download = os;
+      if (el.hasAttribute('data-download-label')) el.textContent = OS_LABELS[os];
+    });
+
+    // The caret toggles a menu of the other platform downloads.
+    const toggle = split.querySelector<HTMLButtonElement>('.download-split-toggle');
+    const menu = split.querySelector<HTMLUListElement>('.download-split-menu');
+    if (!toggle || !menu) return;
+
+    const close = () => {
+      menu.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+    const open = () => {
+      menu.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.hidden ? open() : close();
+    });
+
+    // Close after picking an option, when clicking elsewhere, or on Escape.
+    menu.addEventListener('click', close);
+    document.addEventListener('click', (e) => {
+      if (!split.contains(e.target as Node)) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+    });
+  });
+
+  getLatestRelease().then((release) => {
+    if (!release) return;
+    document.querySelectorAll<HTMLAnchorElement>('[data-download-split] [data-download]').forEach((el) => {
+      const matcher = ASSET_MATCHERS[el.dataset.download ?? ''];
+      const asset = matcher && release.assets.find((a) => matcher.test(a.name));
+      if (asset) el.href = asset.browser_download_url;
+    });
+  });
+</script>

@@ -1,6 +1,11 @@
-# How the OBS replay buffer works, and how to save clips of any length
-
-The built-in replay buffer saves one fixed length. This guide explains how it works and how to get clips of different lengths from the same buffer.
+---
+title: "OBS Replay Buffer Guide: Save Clips at Any Length | Replay Buffer Pro"
+description: "How the OBS Studio replay buffer works, its limits, and how to save clips of different lengths without re-encoding."
+headline: "How the OBS replay buffer works, and how to save clips of any length"
+lead: "The built-in replay buffer saves one fixed length. This guide explains how it works and how to get clips of different lengths from the same buffer."
+schemaType: "TechArticle"
+datePublished: "2026-10-05"
+---
 
 ## What is the OBS replay buffer?
 
