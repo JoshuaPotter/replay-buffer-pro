@@ -1,6 +1,6 @@
 ---
 // Open Graph and Twitter card tags, plus the author and colour-scheme meta every page shares.
-import { AUTHOR, SCREENSHOT_URL } from '../data/site';
+import { AUTHOR, OG_IMAGE_URL } from '../data/site';
 
 interface Props {
   title: string;
@@ -16,13 +16,16 @@ const { title, twitterTitle = title, description, type, url } = Astro.props;
 <meta property="og:title" content={title}>
 <meta property="og:description" content={description}>
 <meta property="og:type" content={type}>
-<meta property="og:image" content={SCREENSHOT_URL}>
+<meta property="og:image" content={OG_IMAGE_URL}>
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Replay Buffer Pro: save the moment you didn't know you'd need">
 <meta property="og:url" content={url}>
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content={twitterTitle}>
 <meta name="twitter:description" content={description}>
-<meta name="twitter:image" content={SCREENSHOT_URL}>
+<meta name="twitter:image" content={OG_IMAGE_URL}>
 
 <meta name="author" content={AUTHOR}>
 <meta name="theme-color" content="#000000">

@@ -25,7 +25,7 @@ Where an Astro component renders a pattern, use the component instead of writing
 - Primitives in `site/src/components/ui/`: `Section` (`.section` + `.container`, with an optional `.section-intro` from `title` / `lead`), `Surface`, `Card`, `DataTable` (`.table-wrap` + `table.compare`; rows go in the slot), `ButtonLink` (`.btn` links), `ExternalLink` (adds `rel="noopener" target="_blank"`), `CopyCode` (`.click-to-copy`; the text goes in the slot so Windows backslashes stay literal), `Issue`, `JsonLd`, `Brand`.
 - Composed components in `site/src/components/`: `SiteHeader`, `SiteFooter`, `ClosingCta`, `DownloadSplit`, `SocialMeta` (Open Graph, Twitter, author and colour-scheme meta), `CodeSample` (labelled `.log` panel; the page writes the `<code>`, so it can use `is:raw`), `FeatureRow`, `FactStrip`.
 - Icons are SVG files in `site/src/icons/`, imported as components (`import Caret from '../icons/caret.svg'`). Don't paste SVG markup into pages.
-- Repo, release, issue and discussion URLs, the screenshot URL, the author name and the homepage section links are constants in `site/src/data/site.ts`.
+- Repo, release, issue and discussion URLs, the social image and screenshot URLs, the author name and the homepage section links are constants in `site/src/data/site.ts`.
 - `PluginDemo` is the homepage's interactive dock; its default buttons come from `site/src/data/demo.ts`.
 
 Extract a new component when a pattern appears twice, or when it turns a long run of copied markup into a data array. Keep one-off markup in the page.
@@ -34,7 +34,8 @@ When a new component is truly needed, give it a scoped `<style>` built from the 
 
 ## Page shell
 The layouts render the shell, so pages hold only their own content:
-- `BaseLayout` (`site/src/layouts/`) imports `site/src/styles/global.css` and renders the doctype, the shared head (charset, viewport, title, description, fonts, Google Tag Manager), the skip link, `SiteHeader`, `<main id="main">`, the closing `ClosingCta` and `SiteFooter` with the disclaimer. Page-specific head tags go in its `head` slot.
+- `site/public/` holds `favicon.svg`, `apple-touch-icon.png` and `og-image.png` (the 1200×630 social image every page uses). The two PNGs are rendered from the sources in `site/og/`; its README has the commands. Re-render them when the favicon, headline or look changes.
+- `BaseLayout` (`site/src/layouts/`) imports `site/src/styles/global.css` and renders the doctype, the shared head (charset, viewport, title, description, favicon, fonts, Google Tag Manager), the skip link, `SiteHeader`, `<main id="main">`, the closing `ClosingCta` and `SiteFooter` with the disclaimer. Page-specific head tags go in its `head` slot.
 - `SubpageLayout` wraps `BaseLayout` for every page except the homepage. From its props it adds the Open Graph and Twitter tags, canonical URL, Markdown and `llms.txt` alternates, the `WebPage`/`TechArticle` and `BreadcrumbList` JSON-LD, and the `.page-head` (breadcrumb, the one `<h1>`, lead).
 - Header, footer, closing CTA and the split download button are components in `site/src/components/`. Change them there, never by copying markup into a page.
 
@@ -57,7 +58,7 @@ To add a page:
 - Code shared by scripts lives in `site/src/scripts/` (`os.ts`, `release.ts`). `detectPlatform()` returns `other` for phones, tablets, Linux and ChromeOS; `detectOS()` falls back to Windows for anything not macOS. `getLatestRelease()` fetches the GitHub release once per page for every caller. Client code can't import `site/src/data/site.ts`, which reads the repo with `node:fs` at build time.
 - Third-party snippets (Google Tag Manager) and JSON-LD keep `is:inline`, so Astro emits them untouched. JSON-LD is the `JsonLd` component (`<script type="application/ld+json" is:inline set:html={…}>`).
 - Literal `{` or `}` in page text (JSON examples in `<code>`) needs `is:raw` on the enclosing element, or Astro reads it as an expression.
-- Links stay relative: the layouts take `root` (`''` on the homepage, `'../'` on subpages) and page bodies write `../` directly. Never start a link with `/`. Only the bundles Astro writes to `_astro/` use absolute `/replay-buffer-pro/` URLs, which come from `base` in `astro.config.mjs`.
+- Links stay relative: the layouts take `root` (`''` on the homepage, `'../'` on subpages) and page bodies write `../` directly. Never start a link with `/`. The one exception is `site/src/pages/404.astro`: GitHub Pages serves it for missing paths at any depth, so it passes the absolute base path as `root`. Only the bundles Astro writes to `_astro/` use absolute `/replay-buffer-pro/` URLs, which come from `base` in `astro.config.mjs`.
 - `compressHTML` stays `false` in `astro.config.mjs`. Astro 7's default strips whitespace between inline elements and changes rendered text.
 - Close every non-void tag and never put a block element inside `<p>`; the compiler rejects or keeps invalid markup instead of correcting it.
 - Astro drops top-level HTML comments in slotted content. Keep notes in the source; don't rely on them reaching the output.
