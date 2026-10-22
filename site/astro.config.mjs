@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { satteri } from '@astrojs/markdown-satteri';
+import { wgslVitePlugin } from '@vgpu/wgsl/loader-vite';
 import { prosePlugin } from './src/lib/prose-plugin';
 
 export default defineConfig({
@@ -21,5 +22,9 @@ export default defineConfig({
     }),
     // Shiki writes inline colour styles; the site styles code panels in global.css (.log).
     syntaxHighlight: false,
+  },
+  vite: {
+    // Prepares imported .wgsl shaders at build time for vgpu (the hero's HeroField).
+    plugins: [wgslVitePlugin()],
   },
 });
