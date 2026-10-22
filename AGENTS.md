@@ -21,9 +21,10 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
 - CI/CD: `.github/workflows/`, `.github/actions/`, `.github/scripts/`
+- Website (Astro, deployed to GitHub Pages): `site/`
 
 ## Core runtime flows
-User-facing description of the interfaces below lives in `pages/usage/index.html` and `pages/usage.md`. Update it when a flow's behavior, limits, or error strings change.
+User-facing description of the interfaces below lives in `site/src/pages/usage.astro` and `site/public/usage.md`. Update it when a flow's behavior, limits, or error strings change.
 
 ### Buffer length update
 1. User steps or types a new value into the buffer length spinbox in the dock.
@@ -40,7 +41,7 @@ User-facing description of the interfaces below lives in `pages/usage/index.html
 
 ### Save clip over obs-websocket
 1. A client sends `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and exactly one of `{"duration": ...}` or `{"durationSeconds": N}`.
-2. The callback (obs-websocket thread) turns it into N seconds in 1..`MAX_BUFFER_LENGTH`. `durationSeconds` must be a whole JSON number. `duration` is a number or text (`"120"`, `"5:22.6"`, `"1:05:00"`, `"1h30m"`) parsed by `parseDurationSeconds(...)` in `src/utils/duration-parse.*`, and fractions round to the nearest second. The parser is pure C++ with unit tests in `tests/`, built with `-DENABLE_TESTS=ON`; keep `pages/usage/` in step with its accepted forms.
+2. The callback (obs-websocket thread) turns it into N seconds in 1..`MAX_BUFFER_LENGTH`. `durationSeconds` must be a whole JSON number. `duration` is a number or text (`"120"`, `"5:22.6"`, `"1:05:00"`, `"1h30m"`) parsed by `parseDurationSeconds(...)` in `src/utils/duration-parse.*`, and fractions round to the nearest second. The parser is pure C++ with unit tests in `tests/`, built with `-DENABLE_TESTS=ON`; keep the usage page in step with its accepted forms.
 3. It posts the save to the Qt main thread and waits only until `saveSegment(...)` returns, never for file I/O. A null parent means no message boxes. N is clamped to the current buffer length, so a request longer than the buffer saves the whole buffer instead of failing (unlike the dock buttons, which refuse).
 4. The response is `{"accepted": true, "durationSeconds": saved, "requestedSeconds": N, "clamped": bool}` or `{"accepted": false, "error": ...}` (`invalid-duration`, `buffer-inactive`, `save-refused`, `unavailable`, `timeout`).
 5. `OBS_FRONTEND_EVENT_EXIT` and the dock destructor unregister the request and release any waiting callback, because OBS may stop servicing Qt events before it joins the WebSocket threads.
@@ -107,13 +108,24 @@ cmake --build --preset macos         # Build
 cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
 ```
 
+### Website build
+`site/` is a separate Node project (Astro, Node 24 per `site/.nvmrc`). CMake, packaging and the plugin CI never read it; `.github/workflows/pages.yaml` builds and deploys it from `main`, and `site-check.yaml` builds it on pull requests.
+```bash
+cd site
+npm ci              # Install pinned dependencies
+npm run dev         # Dev server at http://localhost:4321/replay-buffer-pro/
+npm run check       # Type-check .astro and .ts files
+npm run build       # Static output in site/dist/
+```
+
 ## Not present
 - No custom OBS sources, filters, or outputs are registered. The only external API the plugin registers is the optional obs-websocket vendor request above; without obs-websocket it logs a warning and the dock still works. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
 
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.
-- Project website source lives in `pages/` and should be updated when relevant.
-- Follow `.claude/rules/website-style.md` when adding or changing anything under `pages/`.
-- Site pages: `pages/index.html` (home), `pages/usage/` (every way to save a clip: dock, hotkeys, obs-websocket; keep it the single detailed reference for these), `pages/obs-replay-buffer-guide/`, `pages/compare/`, `pages/integrations/`, `pages/changelog/`, each with a Markdown twin at `pages/<slug>.md`, plus `llms.txt`, `sitemap.xml`, and `robots.txt`. Add a new page to the sitemap, `llms.txt`, and the homepage footer.
-- `.github/scripts/stamp-pages` runs in the Pages deploy workflow and stamps the version from `buildspec.json` and file dates into `index.html`, `llms.txt`, and `sitemap.xml`. Don't hand-edit those values for releases, and add a changelog entry to `pages/changelog/` and `pages/changelog.md` with each release.
-- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `pages/`, and this file in sync with project changes.
+- Project website source lives in `site/` and should be updated when relevant. Follow `.claude/rules/website-style.md` when adding or changing anything under it.
+- Site pages are `site/src/pages/<slug>.astro`: `index.astro` (home), `usage.astro` (every way to save a clip: dock, hotkeys, obs-websocket; keep it the single detailed reference for these), `obs-replay-buffer-guide.astro`, `compare.astro`, `integrations.astro` and `changelog.astro`. Subpages use `SubpageLayout`; the shared head, header, closing CTA and footer live in `site/src/layouts/` and `site/src/components/`.
+- Each subpage has a hand-written Markdown twin at `site/public/<slug>.md`, except the changelog: `site/src/content/changelog.md` is its single source, rendered into the page and served as `changelog.md`. Add a `## x.y.z (YYYY-MM-DD)` section to it with each release.
+- A new page needs a `PAGES` entry in `site/src/data/site.ts` (adds it to the footer, breadcrumbs and `sitemap.xml`), its twin, and a link in `site/src/content/llms.txt`.
+- The build fills in the version from `buildspec.json` (homepage, `llms.txt`) and dates from git history (`sitemap.xml`, `llms.txt`). Don't hand-edit them; `llms.txt` keeps `{{RELEASE_DATE}}` and `{{VERSION}}` placeholders and CRLF line endings.
+- See `.claude/rules/keep-docs-updated.md` for the rule on keeping `README.md`, `docs/`, `site/`, and this file in sync with project changes.

@@ -150,7 +150,7 @@ replay-buffer-pro/
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
 ├── .github/             # CI workflows, actions, scripts (Windows + macOS)
-├── pages/               # Project website source
+├── site/                # Project website (Astro, deployed to GitHub Pages)
 ├── docs/                # Developer documentation
 └── README.md
 ```

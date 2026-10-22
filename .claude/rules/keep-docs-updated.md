@@ -4,7 +4,7 @@ Before finishing any task that changes behavior, architecture, build steps, conf
 
 - `README.md` — project overview, installation instructions, usage examples, contribution guidelines (user-facing).
 - `AGENTS.md` — architecture map, runtime flows, key components, build/config details (for LLM coding agents).
-- `pages/*` — GitHub Pages website source (user-facing, public distribution).
+- `site/*` — GitHub Pages website source, built with Astro (user-facing, public distribution).
 - `docs/*` — developer-facing technical documentation and architecture details.
 
-When in doubt about which file should change, prefer matching the audience: end users → `README.md`/`pages/*`; contributors/developers → `docs/*`; coding agents → `AGENTS.md`.
+When in doubt about which file should change, prefer matching the audience: end users → `README.md`/`site/*`; contributors/developers → `docs/*`; coding agents → `AGENTS.md`.

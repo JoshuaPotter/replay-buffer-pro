@@ -120,6 +120,7 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 - **Push to main/master**: Triggers build for both Windows and macOS, uploads artifacts.
 - **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with Windows zip, macOS `.tar.xz`, and macOS `.pkg` attached with checksums.
 - **Pull requests**: Triggers build for both platforms to validate the PR.
+- **Website**: a push to `main` that touches `site/**` or `buildspec.json` builds `site/` with Astro and deploys GitHub Pages. Pull requests touching the same paths run a build-only Site Check. The site is a separate Node project (Node version in `site/.nvmrc`); it reads the plugin version from `buildspec.json` and page dates from git history at build time, so the deploy checks out full history.
 
 macOS CI does not use ccache: Xcode 26 injects deployment-target environment variables into
 shell-wrapped compiler invocations, and a ccache launcher script triggers a `conflicting deployment
@@ -133,6 +134,8 @@ Workflow files:
 - `.github/workflows/push.yaml` — push and tag triggers
 - `.github/workflows/pr-pull.yaml` — PR triggers
 - `.github/workflows/build-project.yaml` — reusable build workflow (Windows + macOS jobs)
+- `.github/workflows/pages.yaml` — builds `site/` and deploys GitHub Pages from `main`
+- `.github/workflows/site-check.yaml` — builds and type-checks `site/` on pull requests
 - `.github/actions/build-plugin/action.yaml` — composite build action (Windows + macOS)
 - `.github/actions/package-plugin/action.yaml` — composite packaging action (Windows + macOS)
 - `.github/actions/setup-macos-codesigning/action.yaml` — keychain + certificate setup for macOS codesigning

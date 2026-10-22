@@ -1,6 +1,6 @@
 # Website style guide
 
-Applies to everything under `pages/`. The homepage (`pages/index.html`) and `pages/styles.css` are the source of truth: a Geist-flavoured, Vercel-style monochrome dark system with flat black surfaces, hairline borders, no gradients or glows, and colour reserved for state. New pages must look like they belong to the homepage. Reuse what exists; add CSS only when no existing component fits.
+Applies to everything under `site/`. The homepage (`site/src/pages/index.astro`) and `site/public/styles.css` are the source of truth: a Geist-flavoured, Vercel-style monochrome dark system with flat black surfaces, hairline borders, no gradients or glows, and colour reserved for state. New pages must look like they belong to the homepage. Reuse what exists; add CSS only when no existing component fits.
 
 ## Tokens only
 - Surfaces: `--bg`, `--bg-raised`, `--bg-subtle`. Text: `--text`, `--text-muted`, `--text-faint`. Lines: `--border`, `--border-strong`. Neutrals: `--gray-100…1000`.
@@ -21,19 +21,31 @@ Applies to everything under `pages/`. The homepage (`pages/index.html`) and `pag
 ## Components to reuse
 `.btn` with `.btn-primary` / `.btn-secondary` / `.btn-lg`, `.download-split`, `.surface` (+ `.surface-bar`), `.card` / `.card-lg` in `.card-grid` / `.card-grid-2` with `.card-eyebrow`, `.spec-list` / `.spec-row`, `.numbered-list`, `.check-list`, `.faq` (`details` / `summary`), `.issue-list` / `.issue`, `.tag`, `.log`, `.cta-panel`, `.site-header`, `.site-footer`.
 
-When a new component is truly needed (for example long-form article text or a comparison table), add it to `pages/styles.css` in its own comment-banded section, built from the tokens above and the spacing and border language of `.spec-list` and `.issue-list`.
+When a new component is truly needed (for example long-form article text or a comparison table), add it to `site/public/styles.css` in its own comment-banded section, built from the tokens above and the spacing and border language of `.spec-list` and `.issue-list`.
 
 ## Page shell
-Every page, in this order:
-1. `<!doctype html>`, `<html lang="en">`, charset and viewport metas, `color-scheme` `dark`, `theme-color` `#000`.
-2. Unique `<title>` and meta description, canonical URL, Open Graph and Twitter tags, JSON-LD for the page type, the Google Fonts links, `styles.css`, and the Google Tag Manager snippet and noscript.
-3. `.skip-link` to `#main`, then `.site-header`, then `<main id="main">`, then a closing `.section.section-cta` with `.cta-panel`, then `.site-footer` with the disclaimer.
-4. Exactly one `<h1>`. Semantic landmarks. Visible focus states. Respect `prefers-reduced-motion`.
+The layouts render the shell, so pages hold only their own content:
+- `BaseLayout` (`site/src/layouts/`) renders the doctype, the shared head (charset, viewport, title, description, fonts, `styles.css`, `scripts/index.js`, Google Tag Manager), the skip link, `SiteHeader`, `<main id="main">`, the closing `ClosingCta` and `SiteFooter` with the disclaimer. Page-specific head tags go in its `head` slot.
+- `SubpageLayout` wraps `BaseLayout` for every page except the homepage. From its props it adds the Open Graph and Twitter tags, canonical URL, Markdown and `llms.txt` alternates, the `WebPage`/`TechArticle` and `BreadcrumbList` JSON-LD, and the `.page-head` (breadcrumb, the one `<h1>`, lead).
+- Header, footer, closing CTA and the split download button are components in `site/src/components/`. Change them there, never by copying markup into a page.
 
-Pages are plain static HTML with no templating, so copy the header, footer, and closing CTA from `pages/index.html` verbatim (the footer's "Explore" column lists the content pages; add new ones there on the homepage first). On subpages, point section and page links relatively (`../#install`, `../compare/`) and load assets relatively (`../styles.css`, `../scripts/...`). Load `../scripts/index.js` as the homepage does; every call in it is a no-op when its element is missing, and it wires the download buttons, release version, and footer year.
+To add a page:
+1. Create `site/src/pages/<slug>.astro` using `SubpageLayout`, with the body as `.section` blocks.
+2. Add a `PAGES` entry in `site/src/data/site.ts`. That adds it to the footer "Explore" column, the breadcrumb and `sitemap.xml`.
+3. Add its Markdown twin at `site/public/<slug>.md` and a link to both in `site/src/content/llms.txt`.
+
+## Astro rules
+The build must emit the same plain HTML a hand-written page would:
+- No `<style>` in `.astro` files and no CSS imports. Scoped styles add `data-astro-cid-*` attributes and bundle CSS; all CSS lives in `site/public/styles.css`.
+- Client JS lives in `site/public/scripts/` and loads through the layout. Every `<script>` needs `is:inline`, or Astro bundles it into `_astro/`. JSON-LD is `<script type="application/ld+json" is:inline set:html={JSON.stringify(data, null, 2)}>`.
+- Literal `{` or `}` in page text (JSON examples in `<code>`) needs `is:raw` on the enclosing element, or Astro reads it as an expression.
+- Links and assets stay relative: the layouts take `root` (`''` on the homepage, `'../'` on subpages) and page bodies write `../` directly. Never start a link with `/`.
+- `compressHTML` stays `false` in `astro.config.mjs`. Astro 7's default strips whitespace between inline elements and changes rendered text.
+- Close every non-void tag and never put a block element inside `<p>`; the compiler rejects or keeps invalid markup instead of correcting it.
+- Astro drops top-level HTML comments in slotted content. Keep notes in the source; don't rely on them reaching the output.
 
 ## Copy voice
 Short declarative sentences. Sentence-case headings. No emoji, no superlatives. Lead each section with a direct, self-contained answer; this is the text people and AI assistants quote.
 
 ## Checking a new page
-Open it next to the homepage at desktop width and 375px. Confirm only tokens are used (grep new CSS and HTML for `#` colour literals), spacing and headings match, focus states and the skip link work, there is no horizontal scroll, and the console is clean.
+Run `npm run check` and `npm run build` in `site/`, then open the page in the dev server (`npm run dev`, `http://localhost:4321/replay-buffer-pro/<slug>/` with the trailing slash) next to the homepage at desktop width and 375px. Confirm only tokens are used (grep new CSS and HTML for `#` colour literals), spacing and headings match, focus states and the skip link work, there is no horizontal scroll, and the console is clean.
