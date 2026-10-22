@@ -18,6 +18,7 @@ on:
       - docs/**
       - .agents/**
       - .claude/**
+      - skills-lock.json
 permissions:
   contents: write
 jobs:
