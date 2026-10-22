@@ -30,6 +30,60 @@ const softwareApplication = {
   "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
   "screenshot": "https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png"
 };
+
+// Renders both the #faq section and the FAQPage JSON-LD, whose answers are
+// these HTML answers with the tags removed.
+const faq = [
+  {
+    question: "How is this different from OBS Studio's default Replay Buffer?",
+    answer: `The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons or hotkeys, and trims each one automatically.`
+  },
+  {
+    question: "Why would I use this?",
+    answer: `It captures recent moments from your stream or recording in whatever length you need, without manual clipping. It behaves like the "Save Recent Gameplay" feature on Xbox and PlayStation — press once, get a trimmed clip ready for TikTok, YouTube Shorts, or Instagram Reels.`
+  },
+  {
+    question: "Does it re-encode video?",
+    answer: `No. Trimming is a stream copy through FFmpeg's libavformat — the equivalent of <code>-c copy</code> — so it is fast and lossless.`
+  },
+  {
+    question: "Does saving a short clip write the whole buffer to disk?",
+    answer: `Yes, briefly. OBS Studio's replay buffer saves as one complete file, and there isn't currently a way for plugins to save just part of it. So the full buffer is written first, then Replay Buffer Pro trims a copy to the length you chose and deletes the full-length file. If OBS Studio adds a way to save part of the buffer in the future, the plugin will use it. Until then, each save writes the same amount as OBS Studio's own Save Replay, plus the short trimmed clip. For example, a 15-minute buffer at 40 Mbps is about 4.5 GB per save, which is small next to the rated write endurance of a modern SSD. If you save often at high bitrates and want fewer writes on your SSD, keep the buffer length modest or point your Replay Buffer save directory at another drive.`
+  },
+  {
+    question: "Why are some save buttons disabled?",
+    answer: `Your configured buffer length is shorter than that clip length. Increase the buffer length, or choose a shorter clip.`
+  },
+  {
+    question: "Why can't I change the buffer length right now?",
+    answer: `The Replay Buffer is active. Stop it to adjust the length, then start it again.`
+  },
+  {
+    question: "Can I customize the save button durations?",
+    answer: `Yes. Use the <strong>Customize</strong> button in the Save Clips section to set each button's duration.`
+  },
+  {
+    question: "Where are clips saved?",
+    answer: `In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.`
+  },
+  {
+    question: "Can other apps save clips through OBS WebSocket?",
+    answer: `Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.`
+  }
+];
+
+const faqPage = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faq.map(({ question, answer }) => ({
+    "@type": "Question",
+    "name": question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": answer.replace(/<[^>]+>/g, '')
+    }
+  }))
+};
 ---
 <BaseLayout
   title="Replay Buffer Pro - An OBS Studio Plugin"
@@ -97,70 +151,7 @@ const softwareApplication = {
     </script>
 
     <!-- FAQ Schema -->
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How is Replay Buffer Pro different from OBS's default Replay Buffer?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons/hotkeys, and trims automatically."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Why would I use Replay Buffer Pro?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Replay Buffer Pro is ideal for effortlessly capturing and saving recent moments from your streams or recordings in various lengths. Unlike traditional methods that require manual clipping, this plugin mimics the 'Save Recent Gameplay' feature found on Xbox and Playstation, ensuring seamless and automatic trim functionality. It's the perfect tool for crafting clips ready for platforms like TikTok, YouTube Shorts, and Instagram Reels."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does Replay Buffer Pro re-encode video?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "No. Trimming uses FFmpeg with -c copy for fast, lossless output."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Why are some save buttons disabled?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Your configured buffer length is shorter than that clip length. Increase the buffer length or choose a shorter clip."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Where are clips saved?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "In your OBS Studio Replay Buffer save directory (set in OBS Studio Output settings)."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I customize the save button durations?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Use the Customize button in the Save Clips section to set each button's duration."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can other apps save clips through OBS WebSocket?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Turn on the server in OBS Studio's Tools → WebSocket Server Settings, then have your app send a CallVendorRequest with vendorName replay-buffer-pro, requestType SaveClip and requestData {\"duration\": \"2:00\"}. The duration can be seconds (120) or text such as \"5:22\", \"1:05:00\" or \"1h30m\", from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer."
-            }
-          }
-        ]
-      }
-    </script>
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(faqPage, null, 2)}></script>
 
     <!-- Installation HowTo Schema -->
     <script type="application/ld+json" is:inline>
@@ -627,42 +618,12 @@ const softwareApplication = {
       </div>
 
       <div class="faq">
-        <details>
-          <summary>How is this different from OBS Studio's default Replay Buffer?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>The default saves a single fixed duration clip. Replay Buffer Pro lets you save multiple customizable lengths on demand with buttons or hotkeys, and trims each one automatically.</p></div>
-        </details>
-        <details>
-          <summary>Why would I use this?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>It captures recent moments from your stream or recording in whatever length you need, without manual clipping. It behaves like the "Save Recent Gameplay" feature on Xbox and PlayStation — press once, get a trimmed clip ready for TikTok, YouTube Shorts, or Instagram Reels.</p></div>
-        </details>
-        <details>
-          <summary>Does it re-encode video?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>No. Trimming is a stream copy through FFmpeg's libavformat — the equivalent of <code>-c copy</code> — so it is fast and lossless.</p></div>
-        </details>
-        <details>
-          <summary>Does saving a short clip write the whole buffer to disk?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>Yes, briefly. OBS Studio's replay buffer saves as one complete file, and there isn't currently a way for plugins to save just part of it. So the full buffer is written first, then Replay Buffer Pro trims a copy to the length you chose and deletes the full-length file. If OBS Studio adds a way to save part of the buffer in the future, the plugin will use it. Until then, each save writes the same amount as OBS Studio's own Save Replay, plus the short trimmed clip. For example, a 15-minute buffer at 40 Mbps is about 4.5 GB per save, which is small next to the rated write endurance of a modern SSD. If you save often at high bitrates and want fewer writes on your SSD, keep the buffer length modest or point your Replay Buffer save directory at another drive.</p></div>
-        </details>
-        <details>
-          <summary>Why are some save buttons disabled?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>Your configured buffer length is shorter than that clip length. Increase the buffer length, or choose a shorter clip.</p></div>
-        </details>
-        <details>
-          <summary>Why can't I change the buffer length right now?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>The Replay Buffer is active. Stop it to adjust the length, then start it again.</p></div>
-        </details>
-        <details>
-          <summary>Can I customize the save button durations?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>Yes. Use the <strong>Customize</strong> button in the Save Clips section to set each button's duration.</p></div>
-        </details>
-        <details>
-          <summary>Where are clips saved?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.</p></div>
-        </details>
-        <details>
-          <summary>Can other apps save clips through OBS WebSocket?<span class="faq-icon" aria-hidden="true"></span></summary>
-          <div class="faq-body"><p>Yes. Turn on the server in <strong>Tools → WebSocket Server Settings</strong>, then have your app send a <code>CallVendorRequest</code> with <code>vendorName</code> <code>replay-buffer-pro</code>, <code>requestType</code> <code>SaveClip</code> and <code>requestData</code> <code is:raw>{"duration": "2:00"}</code>. The duration can be seconds (<code>120</code>) or text such as <code>"5:22"</code>, <code>"1:05:00"</code> or <code>"1h30m"</code>, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See <a href="usage/#obs-websocket">how to use Replay Buffer Pro</a> for the full request and response format.</p></div>
-        </details>
+        {faq.map(({ question, answer }) => (
+          <details>
+            <summary>{question}<span class="faq-icon" aria-hidden="true"></span></summary>
+            <div class="faq-body"><p set:html={answer}></p></div>
+          </details>
+        ))}
       </div>
     </div>
   </section>
