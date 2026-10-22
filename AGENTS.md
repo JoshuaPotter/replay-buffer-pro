@@ -89,7 +89,7 @@ User-facing description of the interfaces below lives in `site/src/pages/usage.a
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
 - Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
 - `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
-- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push.
+- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change `site/**`, `pages.yaml` or `site-check.yaml` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
 - macOS CI uses Xcode's built-in compilation cache (CAS), not ccache — a ccache compiler-wrapper triggers a "conflicting deployment targets" error under Xcode 26.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 - C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
