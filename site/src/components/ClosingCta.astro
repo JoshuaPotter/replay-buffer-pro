@@ -1,16 +1,34 @@
 ---
 import DownloadSplit from './DownloadSplit.astro';
+import ButtonLink from './ui/ButtonLink.astro';
+import Section from './ui/Section.astro';
+import { REPO_URL } from '../data/site';
 ---
-<!-- ============ CLOSING CTA ============ -->
-<section class="section section-cta">
-  <div class="container">
-    <div class="cta-panel">
-      <h2>Stop losing the good takes</h2>
-      <p>Install the plugin, set your durations, and clip the last thirty seconds without breaking stride.</p>
-      <div class="cta-row cta-row-center">
-        <DownloadSplit variant="cta" />
-        <a class="btn btn-secondary btn-lg" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank">View source</a>
-      </div>
+<Section class="section-cta">
+  <div class="cta-panel">
+    <h2>Stop losing the good takes</h2>
+    <p>Install the plugin, set your durations, and clip the last thirty seconds without breaking stride.</p>
+    <div class="cta-row cta-row-center">
+      <DownloadSplit variant="cta" />
+      <ButtonLink variant="secondary" size="lg" external href={REPO_URL}>View source</ButtonLink>
     </div>
   </div>
-</section>
+</Section>
+
+<style>
+  .section-cta { padding-bottom: clamp(4rem, 9vw, 7rem); }
+  .cta-panel {
+    padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    background: var(--bg-raised);
+    text-align: center;
+  }
+  .cta-panel p {
+    max-width: 34rem;
+    margin: 1rem auto 0;
+    font-size: 1.0625rem;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+</style>

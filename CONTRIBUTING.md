@@ -80,7 +80,7 @@ npm run check   # type-check
 npm run build   # static output in site/dist/
 ```
 
-Follow `.claude/rules/website-style.md` for page structure and styling.
+Follow `.agents/rules/website-style.md` for page structure and styling.
 
 ## Coding Standards
 

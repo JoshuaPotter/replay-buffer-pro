@@ -1,0 +1,22 @@
+---
+// A bordered panel for product visuals, with an optional labelled top bar.
+interface Props {
+  label?: string;
+  /** Sets the label in the mono font. */
+  mono?: boolean;
+  /** Window chrome: a raised bar with a status dot. */
+  chrome?: boolean;
+  bodyClass?: string;
+}
+
+const { label, mono, chrome, bodyClass } = Astro.props;
+---
+<div class:list={['surface', { 'surface-chrome': chrome }]}>
+  {label && (
+    <div class="surface-bar">
+      {chrome && <span class="surface-dot" aria-hidden="true"></span>}
+      <span class:list={['surface-label', { mono }]}>{label}</span>
+    </div>
+  )}
+  <div class:list={['surface-body', bodyClass]}><slot /></div>
+</div>

@@ -1,0 +1,15 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'a'> {
+  variant: 'primary' | 'secondary';
+  size?: 'lg';
+  iconOnly?: boolean;
+  /** Opens in a new tab. */
+  external?: boolean;
+}
+
+const { variant, size, iconOnly, external, class: className, ...rest } = Astro.props;
+const newTab = external ? { rel: 'noopener', target: '_blank' } : {};
+---
+<a class:list={['btn', `btn-${variant}`, size && `btn-${size}`, { 'btn-icon-only': iconOnly }, className]} {...rest} {...newTab}><slot /></a>

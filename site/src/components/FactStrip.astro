@@ -1,0 +1,107 @@
+---
+// The scrolling fact band under the hero. Each layer repeats the list three times so the
+// loop is seamless. The dots layer renders only the separator dots and is never faded; the
+// text layer renders only the labels and fades at the edges. The mask sits on the stationary
+// wrapper, not the scrolling track, so the fade stays pinned to the wrap's edges.
+interface Props {
+  facts: string[];
+}
+
+const { facts } = Astro.props;
+const copies = [0, 1, 2];
+---
+<div class="fact-strip-wrap">
+  <div class="fact-strip-track fact-strip-track--dots" aria-hidden="true">
+    {copies.map(() => (
+      <ul class="fact-strip">
+        {facts.map((fact) => <li>{fact}</li>)}
+      </ul>
+    ))}
+  </div>
+  <div class="fact-strip-mask">
+    <div class="fact-strip-track fact-strip-track--text">
+      {copies.map((copy) => (
+        <ul class="fact-strip" aria-hidden={copy > 0 ? 'true' : undefined}>
+          {facts.map((fact) => <li>{fact}</li>)}
+        </ul>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Fact strip — stands in for a customer logo band, scrolls as an infinite marquee.
+     Rendered as two synced layers so the edge fade can apply to the text without
+     fading the separator dots: a dots-only layer underneath (never faded), and a
+     text-only layer on top (masked). */
+  .fact-strip-wrap {
+    position: relative;
+    margin: clamp(3.5rem, 7vw, 6rem) 0 0;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .fact-strip-track {
+    display: flex;
+    width: max-content;
+    animation: fact-strip-scroll 28s linear infinite;
+  }
+  .fact-strip-wrap:hover .fact-strip-track { animation-play-state: paused; }
+  .fact-strip-mask {
+    position: absolute;
+    inset: 0;
+    /* Matches .fact-strip-wrap's padding: inset:0 positions against the wrap's
+       padding box, but the dots track sits in its content box — without this,
+       the text layer renders offset from the dots layer. */
+    padding: 1.25rem 0;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  }
+  .fact-strip-track--dots .fact-strip li { color: transparent; }
+  .fact-strip-track--text .fact-strip li::before { opacity: 0; }
+  .fact-strip {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    white-space: nowrap;
+  }
+  .fact-strip li {
+    position: relative;
+    padding: .375rem 0;
+    margin-right: 2.5rem;
+    font-size: .8125rem;
+    font-weight: 450;
+    letter-spacing: .01em;
+    color: var(--text-faint);
+  }
+  .fact-strip li::before {
+    content: "";
+    position: absolute;
+    left: -1.25rem;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--gray-500);
+    transform: translateY(-50%);
+  }
+  .fact-strip-track > .fact-strip:first-child li:first-child::before { display: none; }
+  @keyframes fact-strip-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-33.3334%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fact-strip-track { animation: none; }
+  }
+
+  @media (max-width: 30rem) {
+    .fact-strip li { margin-right: 1.75rem; }
+    .fact-strip li::before { left: -1rem; }
+  }
+</style>

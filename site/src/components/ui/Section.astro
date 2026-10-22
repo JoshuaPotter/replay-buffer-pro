@@ -1,0 +1,34 @@
+---
+// A page section in a container, opened by an optional .section-intro.
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'section'> {
+  title?: string;
+  lead?: string;
+}
+
+// `rest` carries id and the parent's data-astro-cid-*, so a parent's scoped styles reach this <section>.
+const { class: className, title, lead, ...rest } = Astro.props;
+---
+<section class:list={['section', className]} {...rest}>
+  <div class="container">
+    {title && (
+      <div class="section-intro">
+        <h2>{title}</h2>
+        {lead && <p>{lead}</p>}
+      </div>
+    )}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section-intro { max-width: 44rem; margin-bottom: clamp(2rem, 4vw, 3rem); }
+  .section-intro p {
+    margin-top: 1rem;
+    font-size: 1.0625rem;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .section-actions { margin-top: 2rem; }
+</style>

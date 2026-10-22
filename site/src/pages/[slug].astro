@@ -1,0 +1,60 @@
+---
+import { getCollection, render } from 'astro:content';
+import SubpageLayout from '../layouts/SubpageLayout.astro';
+import Card from '../components/ui/Card.astro';
+import ExternalLink from '../components/ui/ExternalLink.astro';
+import Section from '../components/ui/Section.astro';
+import Surface from '../components/ui/Surface.astro';
+
+export async function getStaticPaths() {
+  return (await getCollection('pages')).map((page) => ({ params: { slug: page.id }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+const { title, description, headline, lead, schemaType, datePublished, note, integrations } = page.data;
+
+// Card descriptions are plain text with `code` spans.
+const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const inlineCode = (text: string) => escape(text).replace(/`([^`]+)`/g, '<code>$1</code>');
+---
+<SubpageLayout
+  slug={page.id}
+  title={title}
+  description={description}
+  headline={headline}
+  lead={lead}
+  schemaType={schemaType}
+  datePublished={datePublished}
+>
+  {note && (
+    <Section>
+      <Surface label="Please note">
+        <p>{note}</p>
+      </Surface>
+    </Section>
+  )}
+
+  {integrations && (
+    <Section title={integrations.title} lead={integrations.lead}>
+      <div class="card-grid card-grid-2">
+        {integrations.items.map((item) => (
+          <Card eyebrow={item.eyebrow} title={item.name}>
+            <p set:html={inlineCode(item.description)} />
+            <p>
+              {item.links.map(({ label, href }, i) => (
+                <>{i > 0 && ' · '}<ExternalLink href={href}>{label}</ExternalLink></>
+              ))}
+            </p>
+          </Card>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <Section>
+    <div class="prose">
+      <Content />
+    </div>
+  </Section>
+</SubpageLayout>

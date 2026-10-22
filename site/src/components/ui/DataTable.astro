@@ -1,0 +1,18 @@
+---
+// A scrollable comparison table. Rows go in the slot, since their cells hold markup.
+interface Props {
+  head: string[];
+}
+
+const { head } = Astro.props;
+---
+<div class="table-wrap">
+  <table class="compare">
+    <thead>
+      <tr>{head.map((cell) => <th scope="col">{cell}</th>)}</tr>
+    </thead>
+    <tbody>
+      <slot />
+    </tbody>
+  </table>
+</div>

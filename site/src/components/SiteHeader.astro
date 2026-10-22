@@ -1,5 +1,9 @@
 ---
 import DownloadSplit from './DownloadSplit.astro';
+import Brand from './ui/Brand.astro';
+import ButtonLink from './ui/ButtonLink.astro';
+import GitHub from '../icons/github.svg';
+import { REPO_URL, SECTION_LINKS } from '../data/site';
 
 interface Props {
   /** Relative path to the site root: '' on the homepage, '../' on subpages. */
@@ -7,27 +11,70 @@ interface Props {
 }
 
 const { root } = Astro.props;
+const { howItWorks, install, faq } = SECTION_LINKS;
+const nav = [
+  { href: `${root}${howItWorks.hash}`, label: howItWorks.label },
+  { href: `${root}${install.hash}`, label: install.label },
+  { href: `${root}usage/`, label: 'Usage' },
+  { href: `${root}${faq.hash}`, label: faq.label },
+];
 ---
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href={root || '#top'}>
-      <span class="brand-name">Replay Buffer Pro</span>
-    </a>
+    <Brand root={root} />
 
     <nav class="header-nav" aria-label="Sections">
-      <a href={`${root}#how-it-works`}>How it works</a>
-      <a href={`${root}#install`}>Install</a>
-      <a href={`${root}usage/`}>Usage</a>
-      <a href={`${root}#faq`}>FAQ</a>
+      {nav.map(({ href, label }) => <a href={href}>{label}</a>)}
     </nav>
 
     <div class="header-actions">
-      <a class="btn btn-secondary btn-icon-only" href="https://github.com/JoshuaPotter/replay-buffer-pro" rel="noopener" target="_blank" aria-label="View on GitHub">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
-        </svg>
-      </a>
+      <ButtonLink variant="secondary" iconOnly external href={REPO_URL} aria-label="View on GitHub">
+        <GitHub />
+      </ButtonLink>
       <DownloadSplit variant="header" />
     </div>
   </div>
 </header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, .72);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: var(--header-h);
+  }
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-right: auto;
+  }
+  .header-nav a {
+    font-size: .875rem;
+    color: var(--text-muted);
+    transition: color .15s ease;
+  }
+  .header-nav a:hover { color: var(--text); }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 60rem) {
+    /* Below the desktop breakpoint the header nav links are dropped in
+       favour of the download action, which is what the page is for. */
+    .header-nav { display: none; }
+    .header-inner > :global(.brand) { margin-right: auto; }
+  }
+</style>

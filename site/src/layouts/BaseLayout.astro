@@ -2,6 +2,7 @@
 import SiteHeader from '../components/SiteHeader.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import '../styles/global.css';
 
 interface Props {
   title: string;
@@ -22,8 +23,6 @@ const { title, description, root } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
-    <link rel="stylesheet" href={`${root}styles.css`}>
-    <script is:inline src={`${root}scripts/index.js`} type="module" defer></script>
     <!-- Google Tag Manager -->
     <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

@@ -1,0 +1,29 @@
+---
+// Open Graph and Twitter card tags, plus the author and colour-scheme meta every page shares.
+import { AUTHOR, SCREENSHOT_URL } from '../data/site';
+
+interface Props {
+  title: string;
+  /** Defaults to `title`. */
+  twitterTitle?: string;
+  description: string;
+  type: 'website' | 'article';
+  url: string;
+}
+
+const { title, twitterTitle = title, description, type, url } = Astro.props;
+---
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:type" content={type}>
+<meta property="og:image" content={SCREENSHOT_URL}>
+<meta property="og:url" content={url}>
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={twitterTitle}>
+<meta name="twitter:description" content={description}>
+<meta name="twitter:image" content={SCREENSHOT_URL}>
+
+<meta name="author" content={AUTHOR}>
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">

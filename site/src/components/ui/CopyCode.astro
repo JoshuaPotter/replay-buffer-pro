@@ -1,0 +1,55 @@
+---
+// Inline code that copies its text when clicked (clickToCopy in scripts/utils.js).
+// The text goes in the slot, where backslashes in Windows paths stay literal.
+import Copy from '../../icons/copy.svg';
+---
+<code class="click-to-copy"><slot /> <Copy /></code>
+
+<style>
+  .click-to-copy {
+    position: relative;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+  }
+  .click-to-copy::after {
+    content: 'Copied to clipboard';
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: .75em;
+    padding: .1em .35em;
+    border-radius: var(--r-sm);
+    background: var(--gray-100);
+    border: 1px solid var(--border);
+    color: var(--gray-1000);
+    opacity: 0;
+  }
+  .click-to-copy.animating::after {
+    animation: slide-up-fade-out 1.5s ease-in-out forwards;
+  }
+  @keyframes slide-up-fade-out {
+    0% { opacity: 0; transform: translateX(-50%) translateY(25%); }
+    10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-25%); }
+  }
+</style>
+
+<script>
+  // Copy the path on click and flash the .animating state.
+  document.querySelectorAll<HTMLElement>('.click-to-copy').forEach((el) => {
+    const text = el.dataset.copyText || el.textContent;
+    if (!text) return;
+    el.addEventListener('click', () => {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          el.classList.add('animating');
+          setTimeout(() => el.classList.remove('animating'), 1500);
+        })
+        .catch((err) => console.error('Failed to copy text: ', err));
+    });
+  });
+</script>

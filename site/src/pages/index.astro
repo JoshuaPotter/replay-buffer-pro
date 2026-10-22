@@ -1,7 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DownloadSplit from '../components/DownloadSplit.astro';
-import { VERSION } from '../data/site';
+import SocialMeta from '../components/SocialMeta.astro';
+import FactStrip from '../components/FactStrip.astro';
+import FeatureRow from '../components/FeatureRow.astro';
+import CodeSample from '../components/CodeSample.astro';
+import PluginDemo from '../components/PluginDemo.astro';
+import ButtonLink from '../components/ui/ButtonLink.astro';
+import Card from '../components/ui/Card.astro';
+import CopyCode from '../components/ui/CopyCode.astro';
+import ExternalLink from '../components/ui/ExternalLink.astro';
+import Issue from '../components/ui/Issue.astro';
+import JsonLd from '../components/ui/JsonLd.astro';
+import Section from '../components/ui/Section.astro';
+import Surface from '../components/ui/Surface.astro';
+import ArrowRight from '../icons/arrow-right.svg';
+import { clipButtons } from '../data/demo';
+import { AUTHOR, ISSUES_URL, LATEST_RELEASE_URL, RELEASES_URL, REPO_URL, SCREENSHOT_URL, SITE_URL, VERSION } from '../data/site';
 
 const softwareApplication = {
   "@context": "https://schema.org",
@@ -14,21 +29,73 @@ const softwareApplication = {
   "datePublished": "2025-03-06",
   "isAccessibleForFree": true,
   "sameAs": [
-    "https://github.com/JoshuaPotter/replay-buffer-pro"
+    REPO_URL
   ],
   "author": {
     "@type": "Person",
-    "name": "Joshua Potter"
+    "name": AUTHOR
   },
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD"
   },
-  "downloadUrl": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest",
+  "downloadUrl": LATEST_RELEASE_URL,
   "softwareRequirements": "OBS Studio 32.2.0+",
   "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
-  "screenshot": "https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png"
+  "screenshot": SCREENSHOT_URL
+};
+
+const sourceCode = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "Replay Buffer Pro",
+  "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
+  "codeRepository": REPO_URL,
+  "programmingLanguage": "C++",
+  "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+",
+  "license": "https://www.gnu.org/licenses/gpl-2.0.html",
+  "targetProduct": {
+    "@type": "SoftwareApplication",
+    "name": "OBS Studio",
+    "version": "32.2.0+"
+  }
+};
+
+const installHowTo = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Install Replay Buffer Pro for OBS Studio",
+  "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows or macOS",
+  "totalTime": "PT5M",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Download Plugin",
+      "text": "Download the latest release of Replay Buffer Pro for your platform (Windows .zip or macOS .pkg) from the link above.",
+      "url": LATEST_RELEASE_URL
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Close OBS Studio",
+      "text": "Make sure OBS Studio is completely closed before proceeding."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Install the Plugin",
+      "text": "On Windows, extract the ZIP and copy the replay-buffer-pro folder to C:\\ProgramData\\obs-studio\\plugins\\. On macOS, open the .pkg and follow the installer, which installs to ~/Library/Application Support/obs-studio/plugins/ automatically.",
+      "url": LATEST_RELEASE_URL
+    },
+    {
+      "@type": "HowToStep",
+      "position": 4,
+      "name": "Restart OBS Studio",
+      "text": "Restart OBS Studio and open Docks → Replay Buffer Pro to get started."
+    }
+  ]
 };
 
 // Renders both the #faq section and the FAQPage JSON-LD, whose answers are
@@ -84,6 +151,17 @@ const faqPage = {
     }
   }))
 };
+
+const facts = [
+  'No re-encoding',
+  'Trims in milliseconds',
+  'Six custom durations',
+  'Hotkey for every button',
+  'Windows & macOS',
+  'Same output folder',
+];
+
+const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${label}`, keys: ['Ctrl', 'Alt', `${i + 1}`] }));
 ---
 <BaseLayout
   title="Replay Buffer Pro - An OBS Studio Plugin"
@@ -91,29 +169,21 @@ const faqPage = {
   root=""
 >
   <Fragment slot="head">
-    <!-- Open Graph -->
-    <meta property="og:title" content="Replay Buffer Pro, a plugin for OBS Studio">
-    <meta property="og:description" content="Save the last moments of your stream or recording with one click. Instantly clip customizable durations without re-encoding.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
-    <meta property="og:url" content="https://joshuapotter.github.io/replay-buffer-pro/">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Replay Buffer Pro - OBS Studio Plugin">
-    <meta name="twitter:description" content="Save the last moments of your stream or recording with one click. Instantly clip customizable durations without re-encoding.">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+    <SocialMeta
+      title="Replay Buffer Pro, a plugin for OBS Studio"
+      twitterTitle="Replay Buffer Pro - OBS Studio Plugin"
+      description="Save the last moments of your stream or recording with one click. Instantly clip customizable durations without re-encoding."
+      type="website"
+      url={SITE_URL}
+    />
 
     <!-- Enhanced meta -->
     <meta name="keywords" content="OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, twitch, youtube, instant replay, obs plugin, video clipping, content creation, gaming clips">
-    <meta name="author" content="Joshua Potter">
     <meta name="application-name" content="Replay Buffer Pro">
     <meta name="msapplication-TileColor" content="#000000">
-    <meta name="theme-color" content="#000000">
-    <meta name="color-scheme" content="dark">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://joshuapotter.github.io/replay-buffer-pro/">
+    <link rel="canonical" href={SITE_URL}>
 
     <!-- LLM-optimized content -->
     <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-optimized documentation">
@@ -126,89 +196,30 @@ const faqPage = {
     <!-- Schema.org Item Properties -->
     <meta itemprop="name" content="Replay Buffer Pro">
     <meta itemprop="description" content="OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding">
-    <meta itemprop="image" content="https://raw.githubusercontent.com/JoshuaPotter/replay-buffer-pro/main/screenshot.png">
+    <meta itemprop="image" content={SCREENSHOT_URL}>
 
-    <!-- Enhanced JSON-LD with multiple schemas -->
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(softwareApplication, null, 2)}></script>
-
-    <!-- Source Code Schema -->
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareSourceCode",
-        "name": "Replay Buffer Pro",
-        "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
-        "codeRepository": "https://github.com/JoshuaPotter/replay-buffer-pro",
-        "programmingLanguage": "C++",
-        "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+",
-        "license": "https://www.gnu.org/licenses/gpl-2.0.html",
-        "targetProduct": {
-          "@type": "SoftwareApplication",
-          "name": "OBS Studio",
-          "version": "32.2.0+"
-        }
-      }
-    </script>
-
-    <!-- FAQ Schema -->
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(faqPage, null, 2)}></script>
-
-    <!-- Installation HowTo Schema -->
-    <script type="application/ld+json" is:inline>
-      {
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        "name": "How to Install Replay Buffer Pro for OBS Studio",
-        "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows or macOS",
-        "totalTime": "PT5M",
-        "step": [
-          {
-            "@type": "HowToStep",
-            "position": 1,
-            "name": "Download Plugin",
-            "text": "Download the latest release of Replay Buffer Pro for your platform (Windows .zip or macOS .pkg) from the link above.",
-            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 2,
-            "name": "Close OBS Studio",
-            "text": "Make sure OBS Studio is completely closed before proceeding."
-          },
-          {
-            "@type": "HowToStep",
-            "position": 3,
-            "name": "Install the Plugin",
-            "text": "On Windows, extract the ZIP and copy the replay-buffer-pro folder to C:\\ProgramData\\obs-studio\\plugins\\. On macOS, open the .pkg and follow the installer, which installs to ~/Library/Application Support/obs-studio/plugins/ automatically.",
-            "url": "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 4,
-            "name": "Restart OBS Studio",
-            "text": "Restart OBS Studio and open Docks → Replay Buffer Pro to get started."
-          }
-        ]
-      }
-    </script>
+    <JsonLd data={softwareApplication} />
+    <JsonLd data={sourceCode} />
+    <JsonLd data={faqPage} />
+    <JsonLd data={installHowTo} />
   </Fragment>
 
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-copy">
-        <a class="release-pill" href="https://github.com/JoshuaPotter/replay-buffer-pro/releases" rel="noopener" target="_blank">
+        <ExternalLink class="release-pill" href={RELEASES_URL}>
           <span class="release-version" data-prefix="v">v{VERSION}</span>
           <span class="release-pill-text">available now</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-        </a>
+          <ArrowRight />
+        </ExternalLink>
 
         <h1>Save the moment you didn't know you'd need</h1>
         <p class="hero-lead">Replay Buffer Pro adds a dock to OBS Studio for saving the last 15 seconds — or the last 30 minutes — of whatever just happened. Trimmed instantly, without re-encoding.</p>
 
         <div class="cta-row">
           <DownloadSplit variant="hero" />
-          <a class="btn btn-secondary btn-lg" href="#how-it-works">See how it works</a>
+          <ButtonLink variant="secondary" size="lg" href="#how-it-works">See how it works</ButtonLink>
         </div>
 
         <p class="hero-meta">Free and open source · Requires OBS Studio 32.2.0+</p>
@@ -216,446 +227,491 @@ const faqPage = {
 
       <div class="hero-media">
         <!-- Framed product surface, mimicking the OBS dock in situ -->
-        <div class="surface surface-chrome">
-          <div class="surface-bar">
-            <span class="surface-dot" aria-hidden="true"></span>
-            <span class="surface-label">OBS Studio — Docks → Replay Buffer Pro</span>
-          </div>
-          <div class="surface-body plugin-ui-stage-wrap">
-
-        <!-- Interactive Plugin UI Demo -->
-        <div class="plugin-ui-stage">
-        <div class="plugin-ui-demo" id="plugin-ui-demo">
-          <div class="plugin-header">
-            <span class="plugin-title">Replay Buffer Pro</span>
-            <div class="plugin-controls">
-              <button class="plugin-control-btn" aria-label="Popout">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M10 2h4v4M14 2l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M12 9v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </button>
-              <button class="plugin-control-btn" aria-label="Close">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="plugin-body">
-            <div class="plugin-section">
-              <h3 class="plugin-section-title">Replay Buffer Settings</h3>
-
-              <div class="buffer-length-container">
-                <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
-                <div class="buffer-number-input" id="buffer-number-input">
-                  <input
-                    type="number"
-                    class="buffer-length-value-input"
-                    id="buffer-length-input"
-                    value="7200"
-                    min="1"
-                    max="21600"
-                    step="1"
-                  >
-                  <span class="buffer-length-unit">sec</span>
-                  <div class="buffer-number-steppers">
-                    <button type="button" class="buffer-number-step" id="buffer-step-up" aria-label="Increase buffer length">
-                      <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
-                        <path d="M1 4l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                    <button type="button" class="buffer-number-step" id="buffer-step-down" aria-label="Decrease buffer length">
-                      <svg width="8" height="5" viewBox="0 0 8 5" fill="none">
-                        <path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="plugin-section">
-              <div class="plugin-section-header">
-                <h3 class="plugin-section-title">Save Clips</h3>
-                <button type="button" class="customize-btn" id="customize-btn" aria-haspopup="dialog">Customize</button>
-              </div>
-
-              <div class="clip-buttons-grid">
-                <button class="clip-btn">Last 15 Seconds</button>
-                <button class="clip-btn">Last 30 Seconds</button>
-                <button class="clip-btn">Last 1 Minute</button>
-                <button class="clip-btn">Last 5 Minutes</button>
-                <button class="clip-btn">Last 15 Minutes</button>
-                <button class="clip-btn">Last 30 Minutes</button>
-              </div>
-
-              <button class="save-buffer-btn">Save Replay Buffer</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customize Save Buttons Modal (panel-scoped) -->
-        <div id="customize-modal" class="demo-modal-overlay" aria-hidden="true">
-          <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <div class="demo-modal-header">
-              <span id="modal-title" class="demo-modal-title">Customize Save Buttons</span>
-              <button type="button" class="demo-modal-close" id="modal-close" aria-label="Close">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </button>
-            </div>
-            <div class="demo-modal-body">
-              <div class="demo-modal-form" id="modal-form">
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-0">Button 1</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-0" min="1" max="21600" value="15">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-1">Button 2</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-1" min="1" max="21600" value="30">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-2">Button 3</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-2" min="1" max="21600" value="60">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-3">Button 4</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-3" min="1" max="21600" value="300">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-4">Button 5</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-4" min="1" max="21600" value="900">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-                <div class="demo-modal-row">
-                  <label class="demo-modal-label" for="btn-input-5">Button 6</label>
-                  <div class="demo-modal-input-wrap">
-                    <input type="number" class="demo-modal-input" id="btn-input-5" min="1" max="21600" value="1800">
-                    <span class="demo-modal-unit">sec</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="demo-modal-footer">
-              <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-cancel">Cancel</button>
-              <button type="button" class="demo-modal-btn demo-modal-save" id="modal-save">Save</button>
-            </div>
-          </div>
-        </div>
-
-        </div><!-- /.plugin-ui-stage -->
-
-          </div>
-        </div>
+        <Surface label="OBS Studio — Docks → Replay Buffer Pro" chrome bodyClass="plugin-ui-stage-wrap">
+          <PluginDemo />
+        </Surface>
       </div>
     </div>
 
     <!-- Fact strip, in place of Vercel's customer logo band -->
     <div class="container">
-      <div class="fact-strip-wrap">
-        <!-- Dots layer: renders only the separator dots, never faded -->
-        <div class="fact-strip-track fact-strip-track--dots" aria-hidden="true">
-          <ul class="fact-strip">
-            <li>No re-encoding</li>
-            <li>Trims in milliseconds</li>
-            <li>Six custom durations</li>
-            <li>Hotkey for every button</li>
-            <li>Windows &amp; macOS</li>
-            <li>Same output folder</li>
-          </ul>
-          <ul class="fact-strip">
-            <li>No re-encoding</li>
-            <li>Trims in milliseconds</li>
-            <li>Six custom durations</li>
-            <li>Hotkey for every button</li>
-            <li>Windows &amp; macOS</li>
-            <li>Same output folder</li>
-          </ul>
-          <ul class="fact-strip">
-            <li>No re-encoding</li>
-            <li>Trims in milliseconds</li>
-            <li>Six custom durations</li>
-            <li>Hotkey for every button</li>
-            <li>Windows &amp; macOS</li>
-            <li>Same output folder</li>
-          </ul>
-        </div>
-        <!-- Text layer: renders only the labels, fades at the wrap's edges.
-             The mask lives on this stationary wrapper (not the scrolling
-             track) so the fade zone stays pinned to the wrap's edges. -->
-        <div class="fact-strip-mask">
-          <div class="fact-strip-track fact-strip-track--text">
-            <ul class="fact-strip">
-              <li>No re-encoding</li>
-              <li>Trims in milliseconds</li>
-              <li>Six custom durations</li>
-              <li>Hotkey for every button</li>
-              <li>Windows &amp; macOS</li>
-              <li>Same output folder</li>
-            </ul>
-            <ul class="fact-strip" aria-hidden="true">
-              <li>No re-encoding</li>
-              <li>Trims in milliseconds</li>
-              <li>Six custom durations</li>
-              <li>Hotkey for every button</li>
-              <li>Windows &amp; macOS</li>
-              <li>Same output folder</li>
-            </ul>
-            <ul class="fact-strip" aria-hidden="true">
-              <li>No re-encoding</li>
-              <li>Trims in milliseconds</li>
-              <li>Six custom durations</li>
-              <li>Hotkey for every button</li>
-              <li>Windows &amp; macOS</li>
-              <li>Same output folder</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <FactStrip facts={facts} />
     </div>
   </section>
 
   <!-- ============ HOW IT WORKS — alternating feature rows ============ -->
-  <section class="section" id="how-it-works">
-    <div class="container">
-
-      <div class="feature-row">
-        <div class="feature-row-copy">
-          <h2>One buffer, any clip length</h2>
-          <p class="feature-statement"><strong>Keep a long buffer running</strong> and hit whichever save button matches what just happened. The plugin saves the buffer, then trims it back to exactly that button's duration.</p>
-          <ul class="check-list">
-            <li>Six save buttons, each with its own duration</li>
-            <li>Each duration is fully customizable, from 1 second to 6 hours</li>
-            <li>No trip to Settings → Output — edit the length right in the dock</li>
-          </ul>
-        </div>
-        <div class="feature-row-media">
-          <div class="surface">
-            <div class="surface-body">
-              <div class="timeline" role="img" aria-label="A 10 minute replay buffer with the last 30 seconds highlighted as the saved clip">
-                <div class="timeline-head">
-                  <span class="timeline-title">Replay buffer</span>
-                  <span class="timeline-len">600s</span>
-                </div>
-                <div class="timeline-track">
-                  <div class="timeline-fill"></div>
-                  <div class="timeline-window"><span class="timeline-window-label">30s</span></div>
-                  <div class="timeline-now" aria-hidden="true"></div>
-                </div>
-                <div class="timeline-axis">
-                  <span>oldest frame in buffer</span><span>now</span>
-                </div>
-                <div class="timeline-out">
-                  <span class="mono">clip-2026-08-14-21-04-33_trimmed.mkv</span>
-                  <span class="tag tag-ok">saved · 30.0s</span>
-                </div>
-              </div>
+  <Section id="how-it-works">
+    <FeatureRow
+      title="One buffer, any clip length"
+      points={[
+        'Six save buttons, each with its own duration',
+        'Each duration is fully customizable, from 1 second to 6 hours',
+        'No trip to Settings → Output — edit the length right in the dock',
+      ]}
+    >
+      <Fragment slot="statement"><strong>Keep a long buffer running</strong> and hit whichever save button matches what just happened. The plugin saves the buffer, then trims it back to exactly that button's duration.</Fragment>
+      <Surface slot="media">
+          <div class="timeline" role="img" aria-label="A 10 minute replay buffer with the last 30 seconds highlighted as the saved clip">
+            <div class="timeline-head">
+              <span class="timeline-title">Replay buffer</span>
+              <span class="timeline-len">600s</span>
+            </div>
+            <div class="timeline-track">
+              <div class="timeline-fill"></div>
+              <div class="timeline-window"><span class="timeline-window-label">30s</span></div>
+              <div class="timeline-now" aria-hidden="true"></div>
+            </div>
+            <div class="timeline-axis">
+              <span>oldest frame in buffer</span><span>now</span>
+            </div>
+            <div class="timeline-out">
+              <span class="mono">clip-2026-08-14-21-04-33_trimmed.mkv</span>
+              <span class="tag tag-ok">saved · 30.0s</span>
             </div>
           </div>
-        </div>
-      </div>
+      </Surface>
+    </FeatureRow>
 
-      <div class="feature-row feature-row-reverse">
-        <div class="feature-row-copy">
-          <h2>Trimmed without re-encoding</h2>
-          <p class="feature-statement"><strong>Nothing gets re-rendered.</strong> Replay Buffer Pro just repackages the footage your buffer already captured, so the clip keeps the exact bitrate, codec, and quality of the original — and lands in about the time it takes to write the file.</p>
-          <ul class="check-list">
-            <li>Identical quality to the source buffer</li>
-            <li>Skips the CPU/GPU-heavy encode pass</li>
-            <li>OBS keeps recording while it trims</li>
-          </ul>
-        </div>
-        <div class="feature-row-media">
-          <div class="surface">
-            <div class="surface-bar">
-              <span class="surface-label mono">OBS Studio log</span>
-            </div>
-            <div class="surface-body">
-              <pre class="log"><code><span class="log-dim">21:04:33.118</span> <span class="log-key">[replay-buffer-pro]</span> save requested: 30s
+    <FeatureRow
+      title="Trimmed without re-encoding"
+      reverse
+      points={[
+        'Identical quality to the source buffer',
+        'Skips the CPU/GPU-heavy encode pass',
+        'OBS keeps recording while it trims',
+      ]}
+    >
+      <Fragment slot="statement"><strong>Nothing gets re-rendered.</strong> Replay Buffer Pro just repackages the footage your buffer already captured, so the clip keeps the exact bitrate, codec, and quality of the original — and lands in about the time it takes to write the file.</Fragment>
+      <CodeSample slot="media" label="OBS Studio log"><code><span class="log-dim">21:04:33.118</span> <span class="log-key">[replay-buffer-pro]</span> save requested: 30s
 <span class="log-dim">21:04:33.301</span> <span class="log-key">[replay-buffer-pro]</span> buffer written, 2:00:00 total
 <span class="log-dim">21:04:33.302</span> <span class="log-key">[replay-buffer-pro]</span> trimming to last 30s
 <span class="log-dim">21:04:33.304</span> <span class="log-key">[replay-buffer-pro]</span> stream copy, no re-encode
-<span class="log-dim">21:04:33.489</span> <span class="log-ok">[replay-buffer-pro]</span> done in 187ms → clip-2026-08-14-21-04-33.mkv</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
+<span class="log-dim">21:04:33.489</span> <span class="log-ok">[replay-buffer-pro]</span> done in 187ms → clip-2026-08-14-21-04-33.mkv</code></CodeSample>
+    </FeatureRow>
 
-      <div class="feature-row">
-        <div class="feature-row-copy">
-          <h2>Never leave the game to clip</h2>
-          <p class="feature-statement"><strong>Every save button gets a hotkey.</strong> Bind them in OBS Studio's own hotkey settings and clip mid-broadcast without alt-tabbing or touching your mouse.</p>
-          <ul class="check-list">
-            <li>A hotkey for every duration, not just one save-all key</li>
-            <li>Search "Replay Buffer Pro" in OBS Settings → Hotkeys</li>
-            <li>No alt-tab required</li>
-          </ul>
-        </div>
-        <div class="feature-row-media">
-          <div class="surface">
-            <div class="surface-bar">
-              <span class="surface-label">Settings → Hotkeys</span>
-            </div>
-            <div class="surface-body">
-              <ul class="keymap">
-                <li><span>Save Last 15 Seconds</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>1</kbd></span></li>
-                <li><span>Save Last 30 Seconds</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>2</kbd></span></li>
-                <li><span>Save Last 1 Minute</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>3</kbd></span></li>
-                <li><span>Save Last 5 Minutes</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>4</kbd></span></li>
-                <li><span>Save Last 15 Minutes</span><span class="keys"><kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>5</kbd></span></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
+    <FeatureRow
+      title="Never leave the game to clip"
+      points={[
+        'A hotkey for every duration, not just one save-all key',
+        'Search "Replay Buffer Pro" in OBS Settings → Hotkeys',
+        'No alt-tab required',
+      ]}
+    >
+      <Fragment slot="statement"><strong>Every save button gets a hotkey.</strong> Bind them in OBS Studio's own hotkey settings and clip mid-broadcast without alt-tabbing or touching your mouse.</Fragment>
+      <Surface slot="media" label="Settings → Hotkeys">
+        <ul class="keymap">
+          {hotkeys.map(({ label, keys }) => (
+            <li><span>{label}</span><span class="keys">{keys.map((key) => <kbd>{key}</kbd>)}</span></li>
+          ))}
+        </ul>
+      </Surface>
+    </FeatureRow>
+  </Section>
 
   <!-- ============ USE CASES ============ -->
-  <section class="section" id="use-cases">
-    <div class="container">
-      <div class="section-intro">
-        <h2>Built for anyone who says "wait, did I get that?"</h2>
-      </div>
-
-      <div class="card-grid card-grid-2">
-        <article class="card card-lg">
-          <span class="card-eyebrow">Streaming &amp; content creation</span>
-          <p>Twitch and YouTube streamers can capture a highlight the second it happens and walk away with a clip already sized for TikTok, YouTube Shorts, and Instagram Reels — no editor, no export queue.</p>
-        </article>
-        <article class="card card-lg">
-          <span class="card-eyebrow">Sports &amp; esports analysis</span>
-          <p>Coaches and analysts can pull gameplay segments at precise moments for review and breakdown, without post-processing delays or scrubbing through hours of VOD.</p>
-        </article>
-        <article class="card card-lg">
-          <span class="card-eyebrow">Tutorial &amp; educational content</span>
-          <p>Educators and tutorial creators can grab specific segments of a recording at whatever length each platform wants, straight out of the session.</p>
-        </article>
-        <article class="card card-lg">
-          <span class="card-eyebrow">Software development &amp; QA</span>
-          <p>Developers and QA testers can save a bug reproduction the moment it occurs, with the exact preceding context attached to the ticket.</p>
-        </article>
-      </div>
+  <Section id="use-cases" title={'Built for anyone who says "wait, did I get that?"'}>
+    <div class="card-grid card-grid-2">
+      <Card eyebrow="Streaming & content creation">
+        <p>Twitch and YouTube streamers can capture a highlight the second it happens and walk away with a clip already sized for TikTok, YouTube Shorts, and Instagram Reels — no editor, no export queue.</p>
+      </Card>
+      <Card eyebrow="Sports & esports analysis">
+        <p>Coaches and analysts can pull gameplay segments at precise moments for review and breakdown, without post-processing delays or scrubbing through hours of VOD.</p>
+      </Card>
+      <Card eyebrow="Tutorial & educational content">
+        <p>Educators and tutorial creators can grab specific segments of a recording at whatever length each platform wants, straight out of the session.</p>
+      </Card>
+      <Card eyebrow="Software development & QA">
+        <p>Developers and QA testers can save a bug reproduction the moment it occurs, with the exact preceding context attached to the ticket.</p>
+      </Card>
     </div>
-  </section>
+  </Section>
 
   <!-- ============ INSTALL ============ -->
-  <section class="section" id="install">
-    <div class="container">
-      <div class="section-intro">
-        <h2>Get started</h2>
-        <p>Requirements, installation, and setup.</p>
+  <Section id="install" title="Get started" lead="Requirements, installation, and setup.">
+    <dl class="spec-list">
+      <div class="spec-row">
+        <dt>OBS Studio</dt>
+        <dd>32.2.0+</dd>
+      </div>
+      <div class="spec-row">
+        <dt>Operating System</dt>
+        <dd>
+          <span class="spec-line">Windows 10/11 (64-bit)</span>
+          <span class="spec-line">macOS 13.0+ (Apple Silicon &amp; Intel universal)</span>
+        </dd>
+      </div>
+    </dl>
+
+    <div class="os-tabs" data-os-tabs>
+      <div class="os-tablist" role="tablist" aria-label="Choose your operating system">
+        <button type="button" class="os-tab" role="tab" id="tab-windows" aria-controls="panel-windows" data-os-tab="windows">Windows</button>
+        <button type="button" class="os-tab" role="tab" id="tab-macos" aria-controls="panel-macos" data-os-tab="macos">macOS</button>
       </div>
 
-      <dl class="spec-list">
-        <div class="spec-row">
-          <dt>OBS Studio</dt>
-          <dd>32.2.0+</dd>
-        </div>
-        <div class="spec-row">
-          <dt>Operating System</dt>
-          <dd>
-            <span class="spec-line">Windows 10/11 (64-bit)</span>
-            <span class="spec-line">macOS 13.0+ (Apple Silicon &amp; Intel universal)</span>
-          </dd>
-        </div>
-      </dl>
+      <ol class="os-tabpanel" role="tabpanel" id="panel-windows" aria-labelledby="tab-windows" data-os-panel="windows">
+        <li><span class="os-step-text">Download the <code>.zip</code> for Windows (x64).</span></li>
+        <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Extract the <code>.zip</code> and copy the <code>replay-buffer-pro</code> folder into <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\</CopyCode>).</span></li>
+        <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+      </ol>
 
-      <div class="os-tabs" data-os-tabs>
-        <div class="os-tablist" role="tablist" aria-label="Choose your operating system">
-          <button type="button" class="os-tab" role="tab" id="tab-windows" aria-controls="panel-windows" data-os-tab="windows">Windows</button>
-          <button type="button" class="os-tab" role="tab" id="tab-macos" aria-controls="panel-macos" data-os-tab="macos">macOS</button>
-        </div>
-
-        <ol class="os-tabpanel" role="tabpanel" id="panel-windows" aria-labelledby="tab-windows" data-os-panel="windows">
-          <li><span class="os-step-text">Download the <code>.zip</code> for Windows (x64).</span></li>
-          <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-          <li><span class="os-step-text">Extract the <code>.zip</code> and copy the <code>replay-buffer-pro</code> folder into <code class="click-to-copy">%ALLUSERSPROFILE%\obs-studio\plugins\ <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></code> (typically <code class="click-to-copy">C:\ProgramData\obs-studio\plugins\ <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></code>).</span></li>
-          <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
-        </ol>
-
-        <ol class="os-tabpanel" role="tabpanel" id="panel-macos" aria-labelledby="tab-macos" data-os-panel="macos">
-          <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
-          <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
-          <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
-          <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
-        </ol>
-      </div>
-
-      <h3 class="subhead">Then, in OBS Studio</h3>
-      <ol class="numbered-list">
-        <li><span>Open <strong>Docks → Replay Buffer Pro</strong>.</span></li>
-        <li><span>Set the maximum replay buffer length in the dock's numeric field.</span></li>
-        <li><span>Start the Replay Buffer from OBS Studio's controls.</span></li>
-        <li><span>Hit a save button — or its hotkey — to write the clip.</span></li>
+      <ol class="os-tabpanel" role="tabpanel" id="panel-macos" aria-labelledby="tab-macos" data-os-panel="macos">
+        <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
+        <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically.</span></li>
+        <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
       </ol>
     </div>
-  </section>
+
+    <h3 class="subhead">Then, in OBS Studio</h3>
+    <ol class="numbered-list">
+      <li><span>Open <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+      <li><span>Set the maximum replay buffer length in the dock's numeric field.</span></li>
+      <li><span>Start the Replay Buffer from OBS Studio's controls.</span></li>
+      <li><span>Hit a save button — or its hotkey — to write the clip.</span></li>
+    </ol>
+  </Section>
 
   <!-- ============ FAQ ============ -->
-  <section class="section" id="faq">
-    <div class="container">
-      <div class="section-intro">
-        <h2>Frequently asked questions</h2>
-      </div>
-
-      <div class="faq">
-        {faq.map(({ question, answer }) => (
-          <details>
-            <summary>{question}<span class="faq-icon" aria-hidden="true"></span></summary>
-            <div class="faq-body"><p set:html={answer}></p></div>
-          </details>
-        ))}
-      </div>
+  <Section id="faq" title="Frequently asked questions">
+    <div class="faq">
+      {faq.map(({ question, answer }) => (
+        <details>
+          <summary>{question}<span class="faq-icon" aria-hidden="true"></span></summary>
+          <div class="faq-body"><p set:html={answer}></p></div>
+        </details>
+      ))}
     </div>
-  </section>
+  </Section>
 
   <!-- ============ TROUBLESHOOTING ============ -->
-  <section class="section" id="troubleshooting">
-    <div class="container">
-      <div class="section-intro">
-        <h2>Troubleshooting</h2>
-      </div>
-
-      <div class="issue-list">
-        <div class="issue">
-          <div class="issue-title">Plugin not loading</div>
-          <p>Confirm <code>replay-buffer-pro.dll</code> sits in <code class="click-to-copy">%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\ <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></code> (typically <code class="click-to-copy">C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\ <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></code>), then restart OBS Studio.</p>
-        </div>
-        <div class="issue">
-          <div class="issue-title">A clip wasn't trimmed</div>
-          <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
-          <p><code>skipped reason=no-pending-request</code> means the save came from outside the plugin — OBS's own <strong>Save Replay</strong> hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action. Those save the full buffer. Bind a <em>Replay Buffer Pro: Save…</em> hotkey instead so the plugin knows which duration you wanted.</p>
-          <p><code>skipped reason=encoder-paused</code> means recording was paused. OBS doesn't save the replay buffer while recording is paused, so resume recording and save again. <code>skipped reason=replay-buffer-stopped</code> means the replay buffer was stopped before OBS started writing the clip. A save pressed while OBS is still writing a previous clip waits for that write to finish, then is trimmed so it ends at the moment you pressed the key. If your replay buffer no longer holds anything from before that press, the trim fails with <code>failed reason=window-not-in-buffer</code> and the full-length file is kept; increase the buffer length or save to faster storage.</p>
-          <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Settings → Advanced → Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
-        </div>
-        <div class="issue">
-          <div class="issue-title">Check the logs</div>
-          <p>Open the OBS Studio log file and search for <code>Replay Buffer Pro</code> entries to see load messages and errors.</p>
-        </div>
-        <div class="issue">
-          <div class="issue-title">Report an issue</div>
-          <p>Still stuck? <a href="https://github.com/JoshuaPotter/replay-buffer-pro/issues" target="_blank" rel="noopener">File an issue on GitHub</a> with your OBS Studio version, plugin version, and any relevant log lines.</p>
-        </div>
-      </div>
+  <Section id="troubleshooting" title="Troubleshooting">
+    <div class="issue-list">
+      <Issue title="Plugin not loading">
+        <p>Confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>), then restart OBS Studio.</p>
+      </Issue>
+      <Issue title="A clip wasn't trimmed">
+        <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
+        <p><code>skipped reason=no-pending-request</code> means the save came from outside the plugin — OBS's own <strong>Save Replay</strong> hotkey, the tray menu, or a Stream Deck button using the official OBS Studio plugin's "Save Replay Buffer" action. Those save the full buffer. Bind a <em>Replay Buffer Pro: Save…</em> hotkey instead so the plugin knows which duration you wanted.</p>
+        <p><code>skipped reason=encoder-paused</code> means recording was paused. OBS doesn't save the replay buffer while recording is paused, so resume recording and save again. <code>skipped reason=replay-buffer-stopped</code> means the replay buffer was stopped before OBS started writing the clip. A save pressed while OBS is still writing a previous clip waits for that write to finish, then is trimmed so it ends at the moment you pressed the key. If your replay buffer no longer holds anything from before that press, the trim fails with <code>failed reason=window-not-in-buffer</code> and the full-length file is kept; increase the buffer length or save to faster storage.</p>
+        <p><code>failed reason=output-too-long</code> means your encoder's keyframe interval is too long for the clip length you asked for. Set <strong>Settings → Output → Keyframe Interval</strong> to 2 seconds. For <code>failed reason=open-input-failed</code>, try disabling <strong>Settings → Advanced → Automatically remux to mp4</strong>; antivirus and cloud-sync folders can hold the file the same way. For anything else, check disk space and write permissions in the output directory.</p>
+      </Issue>
+      <Issue title="Check the logs">
+        <p>Open the OBS Studio log file and search for <code>Replay Buffer Pro</code> entries to see load messages and errors.</p>
+      </Issue>
+      <Issue title="Report an issue">
+        <p>Still stuck? <ExternalLink href={ISSUES_URL}>File an issue on GitHub</ExternalLink> with your OBS Studio version, plugin version, and any relevant log lines.</p>
+      </Issue>
     </div>
-  </section>
+  </Section>
 </BaseLayout>
+
+<style>
+  .hero { padding: clamp(3.5rem, 8vw, 7rem) 0 0; }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6vw, 4rem);
+    align-items: center;
+  }
+  .release-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    height: 1.875rem;
+    padding: 0 .75rem;
+    margin-bottom: 1.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-full);
+    background: var(--bg-raised);
+    font-size: .8125rem;
+    color: var(--text-muted);
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  .release-pill:hover { border-color: var(--gray-500); background: var(--gray-100); }
+  .release-pill .release-version { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .release-pill :global(svg) { color: var(--text-faint); transition: transform .15s ease; }
+  .release-pill:hover :global(svg) { transform: translateX(2px); }
+  .hero-meta {
+    margin-top: 1.25rem;
+    font-size: .8125rem;
+    color: var(--text-faint);
+  }
+  .hero-media { min-width: 0; }
+  :global(.plugin-ui-stage-wrap) { position: relative; }
+  .subhead {
+    margin: clamp(2.5rem, 5vw, 3.5rem) 0 1.25rem;
+    font-size: 1.125rem;
+    color: var(--text);
+  }
+  .timeline-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: .875rem;
+  }
+  .timeline-title { font-size: .8125rem; color: var(--text-muted); }
+  .timeline-len {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-track {
+    position: relative;
+    height: 3.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--bg-subtle);
+    overflow: hidden;
+  }
+  .timeline-fill {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--gray-200) 0 2px,
+      transparent 2px 7px
+    );
+  }
+  .timeline-window {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 22%;
+    background: var(--gray-1000);
+    display: grid;
+    place-items: center;
+  }
+  .timeline-window-label {
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    font-weight: 500;
+    color: #000;
+  }
+  .timeline-now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 2px;
+    background: var(--green);
+  }
+  .timeline-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: .5rem;
+    font-family: var(--font-mono);
+    font-size: .6875rem;
+    color: var(--text-faint);
+  }
+  .timeline-out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: .75rem;
+    color: var(--text-faint);
+  }
+  .keymap { margin: 0; padding: 0; list-style: none; }
+  .keymap li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .75rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .875rem;
+    color: var(--text-muted);
+  }
+  .keymap li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .keymap li:first-child { padding-top: 0; }
+  .keys { display: inline-flex; gap: .25rem; flex-shrink: 0; }
+  kbd {
+    min-width: 1.5rem;
+    padding: .1875rem .375rem;
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--r-sm);
+    background: var(--gray-100);
+    font-family: var(--font-mono);
+    font-size: .6875rem;
+    color: var(--text);
+    text-align: center;
+  }
+  .spec-list {
+    margin: 0 0 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+  }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 1rem;
+    padding: .875rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-row:last-child { border-bottom: 0; }
+  .spec-list dt { font-size: .875rem; color: var(--text-faint); }
+  .spec-list dd { margin: 0; font-size: .875rem; color: var(--text); }
+  .spec-list dd .spec-line { display: block; }
+  .spec-list dd .spec-line + .spec-line { margin-top: .25rem; }
+  .os-tablist {
+    display: inline-flex;
+    gap: .25rem;
+    padding: .25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--bg-raised);
+  }
+  .os-tab {
+    height: 1.875rem;
+    padding: 0 .875rem;
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    font-family: inherit;
+    font-size: .8125rem;
+    font-weight: 450;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .os-tab:hover { color: var(--text); }
+  .os-tab[aria-selected="true"] { background: var(--gray-300); color: var(--text); }
+  .os-tabpanel,
+  .numbered-list {
+    counter-reset: step;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+  }
+  .os-tabpanel[hidden] { display: none; }
+  .os-tabpanel li,
+  .numbered-list li {
+    counter-increment: step;
+    display: flex;
+    align-items: baseline;
+    gap: .875rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .9375rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  .os-tabpanel li:last-child,
+  .numbered-list li:last-child { border-bottom: 0; }
+  .os-tabpanel li::before,
+  .numbered-list li::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 1.375rem;
+    height: 1.375rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: .6875rem;
+    color: var(--text-faint);
+    align-self: flex-start;
+    position: relative;
+    top: .125rem;
+  }
+  .os-tabpanel strong,
+  .numbered-list strong { color: var(--text); font-weight: 500; }
+  .faq { border-top: 1px solid var(--border); }
+  .faq details { border-bottom: 1px solid var(--border); }
+  .faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+    font-size: 1rem;
+    font-weight: 450;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+    transition: color .15s ease;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary:hover { color: var(--gray-900); }
+  .faq-icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+  }
+  .faq-icon::before,
+  .faq-icon::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: var(--text-faint);
+    transform: translate(-50%, -50%);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .faq-icon::before { width: .75rem; height: 1.5px; }
+  .faq-icon::after { width: 1.5px; height: .75rem; }
+  .faq details[open] .faq-icon::after { opacity: 0; transform: translate(-50%, -50%) rotate(90deg); }
+  .faq-body { padding: 0 0 1.5rem; max-width: 48rem; }
+  .faq-body :global(p) { font-size: .9375rem; color: var(--text-muted); text-wrap: pretty; }
+  .faq-body :global(strong) { color: var(--text); font-weight: 500; }
+  .issue-list {
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+  }
+
+  @media (min-width: 60rem) {
+    .hero-inner { grid-template-columns: 1.05fr .95fr; }
+  }
+
+  @media (max-width: 30rem) {
+    .spec-row { grid-template-columns: 1fr; gap: .25rem; }
+    .os-tablist { display: flex; width: 100%; }
+    .os-tab { flex: 1; }
+  }
+</style>
+
+<script>
+  import { detectOS } from '../scripts/os';
+  import { getLatestRelease } from '../scripts/release';
+
+  // Windows/macOS tabs for the install steps, defaulting to the visitor's OS.
+  const tabs = document.querySelectorAll<HTMLElement>('[data-os-tab]');
+  const panels = document.querySelectorAll<HTMLElement>('[data-os-panel]');
+  const selectOS = (os: string) => {
+    tabs.forEach((tab) => {
+      const selected = tab.dataset.osTab === os;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.osPanel !== os;
+    });
+  };
+  tabs.forEach((tab) => tab.addEventListener('click', () => selectOS(tab.dataset.osTab ?? '')));
+  selectOS(detectOS());
+
+  // Show the latest release's version in the hero pill.
+  getLatestRelease().then((release) => {
+    if (!release) return;
+    document.querySelectorAll<HTMLElement>('.release-version').forEach((el) => {
+      el.textContent = `${el.dataset.prefix ?? 'v'}${release.tag_name}`;
+    });
+  });
+</script>
