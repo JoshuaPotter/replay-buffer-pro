@@ -96,11 +96,14 @@ const { root } = Astro.props;
   }
 
   function choose(choice: Choice) {
+    // The Clarity tag defines window.clarity when it fires, and it fires with the GA4 tag.
+    const tagsRan = typeof window.clarity === 'function';
     try { localStorage.setItem('rbp-consent', choice); } catch {}
     window.gtag?.('consent', 'update', { analytics_storage: choice });
     window.clarity?.('consentv2', { analytics_Storage: choice, ad_Storage: 'denied' });
     // Tags blocked on this page view don't retry on a consent update; GTM triggers them on this event.
-    if (choice === 'granted') window.dataLayer?.push({ event: 'consent_granted' });
+    // Skipped when they already ran, so a visitor who accepts an already-on notice isn't counted twice.
+    if (choice === 'granted' && !tagsRan) window.dataLayer?.push({ event: 'consent_granted' });
     banners.forEach((banner) => { banner.hidden = true; });
   }
 
