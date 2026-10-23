@@ -699,6 +699,9 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     overflow: hidden;
   }
 
+  @media (min-width: 48rem) {
+    .hero-inner { grid-template-columns: 1fr 1fr; }
+  }
   @media (min-width: 60rem) {
     .hero-inner { grid-template-columns: 1.05fr .95fr; }
   }
