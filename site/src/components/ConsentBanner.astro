@@ -74,6 +74,7 @@ const { root } = Astro.props;
 
   declare global {
     interface Window {
+      dataLayer?: unknown[];
       gtag?: (...args: unknown[]) => void;
       clarity?: (...args: unknown[]) => void;
       rbpConsent?: { strict: boolean; choice: string | null; gpc: boolean };
@@ -98,6 +99,8 @@ const { root } = Astro.props;
     try { localStorage.setItem('rbp-consent', choice); } catch {}
     window.gtag?.('consent', 'update', { analytics_storage: choice });
     window.clarity?.('consentv2', { analytics_Storage: choice, ad_Storage: 'denied' });
+    // Tags blocked on this page view don't retry on a consent update; GTM triggers them on this event.
+    if (choice === 'granted') window.dataLayer?.push({ event: 'consent_granted' });
     banners.forEach((banner) => { banner.hidden = true; });
   }
 
