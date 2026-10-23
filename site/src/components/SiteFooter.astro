@@ -15,6 +15,8 @@ interface FooterLink {
   href: string;
   label: string;
   external?: boolean;
+  /** Renders a button that reopens the cookie consent banner instead of a link. */
+  consent?: boolean;
 }
 
 const columns: { heading: string; links: FooterLink[] }[] = [
@@ -40,6 +42,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
     heading: 'Legal',
     links: [
       { href: 'https://www.gnu.org/licenses/old-licenses/gpl-2.0.html', label: 'GPL-2.0-or-later', external: true },
+      { href: '', label: 'Cookie settings', consent: true },
     ],
   },
 ];
@@ -57,7 +60,8 @@ const columns: { heading: string; links: FooterLink[] }[] = [
         <div class="footer-col">
           <h2>{heading}</h2>
           <ul>
-            {links.map(({ label, external, ...attrs }) => {
+            {links.map(({ label, external, consent, ...attrs }) => {
+              if (consent) return <li><button type="button" class="footer-button" data-consent-open>{label}</button></li>;
               const Link = external ? ExternalLink : 'a';
               return <li><Link {...attrs}>{label}</Link></li>;
             })}
@@ -107,12 +111,22 @@ const columns: { heading: string; links: FooterLink[] }[] = [
     flex-direction: column;
     gap: .75rem;
   }
-  .footer-col :global(a) {
+  .footer-col :global(a),
+  .footer-button {
     font-size: .875rem;
     color: var(--text-faint);
     transition: color .15s ease;
   }
-  .footer-col :global(a:hover) { color: var(--text); }
+  .footer-col :global(a:hover),
+  .footer-button:hover { color: var(--text); }
+  .footer-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    line-height: inherit;
+    cursor: pointer;
+  }
   .footer-bottom {
     padding-top: 2rem;
     border-top: 1px solid var(--border);

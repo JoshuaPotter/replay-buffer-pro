@@ -1,0 +1,112 @@
+---
+interface Props {
+  /** Relative path to the site root: '' on the homepage, '../' on subpages. */
+  root: string;
+}
+
+const { root } = Astro.props;
+---
+<div class="consent" role="region" aria-label="Cookie consent" data-consent-banner hidden>
+  <div class="container">
+    <div class="consent-panel">
+      <p class="consent-text" data-consent-variant="strict" hidden>
+        This site uses Google Analytics and Microsoft Clarity to measure visits. They set cookies only if you allow it. <a href={`${root}privacy/`}>Privacy</a>
+      </p>
+      <p class="consent-text" data-consent-variant="notice" hidden>
+        This site uses analytics cookies from Google Analytics and Microsoft Clarity to measure visits. <a href={`${root}privacy/`}>Privacy</a>
+      </p>
+      <div class="consent-actions" data-consent-variant="strict" hidden>
+        <button type="button" class="btn btn-secondary" data-consent-choice="denied">Decline</button>
+        <button type="button" class="btn btn-secondary" data-consent-choice="granted">Accept</button>
+      </div>
+      <div class="consent-actions" data-consent-variant="notice" hidden>
+        <button type="button" class="btn btn-secondary" data-consent-choice="denied">Opt out</button>
+        <button type="button" class="btn btn-secondary" data-consent-choice="granted">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .consent {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 70;
+    padding-bottom: 16px;
+  }
+  .consent[hidden] { display: none; }
+  .consent-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-xl);
+    background: var(--bg-raised);
+  }
+  .consent-text {
+    font-size: .875rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .consent-text a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .consent-actions {
+    display: flex;
+    gap: .5rem;
+  }
+  .consent-actions .btn { flex: 1; }
+  .consent [hidden] { display: none; }
+
+  @media (min-width: 48rem) {
+    .consent-panel { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; }
+    .consent-actions { flex-shrink: 0; }
+    .consent-actions .btn { flex: none; }
+  }
+</style>
+
+<script>
+  type Choice = 'granted' | 'denied';
+
+  declare global {
+    interface Window {
+      gtag?: (...args: unknown[]) => void;
+      clarity?: (...args: unknown[]) => void;
+      rbpConsent?: { strict: boolean; choice: string | null; gpc: boolean };
+    }
+  }
+
+  const banners = document.querySelectorAll<HTMLElement>('[data-consent-banner]');
+  const state = window.rbpConsent ?? { strict: true, choice: null, gpc: false };
+
+  function show(focus: boolean) {
+    const variant = state.strict ? 'strict' : 'notice';
+    banners.forEach((banner) => {
+      banner.querySelectorAll<HTMLElement>('[data-consent-variant]').forEach((el) => {
+        el.hidden = el.dataset.consentVariant !== variant;
+      });
+      banner.hidden = false;
+      if (focus) banner.querySelector<HTMLElement>(`[data-consent-variant="${variant}"] button`)?.focus();
+    });
+  }
+
+  function choose(choice: Choice) {
+    try { localStorage.setItem('rbp-consent', choice); } catch {}
+    window.gtag?.('consent', 'update', { analytics_storage: choice });
+    window.clarity?.('consentv2', { analytics_Storage: choice, ad_Storage: 'denied' });
+    banners.forEach((banner) => { banner.hidden = true; });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-consent-choice]').forEach((button) => {
+    button.addEventListener('click', () => choose(button.dataset.consentChoice as Choice));
+  });
+  document.querySelectorAll('[data-consent-open]').forEach((el) => {
+    el.addEventListener('click', () => show(true));
+  });
+
+  if (!state.choice && !state.gpc) show(false);
+</script>

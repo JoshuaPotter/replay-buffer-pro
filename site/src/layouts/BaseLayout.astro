@@ -2,6 +2,7 @@
 import SiteHeader from '../components/SiteHeader.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import ConsentBanner from '../components/ConsentBanner.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -25,6 +26,32 @@ const { title, description, root } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;450;500;600&display=swap">
+    <!-- Consent Mode defaults, before GTM: opt-in in the EU, EEA, UK and Switzerland, opt-out elsewhere.
+         Google geolocates the visitor for the region defaults; the timezone only picks the banner variant. -->
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied', wait_for_update: 500,
+        region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT',
+          'LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH']
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'granted'
+      });
+      (function () {
+        var tz = '';
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+        var strict = /^Europe\//.test(tz) || /^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe)$/.test(tz);
+        var choice = null;
+        try { choice = localStorage.getItem('rbp-consent'); } catch (e) {}
+        if (navigator.globalPrivacyControl) choice = 'denied';
+        if (choice === 'granted' || choice === 'denied') gtag('consent', 'update', { analytics_storage: choice });
+        window.rbpConsent = { strict: strict, choice: choice, gpc: !!navigator.globalPrivacyControl };
+      })();
+    </script>
     <!-- Google Tag Manager -->
     <script is:inline>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -51,5 +78,7 @@ const { title, description, root } = Astro.props;
     </main>
 
     <SiteFooter root={root} />
+
+    <ConsentBanner root={root} />
   </body>
 </html>

@@ -35,7 +35,7 @@ export interface Page {
   slug: string;
   /** Footer "Explore" link, breadcrumb, and BreadcrumbList name. */
   label: string;
-  changefreq: 'weekly' | 'monthly';
+  changefreq: 'weekly' | 'monthly' | 'yearly';
   priority: string;
   /** Repo-relative paths whose last commit dates the page in sitemap.xml (older paths keep its history). */
   sources: string[];
@@ -47,6 +47,7 @@ export const PAGES: Page[] = [
   { slug: 'obs-replay-buffer-guide', label: 'Replay buffer guide', changefreq: 'monthly', priority: '0.8', sources: ['site/src/content/pages/obs-replay-buffer-guide.md', 'site/src/pages/obs-replay-buffer-guide.astro'] },
   { slug: 'compare', label: 'Compare', changefreq: 'monthly', priority: '0.8', sources: ['site/src/content/pages/compare.md', 'site/src/pages/compare.astro'] },
   { slug: 'integrations', label: 'Community integrations', changefreq: 'monthly', priority: '0.6', sources: ['site/src/content/pages/integrations.md', 'site/src/pages/integrations.astro'] },
+  { slug: 'privacy', label: 'Privacy', changefreq: 'yearly', priority: '0.3', sources: ['site/src/content/pages/privacy.md'] },
   { slug: 'changelog', label: 'Changelog', changefreq: 'monthly', priority: '0.6', sources: ['site/src/pages/changelog.astro', 'site/src/content/changelog.md'] },
 ];
 
