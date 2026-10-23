@@ -48,7 +48,12 @@ const { title, description, root } = Astro.props;
         var choice = null;
         try { choice = localStorage.getItem('rbp-consent'); } catch (e) {}
         if (navigator.globalPrivacyControl) choice = 'denied';
-        if (choice === 'granted' || choice === 'denied') gtag('consent', 'update', { analytics_storage: choice });
+        // Clarity's standard call queue, so consent reaches it before GTM loads it; it replays the queue on start.
+        window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
+        if (choice === 'granted' || choice === 'denied') {
+          gtag('consent', 'update', { analytics_storage: choice });
+          window.clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: choice });
+        }
         window.rbpConsent = { strict: strict, choice: choice, gpc: !!navigator.globalPrivacyControl };
       })();
     </script>

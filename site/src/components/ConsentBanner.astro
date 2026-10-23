@@ -96,8 +96,8 @@ const { root } = Astro.props;
   }
 
   function choose(choice: Choice) {
-    // The Clarity tag defines window.clarity when it fires, and it fires with the GA4 tag.
-    const tagsRan = typeof window.clarity === 'function';
+    // The Clarity tag injects its loader script when it fires, and it fires with the GA4 tag.
+    const tagsRan = document.querySelector('script[src*="clarity.ms/tag/"]') !== null;
     try { localStorage.setItem('rbp-consent', choice); } catch {}
     window.gtag?.('consent', 'update', { analytics_storage: choice });
     window.clarity?.('consentv2', { analytics_Storage: choice, ad_Storage: 'denied' });
