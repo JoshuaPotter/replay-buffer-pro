@@ -128,7 +128,9 @@ namespace ReplayBufferPro
     /**
      * @brief Takes a capture whose end packet has arrived
      *
-     * Holds the lock only to reference the clip's packets.
+     * Takes the lock in short spans while it references the clip's packets,
+     * because the interleave thread waits on it for every packet. The capture
+     * stays open meanwhile, so purging stays paused and indices stay put.
      *
      * @param captureId Id from beginCapture()
      * @param durationSeconds Requested clip length
@@ -158,11 +160,13 @@ namespace ReplayBufferPro
     static void onPacket(obs_output_t *output, encoder_packet *packet,
                          encoder_packet_time *packetTime, void *param);
     void push(encoder_packet *packet);
-    void purgeFor(const encoder_packet &incoming);
-    void purge();
     bool purgeFront();
+    void dropPacketsLocked();
     void clearLocked();
     double spanSecondsLocked() const;
+
+    /// A packet this far behind the newest means the timeline started over
+    static constexpr int64_t RESTART_THRESHOLD_USEC = 5 * 1000000LL;
 
     ReadyCallback onReady;
 
@@ -174,7 +178,6 @@ namespace ReplayBufferPro
     std::deque<encoder_packet> packets;
     uint64_t frontSeq = 0;         ///< Sequence number of packets.front()
     int64_t curSize = 0;           ///< Bytes held, as OBS's cur_size
-    int64_t curTime = 0;           ///< dts_usec of the front packet, as OBS's cur_time
     int keyframes = 0;             ///< Video keyframes held, as OBS's keyframes
     int64_t maxTimeUsec = 0;
     int64_t maxSizeBytes = 0;

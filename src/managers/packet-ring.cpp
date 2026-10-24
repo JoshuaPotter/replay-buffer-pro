@@ -113,20 +113,24 @@ namespace ReplayBufferPro
     clearLocked();
   }
 
-  void PacketRing::clearLocked()
+  void PacketRing::dropPacketsLocked()
   {
     for (auto &packet : packets)
     {
       obs_encoder_packet_release(&packet);
     }
+    frontSeq += packets.size();
     packets.clear();
 
-    frontSeq = 0;
     curSize = 0;
-    curTime = 0;
     keyframes = 0;
     waitingForKeyframe = true;
     filled = false;
+  }
+
+  void PacketRing::clearLocked()
+  {
+    dropPacketsLocked();
     captures.clear();
   }
 
@@ -179,64 +183,110 @@ namespace ReplayBufferPro
   CaptureResult PacketRing::takeCapture(uint64_t captureId, int durationSeconds)
   {
     CaptureResult result;
-    std::lock_guard<std::mutex> lock(mutex);
 
-    auto it = std::find_if(captures.begin(), captures.end(),
-                           [captureId](const Capture &c) { return c.id == captureId; });
-    if (it == captures.end())
+    // Packets referenced per hold of the lock
+    constexpr size_t CHUNK = 2048;
+
+    auto closeCapture = [this, captureId]() {
+      captures.erase(std::remove_if(captures.begin(), captures.end(),
+                                    [captureId](const Capture &c) { return c.id == captureId; }),
+                     captures.end());
+    };
+
+    uint64_t startSeq = 0;
+    uint64_t endSeq = 0;
+
     {
-      result.reason = "capture-not-found";
-      return result;
-    }
+      std::lock_guard<std::mutex> lock(mutex);
 
-    const Capture capture = *it;
-    captures.erase(it);
-    result.bufferedSeconds = spanSecondsLocked();
-
-    if (!capture.ready)
-    {
-      result.reason = "capture-not-ready";
-      return result;
-    }
-
-    // Purging pauses while a capture is open, so this only happens if the ring
-    // was cleared in between
-    if (capture.endSeq < frontSeq || capture.endSeq - frontSeq >= packets.size())
-    {
-      result.reason = "capture-purged";
-      return result;
-    }
-
-    const size_t end = static_cast<size_t>(capture.endSeq - frontSeq) + 1;
-    const auto start = findWindowStart(end, static_cast<int64_t>(durationSeconds) * 1000000LL,
-                                       [this](size_t i) {
-                                         const encoder_packet &p = packets[i];
-                                         PacketTiming timing;
-                                         timing.dtsUsec = p.dts_usec;
-                                         timing.video = p.type == OBS_ENCODER_VIDEO;
-                                         timing.keyframe = p.keyframe;
-                                         return timing;
-                                       });
-    if (!start)
-    {
-      result.reason = "no-keyframe";
-      return result;
-    }
-
-    result.packets.packets.reserve(end - *start);
-    int64_t lastVideoDts = packets[*start].dts_usec;
-    for (size_t i = *start; i < end; i++)
-    {
-      encoder_packet ref;
-      obs_encoder_packet_ref(&ref, &packets[i]);
-      result.packets.packets.push_back(ref);
-      if (ref.type == OBS_ENCODER_VIDEO)
+      auto it = std::find_if(captures.begin(), captures.end(),
+                             [captureId](const Capture &c) { return c.id == captureId; });
+      if (it == captures.end())
       {
-        lastVideoDts = ref.dts_usec;
+        result.reason = "capture-not-found";
+        return result;
+      }
+
+      const Capture capture = *it;
+      result.bufferedSeconds = spanSecondsLocked();
+
+      if (!capture.ready)
+      {
+        closeCapture();
+        result.reason = "capture-not-ready";
+        return result;
+      }
+
+      // Purging pauses while a capture is open, so this only happens if the
+      // timeline restarted in between
+      if (capture.endSeq < frontSeq || capture.endSeq - frontSeq >= packets.size())
+      {
+        closeCapture();
+        result.reason = "capture-purged";
+        return result;
+      }
+
+      const size_t end = static_cast<size_t>(capture.endSeq - frontSeq) + 1;
+      const auto start = findWindowStart(end, static_cast<int64_t>(durationSeconds) * 1000000LL,
+                                         [this](size_t i) {
+                                           const encoder_packet &p = packets[i];
+                                           PacketTiming timing;
+                                           timing.dtsUsec = p.dts_usec;
+                                           timing.video = p.type == OBS_ENCODER_VIDEO;
+                                           timing.keyframe = p.keyframe;
+                                           return timing;
+                                         });
+      if (!start)
+      {
+        closeCapture();
+        result.reason = "no-keyframe";
+        return result;
+      }
+
+      startSeq = frontSeq + *start;
+      endSeq = capture.endSeq + 1;
+    }
+
+    // The capture is still open, so nothing is purged and frontSeq holds until
+    // it closes. Only a timeline restart drops packets meanwhile, so each chunk
+    // checks the slice is still there.
+    result.packets.packets.reserve(static_cast<size_t>(endSeq - startSeq));
+    for (uint64_t seq = startSeq; seq < endSeq;)
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      if (startSeq < frontSeq || endSeq - frontSeq > packets.size())
+      {
+        closeCapture();
+        result.packets = PacketRefs();
+        result.reason = "capture-purged";
+        return result;
+      }
+
+      const uint64_t chunkEnd = std::min<uint64_t>(endSeq, seq + CHUNK);
+      for (; seq < chunkEnd; seq++)
+      {
+        encoder_packet ref;
+        obs_encoder_packet_ref(&ref, &packets[static_cast<size_t>(seq - frontSeq)]);
+        result.packets.packets.push_back(ref);
       }
     }
 
-    result.clipSeconds = static_cast<double>(lastVideoDts - packets[*start].dts_usec) / 1e6;
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      closeCapture();
+    }
+
+    int64_t lastVideoDts = result.packets.packets.front().dts_usec;
+    for (const encoder_packet &packet : result.packets.packets)
+    {
+      if (packet.type == OBS_ENCODER_VIDEO)
+      {
+        lastVideoDts = packet.dts_usec;
+      }
+    }
+
+    result.clipSeconds =
+        static_cast<double>(lastVideoDts - result.packets.packets.front().dts_usec) / 1e6;
     result.success = true;
     return result;
   }
@@ -264,6 +314,15 @@ namespace ReplayBufferPro
     {
       std::lock_guard<std::mutex> lock(mutex);
 
+      // The output's timeline starts over at 0 each time the buffer starts. A
+      // packet far behind the newest means a restart whose stop event was
+      // suppressed, so drop the old session's packets. Open captures stay:
+      // their presses are judged against packets of the new session.
+      if (!packets.empty() && packet->dts_usec + RESTART_THRESHOLD_USEC < packets.back().dts_usec)
+      {
+        dropPacketsLocked();
+      }
+
       // Attached mid-GOP: a clip can only start on a keyframe
       if (waitingForKeyframe && !keyframe)
       {
@@ -273,16 +332,30 @@ namespace ReplayBufferPro
 
       if (captures.empty())
       {
-        purgeFor(*packet);
+        struct Buffer
+        {
+          PacketRing &ring;
+          bool empty() const { return ring.packets.empty(); }
+          int keyframes() const { return ring.keyframes; }
+          int64_t bytes() const { return ring.curSize; }
+          int64_t frontDtsUsec() const { return ring.packets.front().dts_usec; }
+          bool frontIsKeyframe() const
+          {
+            return ring.packets.front().type == OBS_ENCODER_VIDEO && ring.packets.front().keyframe;
+          }
+          bool popFront()
+          {
+            ring.filled = true;
+            return ring.purgeFront();
+          }
+        } buffer{*this};
+
+        purgeBuffer(buffer, packet->dts_usec, static_cast<int64_t>(packet->size), maxTimeUsec,
+                    maxSizeBytes);
       }
 
       encoder_packet ref;
       obs_encoder_packet_ref(&ref, packet);
-
-      if (packets.empty())
-      {
-        curTime = ref.dts_usec;
-      }
       curSize += static_cast<int64_t>(ref.size);
       packets.push_back(ref);
 
@@ -311,53 +384,6 @@ namespace ReplayBufferPro
     }
   }
 
-  // The purge mirrors replay_buffer_purge() in obs-ffmpeg-mux.c, so the ring
-  // holds the same packets as OBS's own buffer.
-  void PacketRing::purgeFor(const encoder_packet &incoming)
-  {
-    if (maxSizeBytes > 0)
-    {
-      if (packets.empty() || keyframes <= 2)
-      {
-        return;
-      }
-
-      while (!packets.empty() && (curSize + static_cast<int64_t>(incoming.size)) > maxSizeBytes)
-      {
-        purge();
-      }
-    }
-
-    if (packets.empty() || keyframes <= 2 || maxTimeUsec <= 0)
-    {
-      return;
-    }
-
-    while (!packets.empty() && (incoming.dts_usec - curTime) > maxTimeUsec)
-    {
-      purge();
-    }
-  }
-
-  void PacketRing::purge()
-  {
-    filled = true;
-
-    if (purgeFront())
-    {
-      // Drop the rest of that GOP so the ring always starts on a keyframe
-      while (!packets.empty())
-      {
-        const encoder_packet &front = packets.front();
-        if (front.type == OBS_ENCODER_VIDEO && front.keyframe)
-        {
-          return;
-        }
-        purgeFront();
-      }
-    }
-  }
-
   bool PacketRing::purgeFront()
   {
     if (packets.empty())
@@ -375,16 +401,8 @@ namespace ReplayBufferPro
       keyframes--;
     }
 
-    if (packets.empty())
-    {
-      curSize = 0;
-      curTime = 0;
-    }
-    else
-    {
-      curTime = packets.front().dts_usec;
-      curSize -= static_cast<int64_t>(packet.size);
-    }
+    // As purge_front(): an emptied buffer resets its byte count outright
+    curSize = packets.empty() ? 0 : curSize - static_cast<int64_t>(packet.size);
 
     obs_encoder_packet_release(&packet);
     return keyframe;

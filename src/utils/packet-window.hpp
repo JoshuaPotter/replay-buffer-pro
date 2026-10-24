@@ -1,6 +1,6 @@
 /**
  * @file packet-window.hpp
- * @brief Chooses which buffered packets make up a clip
+ * @brief Chooses which buffered packets make up a clip, and which to purge
  * @author Joshua Potter
  * @copyright GPL v2 or later
  *
@@ -76,6 +76,63 @@ namespace ReplayBufferPro
     }
 
     return oldestKeyframe;
+  }
+
+  /**
+   * @brief Drops packets from the front of a buffer the way OBS's replay buffer does
+   *
+   * A port of replay_buffer_purge() in obs-ffmpeg-mux.c, run before each
+   * packet is stored, so a mirror holds exactly what OBS holds: whole GOPs are
+   * dropped while storing the incoming packet would exceed the size limit or
+   * span more than the time limit, but never while the buffer holds two
+   * keyframes or fewer.
+   *
+   * Buffer provides empty(), keyframes(), bytes(), frontDtsUsec(),
+   * frontIsKeyframe() and popFront(), which removes the front packet and
+   * returns whether it was a video keyframe.
+   *
+   * @param incomingDtsUsec dts_usec of the packet about to be stored
+   * @param incomingBytes Its size
+   * @param maxTimeUsec max_time_sec in microseconds, 0 for none
+   * @param maxBytes max_size_mb in bytes, 0 for none
+   */
+  template <typename Buffer>
+  void purgeBuffer(Buffer &buffer, int64_t incomingDtsUsec, int64_t incomingBytes,
+                   int64_t maxTimeUsec, int64_t maxBytes)
+  {
+    // purge(): drop the front packet and, if it was a keyframe, the rest of its GOP
+    auto purgeGop = [&buffer]() {
+      if (buffer.popFront())
+      {
+        while (!buffer.empty() && !buffer.frontIsKeyframe())
+        {
+          buffer.popFront();
+        }
+      }
+    };
+
+    if (maxBytes > 0)
+    {
+      if (buffer.empty() || buffer.keyframes() <= 2)
+      {
+        return;
+      }
+
+      while (!buffer.empty() && buffer.bytes() + incomingBytes > maxBytes)
+      {
+        purgeGop();
+      }
+    }
+
+    if (buffer.empty() || buffer.keyframes() <= 2 || maxTimeUsec <= 0)
+    {
+      return;
+    }
+
+    while (!buffer.empty() && incomingDtsUsec - buffer.frontDtsUsec() > maxTimeUsec)
+    {
+      purgeGop();
+    }
   }
 
 } // namespace ReplayBufferPro

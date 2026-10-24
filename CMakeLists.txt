@@ -90,6 +90,7 @@ target_sources(
     src/utils/video-trimmer.cpp
     src/utils/video-trimmer.hpp
     src/utils/clip-writer.cpp
+    src/utils/libav-utils.hpp
     src/utils/clip-writer.hpp
     src/utils/packet-window.hpp
     src/utils/status-reporter.cpp

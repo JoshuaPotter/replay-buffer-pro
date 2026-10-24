@@ -22,6 +22,7 @@
 // STL includes
 #include <algorithm>
 #include <chrono>
+#include <functional>
 
 namespace ReplayBufferPro
 {
@@ -50,6 +51,15 @@ namespace ReplayBufferPro
         extension->clear();
       }
     }
+
+    /**
+     * @brief Runs a function when it goes out of scope
+     */
+    struct ScopeExit
+    {
+      std::function<void()> run;
+      ~ScopeExit() { run(); }
+    };
 
     /**
      * @brief Quotes a path for a log line
@@ -162,10 +172,9 @@ namespace ReplayBufferPro
     switch (event)
     {
     case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
-      // OBS starts its buffer empty and reads its limits only now, so the
-      // ring follows, in case the stop that should have cleared it was
-      // suppressed
-      ring.clear();
+      // OBS reads its limits only when the buffer starts. A restart whose
+      // stop was suppressed is caught by the ring itself, from the timeline
+      // starting over, so captures already open here are kept.
       ring.refreshLimits();
       // Subscribe now rather than at the first press, so saves from outside
       // the plugin are logged from the start
@@ -967,7 +976,10 @@ namespace ReplayBufferPro
     const auto startedAt = std::chrono::steady_clock::now();
 
     const std::string partialPath = getPartialOutputPath(job.sourcePath);
-    const std::string finalPath = getTrimmedOutputPath(job.sourcePath);
+    // Reserved like a clip from memory, so a trim never replaces one, or a
+    // clip from memory written the same second, that took this name first
+    const std::string finalPath = reserveUniquePath(getTrimmedOutputPath(job.sourcePath));
+    const ScopeExit release{[this, &finalPath]() { releasePath(finalPath); }};
     const std::string requested = std::to_string(job.duration) + "s";
 
     auto elapsedSeconds = [&startedAt]() {
@@ -1027,12 +1039,6 @@ namespace ReplayBufferPro
 
     // Only now is the trim allowed to take the final name, so nothing watching
     // the recordings folder ever sees a half-written clip.
-    if (os_file_exists(finalPath.c_str()))
-    {
-      Logger::warning("Replacing existing file: %s", finalPath.c_str());
-      removeFileWithRetry(finalPath);
-    }
-
     if (os_rename(partialPath.c_str(), finalPath.c_str()) != 0)
     {
       fail("rename-failed", "could not rename to " + finalPath);
@@ -1081,16 +1087,7 @@ namespace ReplayBufferPro
     };
 
     // Release the name on every way out, once the file has taken it or never will
-    struct Release
-    {
-      ReplayBufferManager *self;
-      const std::string &path;
-      ~Release()
-      {
-        std::lock_guard<std::mutex> lock(self->jobMutex);
-        self->reservedPaths.erase(path);
-      }
-    } release{this, job.finalPath};
+    const ScopeExit release{[this, &job]() { releasePath(job.finalPath); }};
 
     auto fail = [&](const std::string &reason, const std::string &detail) {
       removeFileWithRetry(partialPath);
@@ -1261,6 +1258,12 @@ namespace ReplayBufferPro
 
     reservedPaths.insert(chosen);
     return chosen;
+  }
+
+  void ReplayBufferManager::releasePath(const std::string &path)
+  {
+    std::lock_guard<std::mutex> lock(jobMutex);
+    reservedPaths.erase(path);
   }
 
   void ReplayBufferManager::reportVerdict(const char *outcome, const std::string &detail,

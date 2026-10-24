@@ -425,12 +425,18 @@ namespace ReplayBufferPro
      * @brief Picks a path no existing or queued clip uses, and reserves it
      *
      * OBS names files to the second, so presses in the same second would share
-     * a name. The reservation lasts until processClipJob() is done with it.
+     * a name. Both trims and clips from memory reserve their final name; the
+     * reservation lasts until releasePath().
      *
      * @param path Preferred path
      * @return path, or path with _2, _3... before the extension
      */
     std::string reserveUniquePath(const std::string &path);
+
+    /**
+     * @brief Ends a reservation made by reserveUniquePath()
+     */
+    void releasePath(const std::string &path);
 
     /**
      * @brief Logs the single verdict line for a save and shows a status message

@@ -12,6 +12,7 @@
  */
 
 #include "clip-writer.hpp"
+#include "libav-utils.hpp"
 #include "logger.hpp"
 
 extern "C" {
@@ -37,12 +38,6 @@ extern "C" {
 namespace ReplayBufferPro {
 
 namespace {
-
-std::string avErrorString(int errnum) {
-    char errbuf[AV_ERROR_MAX_STRING_SIZE];
-    av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
-    return std::string(errbuf);
-}
 
 ClipWriteResult failure(ClipWriteResult result, std::string reason, std::string detail = {}) {
     result.success = false;
@@ -144,17 +139,6 @@ uint8_t *copyExtraData(const std::vector<uint8_t> &data) {
         std::memcpy(copy, data.data(), data.size());
     }
     return copy;
-}
-
-void closeOutput(AVFormatContext **ctx) {
-    if (!*ctx) {
-        return;
-    }
-    if ((*ctx)->pb && !((*ctx)->oformat->flags & AVFMT_NOFILE)) {
-        avio_closep(&(*ctx)->pb);
-    }
-    avformat_free_context(*ctx);
-    *ctx = nullptr;
 }
 
 // rescale_ts() in ffmpeg-mux.c

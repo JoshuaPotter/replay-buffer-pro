@@ -117,7 +117,7 @@ The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the
 
 ## Where do the clips go?
 
-Each trimmed clip is saved as `<name>_trimmed.<ext>` next to the replay OBS wrote, in your Replay Buffer save directory. It is written to a `.rbp-partial.<ext>` file first and renamed into place, so the `_trimmed` file is complete the moment it exists. Then the original full-length file is deleted.
+Each trimmed clip is saved as `<name>_trimmed.<ext>` next to the replay OBS wrote, in your Replay Buffer save directory. It is written to a `.rbp-partial.<ext>` file first and renamed into place, so the `_trimmed` file is complete the moment it exists. Then the original full-length file is deleted. If that name is already taken, for example by two clips saved in the same second, the new one is numbered `_trimmed_2`, `_trimmed_3` and so on.
 
 A failed trim keeps the original. Replays saved outside the plugin, and Save Replay Buffer clicks, stay full length with no `_trimmed` file. Every save writes one `TRIM VERDICT` line to the OBS log that says what happened. The [troubleshooting section](https://joshuapotter.github.io/replay-buffer-pro/#troubleshooting) lists the reasons.
 

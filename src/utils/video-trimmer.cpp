@@ -9,6 +9,7 @@
  */
 
 #include "video-trimmer.hpp"
+#include "libav-utils.hpp"
 #include "logger.hpp"
 #include "config/config.hpp"
 
@@ -24,13 +25,6 @@ extern "C" {
 
 // OBS includes
 #include <util/platform.h>
-
-// Helper function to convert error codes to strings (MSVC-compatible)
-static std::string av_error_string(int errnum) {
-    char errbuf[AV_ERROR_MAX_STRING_SIZE];
-    av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
-    return std::string(errbuf);
-}
 
 #include <algorithm>
 #include <cmath>
@@ -56,20 +50,6 @@ bool packetTimeSeconds(const AVPacket* packet, const AVStream* stream, double* o
         return true;
     }
     return false;
-}
-
-/**
- * @brief Frees an output context and its AVIO handle
- */
-void closeOutput(AVFormatContext** outputCtx) {
-    if (!*outputCtx) {
-        return;
-    }
-    if ((*outputCtx)->pb && !((*outputCtx)->oformat->flags & AVFMT_NOFILE)) {
-        avio_closep(&(*outputCtx)->pb);
-    }
-    avformat_free_context(*outputCtx);
-    *outputCtx = nullptr;
 }
 
 /**
@@ -105,7 +85,7 @@ bool VideoTrimmer::openInputWithRetry(const std::string& inputPath,
         if (attempt < Config::TRIM_OPEN_RETRY_COUNT) {
             Logger::warning("Could not open '%s' (attempt %d of %d): %s - retrying in %dms",
                             inputPath.c_str(), attempt, Config::TRIM_OPEN_RETRY_COUNT,
-                            av_error_string(ret).c_str(), delayMs);
+                            avErrorString(ret).c_str(), delayMs);
             os_sleep_ms(delayMs);
             delayMs *= 2;
         }
@@ -132,16 +112,16 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
         int openError = 0;
         if (!openInputWithRetry(inputPath, &inputCtx, &openError)) {
             Logger::error("Could not open input file '%s': %s",
-                         inputPath.c_str(), av_error_string(openError).c_str());
-            return failure(result, "open-input-failed", av_error_string(openError));
+                         inputPath.c_str(), avErrorString(openError).c_str());
+            return failure(result, "open-input-failed", avErrorString(openError));
         }
 
         // Retrieve stream information
         int ret = avformat_find_stream_info(inputCtx, nullptr);
         if (ret < 0) {
-            Logger::error("Could not find stream information: %s", av_error_string(ret).c_str());
+            Logger::error("Could not find stream information: %s", avErrorString(ret).c_str());
             avformat_close_input(&inputCtx);
-            return failure(result, "stream-info-failed", av_error_string(ret));
+            return failure(result, "stream-info-failed", avErrorString(ret));
         }
 
         // Get total duration
@@ -193,9 +173,9 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
         // Create output context
         ret = avformat_alloc_output_context2(&outputCtx, nullptr, nullptr, outputPath.c_str());
         if (ret < 0) {
-            Logger::error("Could not create output context: %s", av_error_string(ret).c_str());
+            Logger::error("Could not create output context: %s", avErrorString(ret).c_str());
             avformat_close_input(&inputCtx);
-            return failure(result, "output-context-failed", av_error_string(ret));
+            return failure(result, "output-context-failed", avErrorString(ret));
         }
 
         // Setup output streams to match input
@@ -211,20 +191,20 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
             ret = avio_open(&outputCtx->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
             if (ret < 0) {
                 Logger::error("Could not open output file '%s': %s",
-                             outputPath.c_str(), av_error_string(ret).c_str());
+                             outputPath.c_str(), avErrorString(ret).c_str());
                 avformat_close_input(&inputCtx);
                 closeOutput(&outputCtx);
-                return failure(result, "output-open-failed", av_error_string(ret));
+                return failure(result, "output-open-failed", avErrorString(ret));
             }
         }
 
         // Write header
         ret = avformat_write_header(outputCtx, nullptr);
         if (ret < 0) {
-            Logger::error("Error occurred when writing header: %s", av_error_string(ret).c_str());
+            Logger::error("Error occurred when writing header: %s", avErrorString(ret).c_str());
             avformat_close_input(&inputCtx);
             closeOutput(&outputCtx);
-            return failure(result, "write-header-failed", av_error_string(ret));
+            return failure(result, "write-header-failed", avErrorString(ret));
         }
 
         // Find the video stream
@@ -258,7 +238,7 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
             // Not fatal, but now the scan starts at the head of the file, so it has
             // to keep going until it passes startTime rather than trusting the seek.
             Logger::warning("Error seeking to start time %.2f: %s - scanning from the beginning",
-                            startTime, av_error_string(ret).c_str());
+                            startTime, avErrorString(ret).c_str());
         }
 
         if (videoStreamIndex >= 0) {
@@ -328,14 +308,14 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
             if (ret < 0) {
                 Logger::warning("Could not rewind to the cut point (%s); restarting from "
                                 "the beginning of the file",
-                                av_error_string(ret).c_str());
+                                avErrorString(ret).c_str());
                 ret = av_seek_frame(inputCtx, -1, 0, AVSEEK_FLAG_BACKWARD);
                 if (ret < 0) {
                     Logger::error("Could not rewind the input at all: %s",
-                                  av_error_string(ret).c_str());
+                                  avErrorString(ret).c_str());
                     avformat_close_input(&inputCtx);
                     closeOutput(&outputCtx);
-                    return failure(result, "rewind-failed", av_error_string(ret));
+                    return failure(result, "rewind-failed", avErrorString(ret));
                 }
             }
         }
@@ -434,11 +414,11 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
 
                 ret = av_interleaved_write_frame(outputCtx, packet);
                 if (ret < 0) {
-                    Logger::error("Error writing packet: %s", av_error_string(ret).c_str());
+                    Logger::error("Error writing packet: %s", avErrorString(ret).c_str());
                     av_packet_free(&packet);
                     avformat_close_input(&inputCtx);
                     closeOutput(&outputCtx);
-                    return failure(result, "write-packet-failed", av_error_string(ret));
+                    return failure(result, "write-packet-failed", avErrorString(ret));
                 }
 
                 result.packetsWritten++;
@@ -460,10 +440,10 @@ TrimResult VideoTrimmer::trimToWindow(const std::string& inputPath,
         // Write trailer
         ret = av_write_trailer(outputCtx);
         if (ret < 0) {
-            Logger::error("Error writing trailer: %s", av_error_string(ret).c_str());
+            Logger::error("Error writing trailer: %s", avErrorString(ret).c_str());
             avformat_close_input(&inputCtx);
             closeOutput(&outputCtx);
-            return failure(result, "write-trailer-failed", av_error_string(ret));
+            return failure(result, "write-trailer-failed", avErrorString(ret));
         }
 
         avformat_close_input(&inputCtx);
@@ -504,13 +484,13 @@ double VideoTrimmer::getVideoDuration(const std::string& inputPath, AVFormatCont
     if (!ctx) {
         int ret = avformat_open_input(&ctx, inputPath.c_str(), nullptr, nullptr);
         if (ret < 0) {
-            Logger::error("Could not open file for duration check: %s", av_error_string(ret).c_str());
+            Logger::error("Could not open file for duration check: %s", avErrorString(ret).c_str());
             return -1.0;
         }
 
         ret = avformat_find_stream_info(ctx, nullptr);
         if (ret < 0) {
-            Logger::error("Could not find stream info for duration check: %s", av_error_string(ret).c_str());
+            Logger::error("Could not find stream info for duration check: %s", avErrorString(ret).c_str());
             avformat_close_input(&ctx);
             return -1.0;
         }
@@ -552,7 +532,7 @@ bool VideoTrimmer::setupOutputStreams(AVFormatContext* inputCtx,
         // Copy codec parameters
         int ret = avcodec_parameters_copy(outputStream->codecpar, inputStream->codecpar);
         if (ret < 0) {
-            Logger::error("Failed to copy codec parameters for stream %d: %s", i, av_error_string(ret).c_str());
+            Logger::error("Failed to copy codec parameters for stream %d: %s", i, avErrorString(ret).c_str());
             return false;
         }
 

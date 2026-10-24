@@ -65,3 +65,4 @@ It returns a `TrimResult` carrying the source duration, requested start, actual 
 - `src/utils/status-reporter.cpp`
 - `src/utils/video-trimmer.hpp`
 - `src/utils/video-trimmer.cpp`
+- `src/utils/libav-utils.hpp` (`avErrorString`, `closeOutput`, shared with `ClipWriter`)
