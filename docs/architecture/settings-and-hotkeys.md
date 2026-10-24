@@ -34,7 +34,7 @@ This document describes how replay buffer length settings are stored, how save b
 
 ### Persistence
 - Settings are stored in `save_button_settings.json` under the module config path.
-- Schema stores a version and an array of per-button durations.
+- Schema stores a version, an array of per-button durations, and the `in_memory_clips` boolean (the Customize dialog's "Write clips straight from memory" checkbox, off when missing).
 - Invalid or missing data falls back to default durations.
 
 ## Hotkeys

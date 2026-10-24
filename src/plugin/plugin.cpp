@@ -23,6 +23,7 @@
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QPushButton>
+#include <QCheckBox>
 
 // STL includes
 #include <vector>
@@ -49,6 +50,7 @@ namespace ReplayBufferPro
 		settingsManager = new SettingsManager();
 		saveButtonSettings = new SaveButtonSettings();
 		saveButtonSettings->load();
+		replayManager->setInMemoryClips(saveButtonSettings->getInMemoryClips());
 		
 		// Create UI components with callbacks
 		ui = new UIComponents(this, 
@@ -241,6 +243,11 @@ namespace ReplayBufferPro
 
 		layout->addLayout(formLayout);
 
+		QCheckBox *inMemoryClips = new QCheckBox(obs_module_text("InMemoryClips"), &dialog);
+		inMemoryClips->setToolTip(obs_module_text("InMemoryClipsTooltip"));
+		inMemoryClips->setChecked(saveButtonSettings->getInMemoryClips());
+		layout->addWidget(inMemoryClips);
+
 		QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 		buttonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("CustomizeButtonsSave"));
 		buttonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("CustomizeButtonsCancel"));
@@ -261,6 +268,8 @@ namespace ReplayBufferPro
 		}
 
 		saveButtonSettings->setDurations(updatedDurations);
+		saveButtonSettings->setInMemoryClips(inMemoryClips->isChecked());
+		replayManager->setInMemoryClips(inMemoryClips->isChecked());
 		if (!saveButtonSettings->save())
 		{
 			Logger::warning("Failed to save custom save button durations");

@@ -23,6 +23,7 @@ namespace ReplayBufferPro
     constexpr const char *kSaveButtonSettingsKey = "save_buttons";
     constexpr const char *kSaveButtonSettingsSecondsKey = "seconds";
     constexpr const char *kSaveButtonSettingsVersionKey = "version";
+    constexpr const char *kInMemoryClipsKey = "in_memory_clips";
     constexpr int kSaveButtonSettingsVersion = 1;
   } // namespace
 
@@ -41,9 +42,20 @@ namespace ReplayBufferPro
     durations = normalizeDurations(values);
   }
 
+  bool SaveButtonSettings::getInMemoryClips() const
+  {
+    return inMemoryClips;
+  }
+
+  void SaveButtonSettings::setInMemoryClips(bool enabled)
+  {
+    inMemoryClips = enabled;
+  }
+
   void SaveButtonSettings::load()
   {
     durations = getDefaultDurations();
+    inMemoryClips = false;
 
     std::string configPath = getConfigPath();
     if (configPath.empty())
@@ -58,6 +70,8 @@ namespace ReplayBufferPro
       Logger::info("No save button settings found; using defaults");
       return;
     }
+
+    inMemoryClips = obs_data_get_bool(data.get(), kInMemoryClipsKey);
 
     obs_data_array_t *array = obs_data_get_array(data.get(), kSaveButtonSettingsKey);
     if (!array)
@@ -95,6 +109,7 @@ namespace ReplayBufferPro
     }
 
     obs_data_set_int(data.get(), kSaveButtonSettingsVersionKey, kSaveButtonSettingsVersion);
+    obs_data_set_bool(data.get(), kInMemoryClipsKey, inMemoryClips);
 
     obs_data_array_t *array = obs_data_array_create();
     for (size_t i = 0; i < durations.size(); i++)

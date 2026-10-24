@@ -89,6 +89,9 @@ target_sources(
     src/utils/duration-parse.hpp
     src/utils/video-trimmer.cpp
     src/utils/video-trimmer.hpp
+    src/utils/clip-writer.cpp
+    src/utils/clip-writer.hpp
+    src/utils/packet-window.hpp
     src/utils/status-reporter.cpp
     src/utils/status-reporter.hpp
     src/utils/logger.hpp
@@ -100,6 +103,8 @@ target_sources(
     src/managers/save-button-settings.hpp
     src/managers/replay-buffer-manager.cpp
     src/managers/replay-buffer-manager.hpp
+    src/managers/packet-ring.cpp
+    src/managers/packet-ring.hpp
     src/managers/hotkey-manager.cpp
     src/managers/hotkey-manager.hpp
     src/config/config.hpp
@@ -115,6 +120,10 @@ if(ENABLE_TESTS)
   add_executable(duration-parse-test tests/duration-parse-test.cpp src/utils/duration-parse.cpp)
   target_include_directories(duration-parse-test PRIVATE src)
   add_test(NAME duration-parse COMMAND duration-parse-test)
+
+  add_executable(packet-window-test tests/packet-window-test.cpp)
+  target_include_directories(packet-window-test PRIVATE src)
+  add_test(NAME packet-window COMMAND packet-window-test)
 endif()
 
 # Release package configuration (Windows only)

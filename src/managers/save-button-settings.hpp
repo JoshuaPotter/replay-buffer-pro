@@ -19,6 +19,9 @@ namespace ReplayBufferPro
     const std::vector<int> &getDurations() const;
     void setDurations(const std::vector<int> &durations);
 
+    bool getInMemoryClips() const;
+    void setInMemoryClips(bool enabled);
+
     void load();
     bool save() const;
 
@@ -26,6 +29,7 @@ namespace ReplayBufferPro
 
   private:
     std::vector<int> durations;
+    bool inMemoryClips = false;
 
     std::vector<int> normalizeDurations(const std::vector<int> &input) const;
     std::string getConfigPath() const;

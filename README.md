@@ -28,6 +28,8 @@ Start the Replay Buffer in OBS, then save a clip any of these ways. Each one is 
 
 Saves made with OBS's own Save Replay hotkey or tray menu are not trimmed.
 
+An experimental option in the dock's **Customize** dialog, **Write clips straight from memory**, writes each clip straight from the buffer's memory so the full buffer never reaches the disk. It supports MKV, MP4 and MOV with H.264, HEVC or AV1 video and AAC or Opus audio; other formats save through OBS as before. See the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/#in-memory-clips).
+
 ### Community integrations
 Other people have built tools that work with Replay Buffer Pro, including a Stream Deck plugin and the Smart Replay Mover OBS script. These are not necessarily endorsed or tested by this project. See the [community integrations page](https://joshuapotter.github.io/replay-buffer-pro/integrations/) for the list and how Stream Deck fits in.
 

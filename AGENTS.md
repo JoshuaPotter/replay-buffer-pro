@@ -13,10 +13,11 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - obs-websocket `SaveClip` vendor request: `src/plugin/websocket-command.hpp`, `src/plugin/websocket-command.cpp`
 - UI components: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
+- Packet ring (in-memory clips): `src/managers/packet-ring.hpp`, `src/managers/packet-ring.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
 - Save button settings: `src/managers/save-button-settings.hpp`, `src/managers/save-button-settings.cpp`
 - Hotkey manager: `src/managers/hotkey-manager.hpp`, `src/managers/hotkey-manager.cpp`
-- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/status-reporter.*`
+- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/clip-writer.*`, `src/utils/packet-window.hpp`, `src/utils/status-reporter.*`
 - Config constants: `src/config/config.hpp`
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
@@ -38,6 +39,13 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 3. `requestSave(...)` refuses the save if OBS would drop it (buffer inactive, recording paused), otherwise arms it with `obs_frontend_replay_buffer_save()`, folds it into a not-yet-started outstanding request, or defers it behind a file being written.
 4. On the replay buffer output's own `saved` signal (mux thread), the manager reads the path and posts it to `handleSaveCompleted(...)` on the Qt main thread, which queues a trim job and issues any deferred request.
 5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed`, then deletes the original.
+
+### Save segment from memory (experimental, off by default)
+1. With "Write clips straight from memory" on (Customize dialog, `in_memory_clips` in `save_button_settings.json`), `saveSegment(...)` tries `saveFromMemory(...)` first.
+2. `PacketRing` holds a reference to every packet of the replay buffer output via `obs_output_add_packet_callback(...)`, purged like OBS's own buffer. `ensureSubscribed()` attaches it; buffer start and stop clear it. The callback runs on OBS's interleave thread and must never block.
+3. `ClipWriter::describeStreams(...)` allows MKV/MP4/MOV, H.264/HEVC/AV1, AAC/Opus, SDR. Anything else, or a ring that holds less than asked, falls back to the OBS path (`SAVE MODE: obs reason=...`).
+4. A capture ends on the first packet at or after the press (OBS's `save_ts` rule). The worker writes `findWindowStart(...)`..end with `ClipWriter::write(...)`, a port of OBS's `ffmpeg-mux`, to a partial file, verifies it, then renames it to `<name>_trimmed.<ext>`. Nothing is written twice and OBS fires no saved event.
+5. `ClipWriter` mirrors OBS 32.2's `obs-ffmpeg-mux.c` and `ffmpeg-mux.c`; diff it against them when `buildspec.json` moves OBS. Details in `docs/architecture/replay-buffer-flow.md`.
 
 ### Save clip over obs-websocket
 1. A client sends `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and exactly one of `{"duration": ...}` or `{"durationSeconds": N}`.
@@ -75,7 +83,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
 - Hotkey bindings are stored in `hotkey_bindings.json` under the module config path.
-- Custom save button durations are stored in `save_button_settings.json` under the module config path.
+- Custom save button durations are stored in `save_button_settings.json` under the module config path, along with the `in_memory_clips` toggle.
 
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
@@ -120,7 +128,7 @@ npm run build       # Static output in site/dist/
 ```
 
 ## Not present
-- No custom OBS sources, filters, or outputs are registered. The only external API the plugin registers is the optional obs-websocket vendor request above; without obs-websocket it logs a warning and the dock still works. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written.
+- No custom OBS sources, filters, or outputs are registered. The only external API the plugin registers is the optional obs-websocket vendor request above; without obs-websocket it logs a warning and the dock still works. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written. In-memory clips also register a packet callback on that output (`obs_output_add_packet_callback`, OBS 31+).
 
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.

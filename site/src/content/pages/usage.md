@@ -121,6 +121,14 @@ Each trimmed clip is saved as `<name>_trimmed.<ext>` next to the replay OBS wrot
 
 A failed trim keeps the original. Replays saved outside the plugin, and Save Replay Buffer clicks, stay full length with no `_trimmed` file. Every save writes one `TRIM VERDICT` line to the OBS log that says what happened. The [troubleshooting section](https://joshuapotter.github.io/replay-buffer-pro/#troubleshooting) lists the reasons.
 
+## Can I skip writing the whole buffer to disk? {#in-memory-clips}
+
+Yes, as an experiment. Turn on **Write clips straight from memory (experimental)** in the dock's **Customize** dialog. Each clip is then written straight from the replay buffer's memory, so only the clip reaches the disk instead of the whole buffer followed by a trimmed copy. The file name is the same `<name>_trimmed.<ext>`.
+
+It works with MKV, MP4 and MOV recordings using H.264, HEVC or AV1 video and AAC or Opus audio, in SDR. Other formats, and **Save Replay Buffer**, still save through OBS as usual. A save right after the buffer starts also goes through OBS until the buffer has filled once.
+
+OBS does not see these saves, so tools that react to OBS's own replay-saved event, and OBS's automatic remux to MP4, skip them. If a clip from memory fails, there is no full-length file to fall back on. The `TRIM VERDICT` line for these clips starts with `mode=memory`.
+
 ## What happens if I press save twice?
 
 A save pressed while OBS is still writing an earlier clip waits for that write to finish, then is trimmed so it ends at the moment you pressed it. Time with recording paused does not count. If the buffer no longer holds anything from before your press, the trim fails with `window-not-in-buffer` and the full-length file is kept.
