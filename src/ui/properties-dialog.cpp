@@ -399,10 +399,13 @@ namespace ReplayBufferPro
 
   void PropertiesDialog::apply()
   {
+    // Only the hotkeys just applied; an edit on a hidden row stays pending
+    // until its row is shown and applied
+    std::vector<size_t> applying = changedHotkeys();
     emit applied();
-    for (auto *input : hotkeyInputs)
+    for (size_t index : applying)
     {
-      input->markApplied();
+      hotkeyInputs[index]->markApplied();
     }
   }
 

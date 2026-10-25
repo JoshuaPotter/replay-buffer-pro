@@ -11,6 +11,9 @@
 #include <obs-module.h>
 #include <obs-frontend-api.h>
 
+// Qt includes
+#include <QObject>
+
 // STL includes
 #include <functional>
 #include <string>
@@ -29,12 +32,17 @@ namespace ReplayBufferPro
    * One hotkey per save button (only as many as there are buttons) plus one
    * for Save Replay Buffer. Bindings of buttons that are removed stay in
    * hotkey_bindings.json, so raising the button count again restores them.
+   *
+   * The OBS frontend reroutes hotkey callbacks to the Qt main thread, but runs
+   * them while holding libobs's hotkey lock. Each callback posts the press and
+   * returns, so the save (and any warning dialog it shows) runs after the lock
+   * is released instead of stalling libobs's hotkey thread.
    */
   class HotkeyManager
   {
   public:
     /**
-     * @brief Target index for the Save Replay Buffer hotkey in getBindings/setBinding
+     * @brief Target index for the Save Replay Buffer hotkey in getAllBindings/setBinding
      */
     static constexpr size_t FULL_BUFFER = Config::MAX_SAVE_BUTTON_COUNT;
 
@@ -43,11 +51,13 @@ namespace ReplayBufferPro
     //=========================================================================
     /**
      * @brief Constructor
+     * @param context Object presses are posted to; must outlive this
      * @param saveSegmentCallback Callback for save segment hotkeys
      * @param saveFullBufferCallback Callback for the Save Replay Buffer hotkey
      * @param buttons Current save buttons
      */
      HotkeyManager(
+         QObject *context,
          std::function<void(int)> saveSegmentCallback,
          std::function<void()> saveFullBufferCallback,
          const std::vector<SaveButton> &buttons
@@ -55,8 +65,11 @@ namespace ReplayBufferPro
 
     /**
      * @brief Destructor
+     *
+     * Unregisters every hotkey. OBS holds its hotkey lock while it runs a
+     * callback, so none is running once this returns.
      */
-    ~HotkeyManager() = default;
+    ~HotkeyManager();
 
     //=========================================================================
     // HOTKEY MANAGEMENT
@@ -87,12 +100,12 @@ namespace ReplayBufferPro
     void setButtons(const std::vector<SaveButton> &buttons);
 
     /**
-     * @brief Gets the key combinations bound to a hotkey
-     * @param target Save button index, or FULL_BUFFER
-     * @return Every binding, in the order OBS holds them (empty if unbound). For a
-     *         button that is not registered, the bindings saved in the config file.
+     * @brief Gets the key combinations bound to every hotkey
+     * @return One entry per save button slot, then FULL_BUFFER: every binding, in
+     *         the order OBS holds them (empty if unbound). For a button that is not
+     *         registered, the bindings saved in the config file.
      */
-    std::vector<obs_key_combination_t> getBindings(size_t target) const;
+    std::vector<std::vector<obs_key_combination_t>> getAllBindings() const;
 
     /**
      * @brief Replaces a hotkey's bindings with one key combination
@@ -107,6 +120,7 @@ namespace ReplayBufferPro
     //=========================================================================
     obs_hotkey_id saveHotkeys[Config::MAX_SAVE_BUTTON_COUNT]; ///< Hotkey ID of each save button slot
     obs_hotkey_id saveFullHotkey = OBS_INVALID_HOTKEY_ID;     ///< Save Replay Buffer hotkey
+    QObject *context;                             ///< Receives presses once OBS's hotkey lock is released
     std::function<void(int)> onSaveSegment;       ///< Callback for save segment hotkeys
     std::function<void()> onSaveFullBuffer;       ///< Callback for the Save Replay Buffer hotkey
     std::vector<SaveButton> buttons;              ///< Current save buttons

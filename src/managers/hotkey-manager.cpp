@@ -66,16 +66,30 @@ namespace ReplayBufferPro
   //=============================================================================
 
   HotkeyManager::HotkeyManager(
+      QObject *context,
       std::function<void(int)> saveSegmentCallback,
       std::function<void()> saveFullBufferCallback,
       const std::vector<SaveButton> &buttons
-  ) : onSaveSegment(saveSegmentCallback),
+  ) : context(context),
+      onSaveSegment(saveSegmentCallback),
       onSaveFullBuffer(saveFullBufferCallback),
       buttons(buttons)
   {
     // Initialize hotkey IDs to invalid
     for (size_t i = 0; i < Config::MAX_SAVE_BUTTON_COUNT; i++) {
       saveHotkeys[i] = OBS_INVALID_HOTKEY_ID;
+    }
+  }
+
+  HotkeyManager::~HotkeyManager()
+  {
+    for (size_t i = 0; i < Config::MAX_SAVE_BUTTON_COUNT; i++) {
+      if (saveHotkeys[i] != OBS_INVALID_HOTKEY_ID) {
+        obs_hotkey_unregister(saveHotkeys[i]);
+      }
+    }
+    if (saveFullHotkey != OBS_INVALID_HOTKEY_ID) {
+      obs_hotkey_unregister(saveFullHotkey);
     }
   }
 
@@ -95,10 +109,16 @@ namespace ReplayBufferPro
       kFullBufferHotkeyName,
       obs_module_text("SaveFullHotkey"),
       [](void *data, obs_hotkey_id, obs_hotkey_t *, bool pressed) {
+        if (!pressed)
+          return;
+        // Runs under libobs's hotkey lock: post and return, so the save runs
+        // after it is released. The context outlives this manager, so a queued
+        // press never reaches a deleted one.
         auto self = static_cast<HotkeyManager *>(data);
-        if (pressed && self->onSaveFullBuffer) {
-          self->onSaveFullBuffer();
-        }
+        QMetaObject::invokeMethod(self->context, [self]() {
+          if (self->onSaveFullBuffer)
+            self->onSaveFullBuffer();
+        }, Qt::QueuedConnection);
       },
       this
     );
@@ -120,11 +140,16 @@ namespace ReplayBufferPro
       name.c_str(),
       description.c_str(),
       [](void *data, obs_hotkey_id id, obs_hotkey_t *, bool pressed) {
-        if (pressed) {
-          auto self = static_cast<HotkeyManager *>(data);
+        if (!pressed)
+          return;
+        // Runs under libobs's hotkey lock: post and return, so the save runs
+        // after it is released
+        auto self = static_cast<HotkeyManager *>(data);
+        QMetaObject::invokeMethod(self->context, [self, id]() {
           int duration = 0;
 
-          // Find which hotkey was pressed by matching the ID
+          // Find which hotkey was pressed by matching the ID; a button removed
+          // since the press no longer matches
           for (size_t i = 0; i < self->buttons.size(); i++) {
             if (self->saveHotkeys[i] == id) {
               duration = self->buttons[i].seconds;
@@ -135,7 +160,7 @@ namespace ReplayBufferPro
           if (duration > 0 && self->onSaveSegment) {
             self->onSaveSegment(duration);
           }
-        }
+        }, Qt::QueuedConnection);
       },
       this
     );
@@ -195,46 +220,54 @@ namespace ReplayBufferPro
     return OBS_INVALID_HOTKEY_ID;
   }
 
-  std::vector<obs_key_combination_t> HotkeyManager::getBindings(size_t target) const
+  std::vector<std::vector<obs_key_combination_t>> HotkeyManager::getAllBindings() const
   {
-    struct Query
+    std::vector<std::vector<obs_key_combination_t>> all(FULL_BUFFER + 1);
+
+    // Read once, for every button that is not registered: the bindings it had
+    // when the button count went down
+    OBSDataRAII saved(readBindingsFile());
+
+    for (size_t target = 0; target <= FULL_BUFFER; target++)
     {
-      obs_hotkey_id id;
-      std::vector<obs_key_combination_t> bindings;
-    } query{hotkeyId(target), {}};
-
-    if (query.id == OBS_INVALID_HOTKEY_ID)
-    {
-      // Not registered: the bindings it had when the button count went down
-      OBSDataRAII data(readBindingsFile());
-      if (!data.isValid())
-        return query.bindings;
-
-      obs_data_array_t *array = obs_data_get_array(data.get(), bindingsKey(target).c_str());
-      if (!array)
-        return query.bindings;
-
-      for (size_t i = 0; i < obs_data_array_count(array); i++)
+      struct Query
       {
-        obs_data_t *item = obs_data_array_item(array, i);
-        obs_key_combination_t combination = decodeBinding(item);
-        if (!obs_key_combination_is_empty(combination))
-          query.bindings.push_back(combination);
-        obs_data_release(item);
+        obs_hotkey_id id;
+        std::vector<obs_key_combination_t> &bindings;
+      } query{hotkeyId(target), all[target]};
+
+      if (query.id == OBS_INVALID_HOTKEY_ID)
+      {
+        if (!saved.isValid())
+          continue;
+
+        obs_data_array_t *array = obs_data_get_array(saved.get(), bindingsKey(target).c_str());
+        if (!array)
+          continue;
+
+        for (size_t i = 0; i < obs_data_array_count(array); i++)
+        {
+          obs_data_t *item = obs_data_array_item(array, i);
+          obs_key_combination_t combination = decodeBinding(item);
+          if (!obs_key_combination_is_empty(combination))
+            query.bindings.push_back(combination);
+          obs_data_release(item);
+        }
+        obs_data_array_release(array);
+        continue;
       }
-      obs_data_array_release(array);
-      return query.bindings;
+
+      obs_enum_hotkey_bindings(
+        [](void *data, size_t, obs_hotkey_binding_t *binding) {
+          auto q = static_cast<Query *>(data);
+          if (obs_hotkey_binding_get_hotkey_id(binding) == q->id)
+            q->bindings.push_back(obs_hotkey_binding_get_key_combination(binding));
+          return true;
+        },
+        &query);
     }
 
-    obs_enum_hotkey_bindings(
-      [](void *data, size_t, obs_hotkey_binding_t *binding) {
-        auto q = static_cast<Query *>(data);
-        if (obs_hotkey_binding_get_hotkey_id(binding) == q->id)
-          q->bindings.push_back(obs_hotkey_binding_get_key_combination(binding));
-        return true;
-      },
-      &query);
-    return query.bindings;
+    return all;
   }
 
   void HotkeyManager::setBinding(size_t target, const obs_key_combination_t *combination)

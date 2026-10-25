@@ -45,12 +45,13 @@ This document describes how replay buffer length settings are stored, how save b
 - Register or unregister button hotkeys when the button count changes (`setButtons(...)`).
 - Save hotkey bindings to a module config JSON file.
 - Load hotkey bindings after registration.
-- Read and replace a button's bindings for the properties window (`getBindings(...)`, `setBinding(...)`).
+- Read and replace a button's bindings for the properties window (`getAllBindings()`, `setBinding(...)`).
+- Unregister every hotkey in its destructor. OBS holds its hotkey lock while a callback runs, so none is running once that returns.
 
 ### Hotkey registration details
 - Hotkey name format: `ReplayBufferPro.SaveButton{index}`.
 - Description format: "Replay Buffer Pro: Save <duration>", or "Replay Buffer Pro: <label>" for a labelled button (`formatButtonHotkeyDescription(...)`).
-- Callback maps the pressed hotkey ID back to the current duration for that index.
+- The OBS frontend reroutes hotkey callbacks to the Qt main thread (`OBSBasic::HotkeyTriggered` → `ProcessHotkey` → `obs_hotkey_trigger_routed_callback`), which runs them while holding libobs's hotkey lock. Each callback only posts the press back to the event loop (the dock is the context object), so the save, and any warning dialog it shows, runs after the lock is released instead of stalling libobs's hotkey thread. The posted press then maps the hotkey ID back to the current duration for that index; a button removed before it runs no longer matches.
 
 ### Persistence
 - `saveHotkeySettings()` writes bindings to `hotkey_bindings.json` under the module config path, on exit and whenever the properties window applies a hotkey change.
@@ -61,8 +62,8 @@ This document describes how replay buffer length settings are stored, how save b
 
 ### Properties window access
 - Targets are a button index or `HotkeyManager::FULL_BUFFER` (the same index as `PropertiesDialog::FULL_BUFFER_HOTKEY`).
-- `getBindings(target)` enumerates `obs_enum_hotkey_bindings(...)` for that hotkey ID, or, for a button that isn't registered, decodes its saved `hotkey_{index}` entry.
-- `setBinding(index, combination)` calls `obs_hotkey_load_bindings(...)` with one combination, or none to clear. It replaces every binding the hotkey had, so the properties window only calls it for rows the user changed.
+- `getAllBindings()` returns one entry per button slot, then `FULL_BUFFER`. It enumerates `obs_enum_hotkey_bindings(...)` for each registered hotkey ID and, for a button that isn't registered, decodes its saved `hotkey_{index}` entry from `hotkey_bindings.json`, read once per call.
+- `setBinding(index, combination)` calls `obs_hotkey_load_bindings(...)` with one combination, or none to clear. It replaces every binding the hotkey had, so the properties window only calls it for rows the user changed. A changed row hidden by lowering the button count is not applied and stays pending until it is shown and applied.
 - Bindings set in OBS Settings → Hotkeys and in the properties window are the same libobs bindings.
 
 ## Key classes and functions

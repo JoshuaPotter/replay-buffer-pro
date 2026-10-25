@@ -89,7 +89,7 @@ Off by default; turned on with "Write clips straight from memory" on the Experim
 `PacketRing` (`src/managers/packet-ring.*`) registers `obs_output_add_packet_callback(...)` on the replay buffer output. OBS calls it on its interleave thread for every packet, just before the output stores it (`send_interleaved()` in `obs-output.c`). The ring keeps a reference to each packet (`obs_encoder_packet_ref`), which shares the output's own copy of the data, so it costs almost no memory. It purges by the same rules as `replay_buffer_purge()` in `obs-ffmpeg-mux.c`, from the output's `max_time_sec` and `max_size_mb`, so it holds the same packets as OBS's buffer and always starts on a video keyframe.
 
 - `ensureSubscribed()` attaches the ring to the current output, so it follows output swaps the same way the `saved` signal does. Unlike the signal, it swaps at once: a capture's packets are referenced as soon as it is taken.
-- `REPLAY_BUFFER_STOPPED` clears it, as OBS clears its own buffer. A restart whose stop event was suppressed shows up as the output's timeline starting over (a packet more than 5 s behind the newest), and the ring drops the old session's packets then. Open captures survive both a restart and `REPLAY_BUFFER_STARTED`.
+- `REPLAY_BUFFER_STOPPED` clears it, as OBS clears its own buffer. A restart whose stop event was suppressed shows up as the output's timeline starting over (a video packet whose DTS is not after the previous video packet's), and the ring drops the old session's packets then. Captures still waiting for their last packet expire at that point and fail with `timeline-restarted`, because their presses came before the stop.
 - The purge rules live in `purgeBuffer(...)` (`src/utils/packet-window.hpp`), a port of `replay_buffer_purge()` that `tests/packet-window-test.cpp` checks without OBS.
 - The callback takes a short lock and never blocks, because the interleave thread belongs to the encoder and every output it feeds waits on it.
 
@@ -169,7 +169,7 @@ Grepping an OBS log for `TRIM VERDICT` gives a complete per-save accounting. The
 | `no-packets-written` | Nothing was copied; writing would have produced an empty clip |
 | `window-not-in-buffer` | A held save's press is older than everything the buffer still holds, so the requested clip does not exist |
 | `rename-failed` | The verified clip could not take its final name |
-| `capture-not-ready` / `capture-purged` / `no-keyframe` | In-memory: the ring could not provide the clip |
+| `capture-not-ready` / `capture-purged` / `no-keyframe` / `timeline-restarted` | In-memory: the ring could not provide the clip |
 | `no-output-path` | In-memory: the output has no recording directory |
 | `in-memory-disabled` | In-memory: the setting was turned off while a capture waited for its last packet |
 | `write-header-failed` / `write-packet-failed` / `write-trailer-failed` / `open-output-failed` | In-memory: libavformat could not write the clip |

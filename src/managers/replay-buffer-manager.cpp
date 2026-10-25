@@ -22,7 +22,6 @@
 // STL includes
 #include <algorithm>
 #include <chrono>
-#include <functional>
 
 namespace ReplayBufferPro
 {
@@ -55,11 +54,14 @@ namespace ReplayBufferPro
     /**
      * @brief Runs a function when it goes out of scope
      */
+    template <typename F>
     struct ScopeExit
     {
-      std::function<void()> run;
+      F run;
       ~ScopeExit() { run(); }
     };
+    template <typename F>
+    ScopeExit(F) -> ScopeExit<F>;
 
     /**
      * @brief Quotes a path for a log line
@@ -174,7 +176,7 @@ namespace ReplayBufferPro
     case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
       // OBS reads its limits only when the buffer starts. A restart whose
       // stop was suppressed is caught by the ring itself, from the timeline
-      // starting over, so captures already open here are kept.
+      // starting over, which expires the captures still open.
       ring.refreshLimits();
       // Subscribe now rather than at the first press, so saves from outside
       // the plugin are logged from the start
@@ -1238,26 +1240,28 @@ namespace ReplayBufferPro
 
   std::string ReplayBufferManager::reserveUniquePath(const std::string &path)
   {
-    std::lock_guard<std::mutex> lock(jobMutex);
+    std::string stem;
+    std::string extension;
+    splitExtension(path, &stem, &extension);
 
-    auto taken = [this](const std::string &candidate) {
-      return reservedPaths.count(candidate) > 0 || os_file_exists(candidate.c_str());
-    };
-
-    std::string chosen = path;
-    if (taken(chosen))
+    for (int number = 1;; number++)
     {
-      std::string stem;
-      std::string extension;
-      splitExtension(path, &stem, &extension);
-      for (int number = 2; taken(chosen); number++)
+      const std::string candidate =
+          number == 1 ? path : stem + "_" + std::to_string(number) + extension;
+
+      // The disk is checked outside the lock, which the worker and the main
+      // thread both take; the reservation itself is atomic under it
+      if (os_file_exists(candidate.c_str()))
       {
-        chosen = stem + "_" + std::to_string(number) + extension;
+        continue;
+      }
+
+      std::lock_guard<std::mutex> lock(jobMutex);
+      if (reservedPaths.insert(candidate).second)
+      {
+        return candidate;
       }
     }
-
-    reservedPaths.insert(chosen);
-    return chosen;
   }
 
   void ReplayBufferManager::releasePath(const std::string &path)

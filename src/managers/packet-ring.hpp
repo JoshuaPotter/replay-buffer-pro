@@ -15,6 +15,7 @@
 #include <deque>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -154,19 +155,18 @@ namespace ReplayBufferPro
       uint64_t id = 0;
       int64_t pressSysUsec = 0;
       bool ready = false;
+      bool expired = false; ///< Ready only because the timeline restarted first
       uint64_t endSeq = 0; ///< Sequence number of the end packet, once ready
     };
 
     static void onPacket(obs_output_t *output, encoder_packet *packet,
                          encoder_packet_time *packetTime, void *param);
     void push(encoder_packet *packet);
+    void storeLocked(encoder_packet *packet, bool keyframe, std::vector<uint64_t> *readyIds);
     bool purgeFront();
     void dropPacketsLocked();
     void clearLocked();
     double spanSecondsLocked() const;
-
-    /// A packet this far behind the newest means the timeline started over
-    static constexpr int64_t RESTART_THRESHOLD_USEC = 5 * 1000000LL;
 
     ReadyCallback onReady;
 
@@ -179,6 +179,7 @@ namespace ReplayBufferPro
     uint64_t frontSeq = 0;         ///< Sequence number of packets.front()
     int64_t curSize = 0;           ///< Bytes held, as OBS's cur_size
     int keyframes = 0;             ///< Video keyframes held, as OBS's keyframes
+    std::optional<int64_t> lastVideoDtsUsec; ///< Newest video DTS seen; one not after it is a restart
     int64_t maxTimeUsec = 0;
     int64_t maxSizeBytes = 0;
     bool waitingForKeyframe = true; ///< Drop packets until a clip could start

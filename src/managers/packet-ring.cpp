@@ -124,6 +124,7 @@ namespace ReplayBufferPro
 
     curSize = 0;
     keyframes = 0;
+    lastVideoDtsUsec.reset();
     waitingForKeyframe = true;
     filled = false;
   }
@@ -214,6 +215,13 @@ namespace ReplayBufferPro
       {
         closeCapture();
         result.reason = "capture-not-ready";
+        return result;
+      }
+
+      if (capture.expired)
+      {
+        closeCapture();
+        result.reason = "timeline-restarted";
         return result;
       }
 
@@ -314,73 +322,90 @@ namespace ReplayBufferPro
     {
       std::lock_guard<std::mutex> lock(mutex);
 
-      // The output's timeline starts over at 0 each time the buffer starts. A
-      // packet far behind the newest means a restart whose stop event was
-      // suppressed, so drop the old session's packets. Open captures stay:
-      // their presses are judged against packets of the new session.
-      if (!packets.empty() && packet->dts_usec + RESTART_THRESHOLD_USEC < packets.back().dts_usec)
+      // The output's timeline starts over each time the buffer starts, and
+      // within one session video DTS only rises. A video packet that is not
+      // after the last one means a restart whose stop event was suppressed, so
+      // drop the old session's packets. Captures still waiting expire: their
+      // presses came before the stop, so no packet of the new session ends them.
+      if (packet->type == OBS_ENCODER_VIDEO)
       {
-        dropPacketsLocked();
+        if (lastVideoDtsUsec && packet->dts_usec <= *lastVideoDtsUsec)
+        {
+          dropPacketsLocked();
+          for (auto &capture : captures)
+          {
+            if (!capture.ready)
+            {
+              capture.ready = true;
+              capture.expired = true;
+              readyIds.push_back(capture.id);
+            }
+          }
+        }
+        lastVideoDtsUsec = packet->dts_usec;
       }
 
       // Attached mid-GOP: a clip can only start on a keyframe
-      if (waitingForKeyframe && !keyframe)
+      if (!waitingForKeyframe || keyframe)
       {
-        return;
-      }
-      waitingForKeyframe = false;
-
-      if (captures.empty())
-      {
-        struct Buffer
-        {
-          PacketRing &ring;
-          bool empty() const { return ring.packets.empty(); }
-          int keyframes() const { return ring.keyframes; }
-          int64_t bytes() const { return ring.curSize; }
-          int64_t frontDtsUsec() const { return ring.packets.front().dts_usec; }
-          bool frontIsKeyframe() const
-          {
-            return ring.packets.front().type == OBS_ENCODER_VIDEO && ring.packets.front().keyframe;
-          }
-          bool popFront()
-          {
-            ring.filled = true;
-            return ring.purgeFront();
-          }
-        } buffer{*this};
-
-        purgeBuffer(buffer, packet->dts_usec, static_cast<int64_t>(packet->size), maxTimeUsec,
-                    maxSizeBytes);
-      }
-
-      encoder_packet ref;
-      obs_encoder_packet_ref(&ref, packet);
-      curSize += static_cast<int64_t>(ref.size);
-      packets.push_back(ref);
-
-      if (keyframe)
-      {
-        keyframes++;
-      }
-
-      // Same rule as OBS's save_ts: the save completes on the first packet
-      // whose system time reaches the press, and includes it
-      const uint64_t seq = frontSeq + packets.size() - 1;
-      for (auto &capture : captures)
-      {
-        if (!capture.ready && ref.sys_dts_usec >= capture.pressSysUsec)
-        {
-          capture.ready = true;
-          capture.endSeq = seq;
-          readyIds.push_back(capture.id);
-        }
+        waitingForKeyframe = false;
+        storeLocked(packet, keyframe, &readyIds);
       }
     }
 
     for (uint64_t id : readyIds)
     {
       onReady(id);
+    }
+  }
+
+  void PacketRing::storeLocked(encoder_packet *packet, bool keyframe, std::vector<uint64_t> *readyIds)
+  {
+    if (captures.empty())
+    {
+      struct Buffer
+      {
+        PacketRing &ring;
+        bool empty() const { return ring.packets.empty(); }
+        int keyframes() const { return ring.keyframes; }
+        int64_t bytes() const { return ring.curSize; }
+        int64_t frontDtsUsec() const { return ring.packets.front().dts_usec; }
+        bool frontIsKeyframe() const
+        {
+          return ring.packets.front().type == OBS_ENCODER_VIDEO && ring.packets.front().keyframe;
+        }
+        bool popFront()
+        {
+          ring.filled = true;
+          return ring.purgeFront();
+        }
+      } buffer{*this};
+
+      purgeBuffer(buffer, packet->dts_usec, static_cast<int64_t>(packet->size), maxTimeUsec,
+                  maxSizeBytes);
+    }
+
+    encoder_packet ref;
+    obs_encoder_packet_ref(&ref, packet);
+    curSize += static_cast<int64_t>(ref.size);
+    packets.push_back(ref);
+
+    if (keyframe)
+    {
+      keyframes++;
+    }
+
+    // Same rule as OBS's save_ts: the save completes on the first packet
+    // whose system time reaches the press, and includes it
+    const uint64_t seq = frontSeq + packets.size() - 1;
+    for (auto &capture : captures)
+    {
+      if (!capture.ready && ref.sys_dts_usec >= capture.pressSysUsec)
+      {
+        capture.ready = true;
+        capture.endSeq = seq;
+        readyIds->push_back(capture.id);
+      }
     }
   }
 
