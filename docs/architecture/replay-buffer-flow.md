@@ -83,7 +83,7 @@ The `saved` callback runs on OBS's mux thread and only reads the path, bumps an 
 
 ## In-memory clips (experimental)
 
-Off by default; turned on with "Write clips straight from memory" in the dock's Customize dialog and stored as `in_memory_clips` in `save_button_settings.json`. With it on, `saveSegment(...)` writes the clip straight from the packets OBS already holds, so OBS never writes the full buffer and nothing is trimmed. Disk writes drop from the whole buffer plus the clip to the clip alone.
+Off by default; turned on with "Write clips straight from memory" on the Experimental page of the properties window and stored as `in_memory_clips` in `save_button_settings.json`. With it on, `saveSegment(...)` writes the clip straight from the packets OBS already holds, so OBS never writes the full buffer and nothing is trimmed. Disk writes drop from the whole buffer plus the clip to the clip alone.
 
 ### Packet ring
 `PacketRing` (`src/managers/packet-ring.*`) registers `obs_output_add_packet_callback(...)` on the replay buffer output. OBS calls it on its interleave thread for every packet, just before the output stores it (`send_interleaved()` in `obs-output.c`). The ring keeps a reference to each packet (`obs_encoder_packet_ref`), which shares the output's own copy of the data, so it costs almost no memory. It purges by the same rules as `replay_buffer_purge()` in `obs-ffmpeg-mux.c`, from the output's `max_time_sec` and `max_size_mb`, so it holds the same packets as OBS's buffer and always starts on a video keyframe.

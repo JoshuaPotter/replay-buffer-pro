@@ -98,6 +98,10 @@ target_sources(
     src/utils/logger.hpp
     src/ui/ui-components.cpp
     src/ui/ui-components.hpp
+    src/ui/hotkey-edit.cpp
+    src/ui/hotkey-edit.hpp
+    src/ui/properties-dialog.cpp
+    src/ui/properties-dialog.hpp
     src/managers/settings-manager.cpp
     src/managers/settings-manager.hpp
     src/managers/save-button-settings.cpp
@@ -112,6 +116,8 @@ target_sources(
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
+# Shown on the Properties window's About page
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE PLUGIN_VERSION="${PLUGIN_VERSION}")
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
 

@@ -81,10 +81,10 @@ Full guide: https://joshuapotter.github.io/replay-buffer-pro/usage/ ([Markdown](
 
 ### Ways to Save a Clip
 
-- **Dock save buttons**: click a button (e.g., "Last 30 Seconds"). Six buttons, each customizable from 1 second to 6 hours with the Customize button. Trimmed.
-- **Hotkeys**: **OBS Studio Settings → Hotkeys**, search "Replay Buffer Pro", and bind each "Replay Buffer Pro: Save ..." entry. Trimmed.
+- **Dock save buttons**: click a button (e.g., "Last 30 Seconds"). Six by default, up to 12, each customizable from 1 second to 6 hours with an optional label in Replay Buffer Pro Properties (the gear button at the bottom of the dock, or Tools → Replay Buffer Pro Properties). Trimmed.
+- **Hotkeys**: set each save button's hotkey in **Replay Buffer Pro Properties**, or in **OBS Studio Settings → Hotkeys** (search "Replay Buffer Pro" and bind each "Replay Buffer Pro: Save ..." entry). Trimmed.
 - **obs-websocket**: a `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and `{"duration": "2:00"}` (see the FAQ below). Trimmed.
-- **Save Replay Buffer button**: saves the whole buffer. Not trimmed, and it has no hotkey.
+- **Save Replay Buffer button**: saves the whole buffer. Not trimmed. Its hotkey is "Replay Buffer Pro: Save Replay Buffer".
 - **OBS's own Save Replay** (hotkey, tray menu, `SaveReplayBuffer` request): not trimmed, logged as `no-pending-request`.
 
 ### Important Notes
@@ -115,7 +115,7 @@ A: Your configured buffer length is shorter than that clip length. Increase the 
 A: The Replay Buffer is active. Stop it to adjust the length, then start it again.
 
 **Q: Can I customize the save button durations?**
-A: Yes. Use the **Customize** button in the Save Clips section to set each button's duration.
+A: Yes. Use the properties (gear) button at the bottom of the dock, or **Tools → Replay Buffer Pro Properties**, to set each button's duration and hotkey.
 
 **Q: Where are clips saved?**
 A: In your OBS Studio Replay Buffer save directory, set in OBS Studio's Output settings.

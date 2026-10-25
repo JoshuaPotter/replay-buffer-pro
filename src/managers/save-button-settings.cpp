@@ -1,6 +1,6 @@
 /**
  * @file save-button-settings.cpp
- * @brief Global settings for save button durations
+ * @brief Global settings for save buttons and other plugin properties
  */
 
 #include "managers/save-button-settings.hpp"
@@ -22,24 +22,27 @@ namespace ReplayBufferPro
     constexpr const char *kSaveButtonSettingsFile = "save_button_settings.json";
     constexpr const char *kSaveButtonSettingsKey = "save_buttons";
     constexpr const char *kSaveButtonSettingsSecondsKey = "seconds";
+    constexpr const char *kSaveButtonSettingsLabelKey = "label";
     constexpr const char *kSaveButtonSettingsVersionKey = "version";
     constexpr const char *kInMemoryClipsKey = "in_memory_clips";
-    constexpr int kSaveButtonSettingsVersion = 1;
+    // 2 added labels and a variable button count; version 1 files (six
+    // buttons, no labels) load unchanged
+    constexpr int kSaveButtonSettingsVersion = 2;
   } // namespace
 
   SaveButtonSettings::SaveButtonSettings()
-      : durations(getDefaultDurations())
+      : buttons(getDefaultButtons())
   {
   }
 
-  const std::vector<int> &SaveButtonSettings::getDurations() const
+  const std::vector<SaveButton> &SaveButtonSettings::getButtons() const
   {
-    return durations;
+    return buttons;
   }
 
-  void SaveButtonSettings::setDurations(const std::vector<int> &values)
+  void SaveButtonSettings::setButtons(const std::vector<SaveButton> &values)
   {
-    durations = normalizeDurations(values);
+    buttons = normalizeButtons(values);
   }
 
   bool SaveButtonSettings::getInMemoryClips() const
@@ -54,7 +57,7 @@ namespace ReplayBufferPro
 
   void SaveButtonSettings::load()
   {
-    durations = getDefaultDurations();
+    buttons = getDefaultButtons();
     inMemoryClips = false;
 
     std::string configPath = getConfigPath();
@@ -80,7 +83,7 @@ namespace ReplayBufferPro
       return;
     }
 
-    std::vector<int> loadedValues;
+    std::vector<SaveButton> loadedValues;
     size_t count = obs_data_array_count(array);
     loadedValues.reserve(count);
 
@@ -90,13 +93,13 @@ namespace ReplayBufferPro
       if (item)
       {
         int seconds = static_cast<int>(obs_data_get_int(item, kSaveButtonSettingsSecondsKey));
-        loadedValues.push_back(seconds);
+        loadedValues.push_back({seconds, obs_data_get_string(item, kSaveButtonSettingsLabelKey)});
         obs_data_release(item);
       }
     }
 
     obs_data_array_release(array);
-    durations = normalizeDurations(loadedValues);
+    buttons = normalizeButtons(loadedValues);
   }
 
   bool SaveButtonSettings::save() const
@@ -112,10 +115,11 @@ namespace ReplayBufferPro
     obs_data_set_bool(data.get(), kInMemoryClipsKey, inMemoryClips);
 
     obs_data_array_t *array = obs_data_array_create();
-    for (size_t i = 0; i < durations.size(); i++)
+    for (const auto &button : buttons)
     {
       obs_data_t *item = obs_data_create();
-      obs_data_set_int(item, kSaveButtonSettingsSecondsKey, durations[i]);
+      obs_data_set_int(item, kSaveButtonSettingsSecondsKey, button.seconds);
+      obs_data_set_string(item, kSaveButtonSettingsLabelKey, button.label.c_str());
       obs_data_array_push_back(array, item);
       obs_data_release(item);
     }
@@ -148,26 +152,29 @@ namespace ReplayBufferPro
     return true;
   }
 
-  std::vector<int> SaveButtonSettings::getDefaultDurations()
+  std::vector<SaveButton> SaveButtonSettings::getDefaultButtons()
   {
-    std::vector<int> defaults;
-    defaults.reserve(Config::SAVE_BUTTON_COUNT);
-    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+    std::vector<SaveButton> defaults;
+    defaults.reserve(Config::DEFAULT_SAVE_BUTTON_COUNT);
+    for (size_t i = 0; i < Config::DEFAULT_SAVE_BUTTON_COUNT; i++)
     {
-      defaults.push_back(Config::SAVE_BUTTONS[i]);
+      defaults.push_back({Config::SAVE_BUTTON_DEFAULTS[i], std::string()});
     }
     return defaults;
   }
 
-  std::vector<int> SaveButtonSettings::normalizeDurations(const std::vector<int> &input) const
+  std::vector<SaveButton> SaveButtonSettings::normalizeButtons(const std::vector<SaveButton> &input) const
   {
-    std::vector<int> normalized = getDefaultDurations();
-    size_t limit = std::min(input.size(), normalized.size());
-    for (size_t i = 0; i < limit; i++)
+    if (input.empty())
     {
-      int value = input[i];
-      value = std::max(1, std::min(value, Config::MAX_BUFFER_LENGTH));
-      normalized[i] = value;
+      return getDefaultButtons();
+    }
+
+    std::vector<SaveButton> normalized(input.begin(),
+                                       input.begin() + std::min(input.size(), Config::MAX_SAVE_BUTTON_COUNT));
+    for (auto &button : normalized)
+    {
+      button.seconds = std::max(1, std::min(button.seconds, Config::MAX_BUFFER_LENGTH));
     }
     return normalized;
   }

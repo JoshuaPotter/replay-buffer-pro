@@ -12,6 +12,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Dock widget + UI orchestration: `src/plugin/plugin.hpp`, `src/plugin/plugin.cpp`
 - obs-websocket `SaveClip` vendor request: `src/plugin/websocket-command.hpp`, `src/plugin/websocket-command.cpp`
 - UI components: `src/ui/ui-components.hpp`, `src/ui/ui-components.cpp`
+- Properties window: `src/ui/properties-dialog.hpp`, `src/ui/properties-dialog.cpp`, hotkey field `src/ui/hotkey-edit.hpp`, `src/ui/hotkey-edit.cpp`
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
 - Packet ring (in-memory clips): `src/managers/packet-ring.hpp`, `src/managers/packet-ring.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
@@ -41,7 +42,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed` (numbered `_trimmed_2`... if that name is taken or reserved by a queued clip), then deletes the original.
 
 ### Save segment from memory (experimental, off by default)
-1. With "Write clips straight from memory" on (Customize dialog, `in_memory_clips` in `save_button_settings.json`), `saveSegment(...)` tries `saveFromMemory(...)` first.
+1. With "Write clips straight from memory" on (Experimental page of the properties window, `in_memory_clips` in `save_button_settings.json`), `saveSegment(...)` tries `saveFromMemory(...)` first.
 2. `PacketRing` holds a reference to every packet of the replay buffer output via `obs_output_add_packet_callback(...)`, purged like OBS's own buffer. `ensureSubscribed()` attaches it; buffer stop clears it, and a timeline that starts over (a restart whose stop was suppressed) drops the old packets. The purge rules are `purgeBuffer(...)` in `src/utils/packet-window.hpp`, unit-tested with `findWindowStart(...)`. The callback runs on OBS's interleave thread and must never block, so `takeCapture(...)` references a clip's packets in short locked chunks.
 3. `ClipWriter::describeStreams(...)` allows MKV/MP4/MOV, H.264/HEVC/AV1, AAC/Opus, SDR. Anything else, or a ring that holds less than asked, falls back to the OBS path (`SAVE MODE: obs reason=...`).
 4. A capture ends on the first packet at or after the press (OBS's `save_ts` rule). The worker writes `findWindowStart(...)`..end with `ClipWriter::write(...)`, a port of OBS's `ffmpeg-mux`, to a partial file, verifies it, then renames it to `<name>_trimmed.<ext>`. Nothing is written twice and OBS fires no saved event.
@@ -56,7 +57,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 6. The wait is bounded to 2 seconds, because obs-websocket restarts its server on the main thread (settings dialog) and waits for in-flight requests. A timed-out request answers `timeout` and is abandoned, so it never saves later.
 
 ### Save full buffer
-1. User clicks “Save Replay Buffer”.
+1. User clicks “Save Replay Buffer” or presses its hotkey (`ReplayBufferPro.SaveFullBuffer`).
 2. `ReplayBufferManager::saveFullBuffer(...)` requests a `0`-duration save, an explicit do-not-trim marker.
 3. The completion carrying that marker is logged `save-full-buffer` and left untrimmed.
 
@@ -74,16 +75,19 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 ## Key components and ownership
 - `ReplayBufferPro::Plugin` (dock) owns UI, managers, timers, and OBS event wiring.
 - `UIComponents` builds the UI and manages enabled/disabled state.
+- `PropertiesDialog` is the plugin's properties window (Save Buttons, Experimental and About pages), opened by the gear button in the dock's footer toolbar and **Tools → Replay Buffer Pro Properties** through `Plugin::openProperties(...)`; `Plugin::applyProperties(...)` stores what it holds. Put new plugin options on a page here, not in a dialog of their own (OBS has no API for a page in its own Settings window). Like OBS Settings, it pauses background hotkeys while open (`obs_hotkey_enable_background_press`) and restores OBS's `HotkeyFocusType` rule on close.
+- `HotkeyEdit` captures one key combination the way OBS's unexported `OBSHotkeyEdit` does.
 - `ReplayBufferManager` handles save requests and trimming, and owns the replay buffer output reference and its `saved` signal subscription.
 - `SettingsManager` reads/writes OBS profile config and updates output settings.
-- `HotkeyManager` registers per-duration hotkeys and persists bindings.
+- `HotkeyManager` registers a hotkey per save button in use plus one for Save Replay Buffer, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getBindings(...)`, `setBinding(...)`, which replaces every binding of that hotkey).
 - `VideoTrimmer` trims using libavformat stream copy.
 
 ## Configuration and persistence
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
-- Hotkey bindings are stored in `hotkey_bindings.json` under the module config path.
-- Custom save button durations are stored in `save_button_settings.json` under the module config path, along with the `in_memory_clips` toggle.
+- Hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change.
+- Save buttons (1 to 12, each `{seconds, label}`, schema version 2) are stored in `save_button_settings.json` under the module config path, along with the `in_memory_clips` toggle. Slot limits and starting durations are `Config::MAX_SAVE_BUTTON_COUNT`, `DEFAULT_SAVE_BUTTON_COUNT` and `SAVE_BUTTON_DEFAULTS`.
+- The About page's version is the `PLUGIN_VERSION` compile definition, set in `CMakeLists.txt` from `buildspec.json`.
 
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.

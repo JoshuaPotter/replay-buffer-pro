@@ -15,15 +15,12 @@
 #include <util/platform.h>
 
 // Qt includes
+#include <QAction>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QFormLayout>
 #include <QSpinBox>
-#include <QPushButton>
-#include <QCheckBox>
 
 // STL includes
 #include <vector>
@@ -56,9 +53,9 @@ namespace ReplayBufferPro
 		ui = new UIComponents(this, 
 			[this](int duration) { handleSaveSegment(duration); },
 			[this]() { handleSaveFullBuffer(); },
-			[this]() { handleCustomizeSaveButtons(); }
+			[this]() { openProperties(PropertiesDialog::Page::SaveButtons); }
 		);
-		ui->setSaveButtonDurations(saveButtonSettings->getDurations());
+		ui->setSaveButtons(saveButtonSettings->getButtons());
 		
 		// Mount the UI into this widget
 		{
@@ -80,9 +77,16 @@ namespace ReplayBufferPro
 		// Create and register hotkeys
 		hotkeyManager = new HotkeyManager(
 			[this](int duration) { handleSaveSegment(duration); },
-			saveButtonSettings->getDurations()
+			[this]() { handleSaveFullBuffer(); },
+			saveButtonSettings->getButtons()
 		);
 		hotkeyManager->registerHotkeys();
+
+		// Tools > Replay Buffer Pro Properties
+		auto *propertiesAction = static_cast<QAction *>(
+			obs_frontend_add_tools_menu_qaction(obs_module_text("PropertiesMenuItem")));
+		connect(propertiesAction, &QAction::triggered, this,
+				[this]() { openProperties(PropertiesDialog::Page::SaveButtons); });
 
 		// Setup settings monitoring
 		settingsMonitorTimer = new QTimer(this);
@@ -215,70 +219,51 @@ namespace ReplayBufferPro
 		replayManager->saveSegment(duration, this);
 	}
 
-	void Plugin::handleCustomizeSaveButtons()
+	void Plugin::openProperties(PropertiesDialog::Page page)
 	{
-		QDialog dialog(this);
-		dialog.setWindowTitle(obs_module_text("CustomizeButtonsTitle"));
-		QVBoxLayout *layout = new QVBoxLayout(&dialog);
-
-		QFormLayout *formLayout = new QFormLayout();
-		std::vector<QSpinBox *> inputs;
-		inputs.reserve(Config::SAVE_BUTTON_COUNT);
-
-		const auto &durations = saveButtonSettings->getDurations();
-		for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+		// Every slot, including buttons not in use, then Save Replay Buffer
+		std::vector<obs_key_combination_t> hotkeys;
+		for (size_t i = 0; i <= Config::MAX_SAVE_BUTTON_COUNT; i++)
 		{
-			QSpinBox *spinBox = new QSpinBox(&dialog);
-			spinBox->setRange(1, Config::MAX_BUFFER_LENGTH);
-			spinBox->setSuffix(" sec");
-			if (i < durations.size())
-			{
-				spinBox->setValue(durations[i]);
-			}
-
-			QString labelText = QString::fromUtf8(obs_module_text("SaveClipButtonLabel")).arg(i + 1);
-			formLayout->addRow(labelText, spinBox);
-			inputs.push_back(spinBox);
+			// One binding per hotkey here; more can be added in OBS Settings > Hotkeys
+			auto bindings = hotkeyManager->getBindings(i);
+			hotkeys.push_back(bindings.empty() ? obs_key_combination_t{0, OBS_KEY_NONE} : bindings.front());
 		}
 
-		layout->addLayout(formLayout);
+		auto *mainWindow = static_cast<QMainWindow *>(obs_frontend_get_main_window());
+		PropertiesDialog dialog(saveButtonSettings->getButtons(), hotkeys,
+							  saveButtonSettings->getInMemoryClips(), page,
+							  mainWindow ? static_cast<QWidget *>(mainWindow) : this);
+		connect(&dialog, &PropertiesDialog::applied, this, [this, &dialog]() { applyProperties(dialog); });
+		dialog.exec();
+	}
 
-		QCheckBox *inMemoryClips = new QCheckBox(obs_module_text("InMemoryClips"), &dialog);
-		inMemoryClips->setToolTip(obs_module_text("InMemoryClipsTooltip"));
-		inMemoryClips->setChecked(saveButtonSettings->getInMemoryClips());
-		layout->addWidget(inMemoryClips);
+	// The dialog's hotkey indexes are passed to the hotkey manager as they are
+	static_assert(PropertiesDialog::FULL_BUFFER_HOTKEY == HotkeyManager::FULL_BUFFER);
 
-		QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-		buttonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("CustomizeButtonsSave"));
-		buttonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("CustomizeButtonsCancel"));
-		connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
-		connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-		layout->addWidget(buttonBox);
-
-		if (dialog.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-
-		std::vector<int> updatedDurations;
-		updatedDurations.reserve(inputs.size());
-		for (auto *input : inputs)
-		{
-			updatedDurations.push_back(input->value());
-		}
-
-		saveButtonSettings->setDurations(updatedDurations);
-		saveButtonSettings->setInMemoryClips(inMemoryClips->isChecked());
-		replayManager->setInMemoryClips(inMemoryClips->isChecked());
+	void Plugin::applyProperties(const PropertiesDialog &dialog)
+	{
+		saveButtonSettings->setButtons(dialog.buttons());
+		saveButtonSettings->setInMemoryClips(dialog.inMemoryClips());
+		replayManager->setInMemoryClips(dialog.inMemoryClips());
 		if (!saveButtonSettings->save())
 		{
 			Logger::warning("Failed to save custom save button durations");
 		}
 
-		ui->setSaveButtonDurations(saveButtonSettings->getDurations());
-		if (hotkeyManager)
+		ui->setSaveButtons(saveButtonSettings->getButtons());
+		// Registers hotkeys for added buttons before their bindings are set below
+		hotkeyManager->setButtons(saveButtonSettings->getButtons());
+
+		auto changedHotkeys = dialog.changedHotkeys();
+		for (size_t index : changedHotkeys)
 		{
-			hotkeyManager->setSaveButtonDurations(saveButtonSettings->getDurations());
+			obs_key_combination_t combination = dialog.hotkey(index);
+			hotkeyManager->setBinding(index, obs_key_combination_is_empty(combination) ? nullptr : &combination);
+		}
+		if (!changedHotkeys.empty())
+		{
+			hotkeyManager->saveHotkeySettings();
 		}
 	}
 

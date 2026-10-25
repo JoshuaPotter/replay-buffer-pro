@@ -128,7 +128,7 @@ const faq = [
   },
   {
     question: "Can I customize the save button durations?",
-    answer: `Yes. Use the <strong>Customize</strong> button in the Save Clips section to set each button's duration.`
+    answer: `Yes. Use the properties (gear) button at the bottom of the dock, or <strong>Tools → Replay Buffer Pro Properties</strong>, to set each button's duration and hotkey.`
   },
   {
     question: "Where are clips saved?",
@@ -164,7 +164,7 @@ const faqPage = {
 const facts = [
   'No re-encoding',
   'Trims in milliseconds',
-  'Six custom durations',
+  'Up to 12 custom durations',
   'Hotkey for every button',
   'Windows & macOS',
   'Same output folder',
@@ -237,7 +237,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     <FeatureRow
       title="One buffer, any clip length"
       points={[
-        'Six save buttons, each with its own duration',
+        'Up to 12 save buttons, each with its own duration',
         'Each duration is fully customizable, from 1 second to 6 hours',
         'No trip to Settings → Output — edit the length right in the dock',
       ]}

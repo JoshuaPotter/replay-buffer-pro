@@ -18,6 +18,7 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QTimer>
+#include <QToolBar>
 #include <QPaintEvent>
 
 // STL includes
@@ -26,6 +27,7 @@
 
 // Project includes
 #include "config/config.hpp"
+#include "managers/save-button-settings.hpp"
 
 namespace ReplayBufferPro
 {
@@ -47,11 +49,12 @@ namespace ReplayBufferPro
      * @param parent Parent widget for UI components
      * @param saveSegmentCallback Callback for save segment button clicks
      * @param saveFullBufferCallback Callback for save full buffer button clicks
+     * @param openPropertiesCallback Callback for the footer's properties button
      */
     UIComponents(QWidget *parent,
                  std::function<void(int)> saveSegmentCallback,
                  std::function<void()> saveFullBufferCallback,
-                 std::function<void()> customizeSaveButtonsCallback);
+                 std::function<void()> openPropertiesCallback);
 
     /**
      * @brief Destructor
@@ -74,22 +77,10 @@ namespace ReplayBufferPro
     const std::vector<QPushButton *> &getSaveButtons() const { return saveButtons; }
 
     /**
-     * @brief Gets the save button durations
-     * @return Vector of save button durations
-     */
-    const std::vector<int> &getSaveButtonDurations() const { return saveButtonDurations; }
-
-    /**
      * @brief Gets the save full buffer button
      * @return Pointer to the save full buffer button
      */
     QPushButton *getSaveFullBufferBtn() const { return saveFullBufferBtn; }
-
-    /**
-     * @brief Gets the customize save buttons button
-     * @return Pointer to the customize button
-     */
-    QPushButton *getCustomizeSaveButtonsBtn() const { return customizeSaveButtonsBtn; }
 
     /**
      * @brief Gets the buffer length debounce timer
@@ -128,10 +119,10 @@ namespace ReplayBufferPro
     void toggleSaveButtons(int bufferLength);
 
     /**
-     * @brief Updates save button durations and labels
-     * @param durations Updated durations in seconds
+     * @brief Rebuilds the save buttons, for a new count, durations or labels
+     * @param buttons Updated save buttons
      */
-    void setSaveButtonDurations(const std::vector<int> &durations);
+    void setSaveButtons(const std::vector<SaveButton> &buttons);
 
   private:
     //=========================================================================
@@ -139,17 +130,17 @@ namespace ReplayBufferPro
     //=========================================================================
     QSpinBox *secondsEdit;                 ///< Buffer length control (1s to 6h)
     QPushButton *saveFullBufferBtn;         ///< Full buffer save trigger
-    QPushButton *customizeSaveButtonsBtn;   ///< Customize save buttons trigger
     std::vector<QPushButton *> saveButtons; ///< Duration-specific save buttons
     QTimer *bufferLengthDebounceTimer;      ///< Prevents rapid setting updates
-    std::vector<int> saveButtonDurations;   ///< Durations for save buttons
+    QGridLayout *saveButtonGrid = nullptr;  ///< Save buttons, 3 per row, then Save Replay Buffer
+    std::vector<SaveButton> saveButtonConfig; ///< Duration and label of each save button
 
     //=========================================================================
     // CALLBACKS
     //=========================================================================
     std::function<void(int)> onSaveSegment; ///< Callback for save segment button clicks
     std::function<void()> onSaveFullBuffer; ///< Callback for save full buffer button clicks
-    std::function<void()> onCustomizeSaveButtons; ///< Callback for customizing save buttons
+    std::function<void()> onOpenProperties;   ///< Callback for the footer's properties button
 
     //=========================================================================
     // INITIALIZATION
@@ -160,8 +151,20 @@ namespace ReplayBufferPro
      */
     void initSaveButtons(QHBoxLayout *layout);
 
-    void updateSaveButtonLabels();
-    std::vector<int> getDefaultSaveButtonDurations() const;
+    /**
+     * @brief Creates the dock footer toolbar with the properties button
+     * @param parent Parent widget for the toolbar
+     * @return The toolbar
+     *
+     * A QToolBar inside a dock gets OBS's dock footer styling from the theme
+     * (OBSDock QToolBar), like the Scenes and Audio Mixer docks.
+     */
+    QToolBar *createFooter(QWidget *parent);
+
+    /**
+     * @brief Replaces the save buttons in the grid with ones built from saveButtonConfig
+     */
+    void rebuildSaveButtons();
 
     bool isBufferActive = false;  // Track buffer active state
   };

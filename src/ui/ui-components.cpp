@@ -23,6 +23,9 @@
 #include <QTimer>
 #include <QFrame>
 #include <QMessageBox>
+#include <QToolBar>
+#include <QAction>
+#include <QIcon>
 
 // STL includes
 #include <algorithm>
@@ -54,14 +57,13 @@ namespace ReplayBufferPro
   UIComponents::UIComponents(QWidget *parent,
                              std::function<void(int)> saveSegmentCallback,
                              std::function<void()> saveFullBufferCallback,
-                             std::function<void()> customizeSaveButtonsCallback)
+                             std::function<void()> openPropertiesCallback)
       : secondsEdit(nullptr),
         saveFullBufferBtn(nullptr),
-        customizeSaveButtonsBtn(nullptr),
         bufferLengthDebounceTimer(new QTimer(parent)),
         onSaveSegment(saveSegmentCallback),
         onSaveFullBuffer(saveFullBufferCallback),
-        onCustomizeSaveButtons(customizeSaveButtonsCallback)
+        onOpenProperties(openPropertiesCallback)
   {
     if (!parent) {
         qWarning("UIComponents: parent widget cannot be null");
@@ -70,7 +72,7 @@ namespace ReplayBufferPro
 
     bufferLengthDebounceTimer->setSingleShot(true);
     bufferLengthDebounceTimer->setInterval(Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL);
-    saveButtonDurations = getDefaultSaveButtonDurations();
+    saveButtonConfig = SaveButtonSettings::getDefaultButtons();
   }
 
   //=============================================================================
@@ -98,8 +100,13 @@ namespace ReplayBufferPro
       "  border-bottom-right-radius: 4px;"
       "}"
     );
-    QVBoxLayout *mainLayout = new QVBoxLayout(container);
+    // The padded content sits above a footer toolbar that spans the frame edge to edge
+    QVBoxLayout *frameLayout = new QVBoxLayout(container);
+    frameLayout->setContentsMargins(0, 0, 0, 0);
+    frameLayout->setSpacing(0);
+    QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->setContentsMargins(8, 8, 8, 8);
+    frameLayout->addLayout(mainLayout);
 
     // Add the configuration title as a subtitle
     QLabel* subtitle = new QLabel(obs_module_text("WidgetTitle"), container);
@@ -129,22 +136,10 @@ namespace ReplayBufferPro
     mainLayout->addLayout(headerLayout);
     mainLayout->addSpacing(12); // Space before save clip section
 
-    // Save clip label + customize button
-    QHBoxLayout *saveClipHeaderLayout = new QHBoxLayout();
+    // Save clip label
     QLabel* saveClipLabel = new QLabel(obs_module_text("SaveClipLabel"), container);
     saveClipLabel->setStyleSheet("opacity: .75; font-size: 14px; font-weight: bold;");
-    saveClipHeaderLayout->addWidget(saveClipLabel);
-    saveClipHeaderLayout->addStretch();
-
-    customizeSaveButtonsBtn = new QPushButton(obs_module_text("CustomizeButtons"), container);
-    customizeSaveButtonsBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    if (onCustomizeSaveButtons)
-    {
-      QObject::connect(customizeSaveButtonsBtn, &QPushButton::clicked, onCustomizeSaveButtons);
-    }
-
-    saveClipHeaderLayout->addWidget(customizeSaveButtonsBtn);
-    mainLayout->addLayout(saveClipHeaderLayout);
+    mainLayout->addWidget(saveClipLabel);
     mainLayout->addSpacing(8);  // Space after save clip label
 
     // Save clip buttons
@@ -153,49 +148,93 @@ namespace ReplayBufferPro
     mainLayout->addLayout(buttonLayout);
 
     mainLayout->addStretch();
+    frameLayout->addWidget(createFooter(container));
     return container;
+  }
+
+  QToolBar *UIComponents::createFooter(QWidget *parent)
+  {
+    // Same construction as OBS's Audio Mixer footer: a spacer pushes the
+    // properties button to the right, after a separator.
+    QToolBar *toolbar = new QToolBar(parent);
+    toolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    toolbar->setIconSize(QSize(16, 16));
+    toolbar->setFloatable(false);
+    toolbar->setMovable(false);
+
+    QWidget *spacer = new QWidget(toolbar);
+    spacer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+    toolbar->addWidget(spacer);
+    toolbar->addSeparator();
+
+    QAction *propertiesAction = new QAction(toolbar);
+    propertiesAction->setText(obs_module_text("PropertiesTitle"));
+    propertiesAction->setToolTip(obs_module_text("PropertiesTitle"));
+    // OBS's own gear icon; the theme's icon-gear class below swaps in its variant
+    propertiesAction->setIcon(QIcon(":/settings/images/settings/general.svg"));
+    if (onOpenProperties)
+    {
+      QObject::connect(propertiesAction, &QAction::triggered, onOpenProperties);
+    }
+    toolbar->addAction(propertiesAction);
+
+    // OBS sets the class on the action's widget, not the QAction (AudioMixer.cpp)
+    if (QWidget *propertiesButton = toolbar->widgetForAction(propertiesAction))
+    {
+      propertiesButton->setProperty("class", "icon-gear");
+    }
+
+    return toolbar;
   }
 
   void UIComponents::initSaveButtons(QHBoxLayout *layout)
   {
-    saveButtons.clear();
+    saveButtonGrid = new QGridLayout();
+    saveButtonGrid->setSpacing(5);
 
-    if (saveButtonDurations.size() != Config::SAVE_BUTTON_COUNT)
+    saveFullBufferBtn = new QPushButton(obs_module_text("SaveFull"));
+    saveFullBufferBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    QObject::connect(saveFullBufferBtn, &QPushButton::clicked, onSaveFullBuffer);
+
+    rebuildSaveButtons();
+    layout->addLayout(saveButtonGrid);
+  }
+
+  void UIComponents::rebuildSaveButtons()
+  {
+    for (auto *button : saveButtons)
     {
-      saveButtonDurations = getDefaultSaveButtonDurations();
+      saveButtonGrid->removeWidget(button);
+      delete button;
     }
-
-    QGridLayout *gridLayout = new QGridLayout();
-    gridLayout->setSpacing(5);
+    saveButtons.clear();
+    saveButtonGrid->removeWidget(saveFullBufferBtn);
 
     const int buttonsPerRow = 3;
 
-    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+    for (size_t i = 0; i < saveButtonConfig.size(); i++)
     {
+      const SaveButton &config = saveButtonConfig[i];
       auto *button = new QPushButton();
-      int duration = saveButtonDurations[i];
-      button->setText(formatDurationLabel(duration));
+      button->setText(formatButtonLabel(config.seconds, config.label));
+      if (!config.label.empty())
+      {
+        button->setToolTip(formatDurationLabel(config.seconds));
+      }
       button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
       QObject::connect(button, &QPushButton::clicked, [this, index = i]()
-                       { onSaveSegment(saveButtonDurations[index]); });
+                       { onSaveSegment(saveButtonConfig[index].seconds); });
 
       int row = static_cast<int>(i) / buttonsPerRow;
       int col = static_cast<int>(i) % buttonsPerRow;
-      gridLayout->addWidget(button, row, col);
+      saveButtonGrid->addWidget(button, row, col);
 
       saveButtons.push_back(button);
     }
 
-    saveFullBufferBtn = new QPushButton(obs_module_text("SaveFull"));
-    saveFullBufferBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    int lastRow = static_cast<int>(saveButtons.size() - 1) / buttonsPerRow + 1;
-    gridLayout->addWidget(saveFullBufferBtn, lastRow, 0, 1, buttonsPerRow);
-
-    QObject::connect(saveFullBufferBtn, &QPushButton::clicked, onSaveFullBuffer);
-
-    layout->addLayout(gridLayout);
+    int lastRow = static_cast<int>(saveButtons.size() + buttonsPerRow - 1) / buttonsPerRow;
+    saveButtonGrid->addWidget(saveFullBufferBtn, lastRow, 0, 1, buttonsPerRow);
   }
 
   //=============================================================================
@@ -217,53 +256,26 @@ namespace ReplayBufferPro
 
   void UIComponents::toggleSaveButtons(int bufferLength)
   {
-    if (saveButtons.size() != saveButtonDurations.size())
-    {
-      return;
-    }
-
-    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
-    {
-      int duration = saveButtonDurations[i];
-      saveButtons[i]->setEnabled(bufferLength >= duration);
-    }
-  }
-
-  void UIComponents::setSaveButtonDurations(const std::vector<int> &durations)
-  {
-    saveButtonDurations = getDefaultSaveButtonDurations();
-    size_t limit = std::min(durations.size(), saveButtonDurations.size());
-    for (size_t i = 0; i < limit; i++)
-    {
-      saveButtonDurations[i] = durations[i];
-    }
-
-    updateSaveButtonLabels();
-    toggleSaveButtons(secondsEdit ? secondsEdit->value() : Config::DEFAULT_BUFFER_LENGTH);
-  }
-
-  void UIComponents::updateSaveButtonLabels()
-  {
-    if (saveButtons.size() != saveButtonDurations.size())
+    if (saveButtons.size() != saveButtonConfig.size())
     {
       return;
     }
 
     for (size_t i = 0; i < saveButtons.size(); i++)
     {
-      saveButtons[i]->setText(formatDurationLabel(saveButtonDurations[i]));
+      saveButtons[i]->setEnabled(bufferLength >= saveButtonConfig[i].seconds);
     }
   }
 
-  std::vector<int> UIComponents::getDefaultSaveButtonDurations() const
+  void UIComponents::setSaveButtons(const std::vector<SaveButton> &buttons)
   {
-    std::vector<int> defaults;
-    defaults.reserve(Config::SAVE_BUTTON_COUNT);
-    for (size_t i = 0; i < Config::SAVE_BUTTON_COUNT; i++)
+    saveButtonConfig = buttons.empty() ? SaveButtonSettings::getDefaultButtons() : buttons;
+
+    if (saveButtonGrid)
     {
-      defaults.push_back(Config::SAVE_BUTTONS[i]);
+      rebuildSaveButtons();
     }
-    return defaults;
+    toggleSaveButtons(secondsEdit ? secondsEdit->value() : Config::DEFAULT_BUFFER_LENGTH);
   }
 
 } // namespace ReplayBufferPro
