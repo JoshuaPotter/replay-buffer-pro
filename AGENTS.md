@@ -18,7 +18,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
 - Plugin properties (`properties.json`): `src/managers/plugin-properties.hpp`, `src/managers/plugin-properties.cpp`
 - Hotkey manager: `src/managers/hotkey-manager.hpp`, `src/managers/hotkey-manager.cpp`
-- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/clip-writer.*`, `src/utils/packet-window.hpp`, `src/utils/status-reporter.*`
+- Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/clip-writer.*`, `src/utils/packet-window.hpp`, `src/utils/status-reporter.*`, `src/utils/update-checker.*`, `src/utils/version-compare.*`
 - Config constants: `src/config/config.hpp`
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
@@ -75,12 +75,13 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 ## Key components and ownership
 - `ReplayBufferPro::Plugin` (dock) owns UI, managers, timers, and OBS event wiring.
 - `UIComponents` builds the UI and manages enabled/disabled state.
-- `PropertiesDialog` is the plugin's properties window (Save Buttons, Experimental and About pages), opened by the gear button in the dock's footer toolbar and **Tools → Replay Buffer Pro Properties** through `Plugin::openProperties(...)`; `Plugin::applyProperties(...)` stores what it holds. Put new plugin options on a page here, not in a dialog of their own (OBS has no API for a page in its own Settings window). Like OBS Settings, it pauses background hotkeys while open (`obs_hotkey_enable_background_press`) and restores OBS's `HotkeyFocusType` rule on close.
+- `PropertiesDialog` is the plugin's properties window (Save Buttons, Experimental and About pages, the last with a Check for updates button), opened by the gear button in the dock's footer toolbar and **Tools → Replay Buffer Pro Properties** through `Plugin::openProperties(...)`; `Plugin::applyProperties(...)` stores what it holds. Put new plugin options on a page here, not in a dialog of their own (OBS has no API for a page in its own Settings window). Like OBS Settings, it pauses background hotkeys while open (`obs_hotkey_enable_background_press`) and restores OBS's `HotkeyFocusType` rule on close.
 - `HotkeyEdit` captures one key combination the way OBS's unexported `OBSHotkeyEdit` does.
 - `ReplayBufferManager` handles save requests and trimming, and owns the replay buffer output reference and its `saved` signal subscription.
 - `SettingsManager` reads/writes OBS profile config and updates output settings.
 - `HotkeyManager` registers a hotkey per save button in use plus one for Save Replay Buffer, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getAllBindings()`, `setBinding(...)`, which replaces every binding of that hotkey). The OBS frontend already reroutes its callbacks to the Qt main thread, but under libobs's hotkey lock, so they only post the press and the save runs once the lock is released; its destructor unregisters every hotkey.
 - `VideoTrimmer` trims using libavformat stream copy.
+- `UpdateChecker` fetches the latest GitHub release (`releases/latest`, `tag_name`) with libcurl on a worker thread, only when the About page's button is clicked, and compares it with `PLUGIN_VERSION` using `compareVersions(...)` (pure C++, unit-tested in `tests/`). Closing the window aborts the request and joins the thread. It uses OBS's own libcurl because OBS ships Qt Network without a TLS backend.
 
 ## Configuration and persistence
 - Buffer length config key: `RecRBTime`.
@@ -96,6 +97,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
 - OBS (libobs + obs-frontend-api) is built from source during configure.
 - FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
+- libcurl (update check) is the macOS SDK's on macOS and obs-deps' on Windows, the same library OBS links.
 - CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), and `cmake/macos/` (Xcode/macOS-specific).
 - Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
@@ -133,6 +135,7 @@ npm run build       # Static output in site/dist/
 
 ## Not present
 - No custom OBS sources, filters, or outputs are registered. The only external API the plugin registers is the optional obs-websocket vendor request above; without obs-websocket it logs a warning and the dock still works. The plugin uses OBS frontend replay buffer APIs to save, and connects directly to the replay buffer output's `saved` signal and `get_last_replay` proc to learn when and where each file was written. In-memory clips also register a packet callback on that output (`obs_output_add_packet_callback`, OBS 31+).
+- No background network access. The only request the plugin makes is the About page's update check, when the user clicks it; `site/src/content/pages/privacy.md` says so.
 
 ## Documentation upkeep
 - More documentation is available in `docs/` and README.md.

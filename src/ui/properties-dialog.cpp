@@ -7,6 +7,7 @@
 #include "ui/hotkey-edit.hpp"
 #include "config/config.hpp"
 #include "utils/duration-format.hpp"
+#include "utils/update-checker.hpp"
 
 // OBS includes
 #include <obs-module.h>
@@ -42,6 +43,7 @@ namespace ReplayBufferPro
     constexpr const char *kUsageUrl = "https://joshuapotter.github.io/replay-buffer-pro/usage/";
     constexpr const char *kChangelogUrl = "https://joshuapotter.github.io/replay-buffer-pro/changelog/";
     constexpr const char *kIssuesUrl = "https://github.com/JoshuaPotter/replay-buffer-pro/issues";
+    constexpr const char *kLatestReleaseUrl = "https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest";
     constexpr int kMaxLabelLength = 40;
     constexpr int kMinimumWidth = 800;
     constexpr int kMinimumHeight = 360;
@@ -339,6 +341,20 @@ namespace ReplayBufferPro
 
     auto *version = new QLabel(QString::fromUtf8(obs_module_text("PropertiesAboutVersion")).arg(PLUGIN_VERSION), page);
 
+    checkUpdatesButton = new QPushButton(obs_module_text("PropertiesAboutCheckUpdates"), page);
+    updateStatusLabel = new QLabel(page);
+    updateStatusLabel->setTextFormat(Qt::RichText);
+    updateStatusLabel->setWordWrap(true); // curl's error text can be long
+    updateStatusLabel->setOpenExternalLinks(true);
+    updateChecker = new UpdateChecker(this);
+    connect(checkUpdatesButton, &QPushButton::clicked, this, &PropertiesDialog::checkForUpdates);
+    connect(updateChecker, &UpdateChecker::finished, this, &PropertiesDialog::showUpdateResult);
+
+    auto *updateLayout = new QHBoxLayout();
+    updateLayout->addWidget(checkUpdatesButton);
+    updateLayout->addSpacing(8);
+    updateLayout->addWidget(updateStatusLabel, 1);
+
     QStringList links = {
       link(kUsageUrl, "PropertiesAboutUsage"),
       link(kChangelogUrl, "PropertiesAboutChangelog"),
@@ -352,12 +368,41 @@ namespace ReplayBufferPro
     auto *layout = new QVBoxLayout(page);
     layout->addWidget(title);
     layout->addWidget(version);
+    layout->addSpacing(4);
+    layout->addLayout(updateLayout);
     layout->addSpacing(8);
     layout->addWidget(linkLabel);
     layout->addSpacing(8);
     layout->addWidget(createMutedLabel(obs_module_text("PropertiesAboutLogTip"), page));
     layout->addStretch();
     return page;
+  }
+
+  void PropertiesDialog::checkForUpdates()
+  {
+    checkUpdatesButton->setEnabled(false);
+    updateStatusLabel->setText(QString::fromUtf8(obs_module_text("PropertiesAboutChecking")).toHtmlEscaped());
+    updateChecker->check();
+  }
+
+  void PropertiesDialog::showUpdateResult(const UpdateChecker::Result &result)
+  {
+    checkUpdatesButton->setEnabled(true);
+    switch (result.status)
+    {
+    case UpdateChecker::Result::Status::UpToDate:
+      updateStatusLabel->setText(QString::fromUtf8(obs_module_text("PropertiesAboutUpToDate")).toHtmlEscaped());
+      break;
+    case UpdateChecker::Result::Status::UpdateAvailable:
+      updateStatusLabel->setText(
+        QString::fromUtf8(obs_module_text("PropertiesAboutUpdateAvailable")).arg(result.latestVersion).toHtmlEscaped() +
+        " " + link(kLatestReleaseUrl, "PropertiesAboutDownloadUpdate"));
+      break;
+    case UpdateChecker::Result::Status::Failed:
+      updateStatusLabel->setText(
+        QString::fromUtf8(obs_module_text("PropertiesAboutCheckFailed")).arg(result.error).toHtmlEscaped());
+      break;
+    }
   }
 
   std::vector<SaveButton> PropertiesDialog::buttons() const

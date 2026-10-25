@@ -23,6 +23,7 @@
 // Local includes
 #include "config/config.hpp"
 #include "managers/plugin-properties.hpp"
+#include "utils/update-checker.hpp"
 
 class QCheckBox;
 class QLabel;
@@ -125,12 +126,17 @@ namespace ReplayBufferPro
     std::vector<ButtonRow> buttonRows;
     std::vector<HotkeyEdit *> hotkeyInputs; ///< One per slot, then Save Replay Buffer
     QCheckBox *inMemoryClipsCheckBox;
+    QPushButton *checkUpdatesButton;
+    QLabel *updateStatusLabel;
+    UpdateChecker *updateChecker;
 
     QWidget *createSaveButtonsPage(const std::vector<SaveButton> &buttons,
                                    const std::vector<obs_key_combination_t> &hotkeys);
     QWidget *createExperimentalPage(bool inMemoryClips);
     QWidget *createAboutPage();
     void showButtonRows(int count);
+    void checkForUpdates();
+    void showUpdateResult(const UpdateChecker::Result &result);
 
     /**
      * @brief Adds a page, wrapped in a scroll area that scrolls only when the

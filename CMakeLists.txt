@@ -72,6 +72,10 @@ endif()
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_INCLUDE_DIR})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY})
 
+# libcurl for the About page's update check (OBS links and ships it too)
+find_package(CURL REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE CURL::libcurl)
+
 # Plugin sources
 target_sources(
   ${CMAKE_PROJECT_NAME}
@@ -95,6 +99,10 @@ target_sources(
     src/utils/packet-window.hpp
     src/utils/status-reporter.cpp
     src/utils/status-reporter.hpp
+    src/utils/update-checker.cpp
+    src/utils/update-checker.hpp
+    src/utils/version-compare.cpp
+    src/utils/version-compare.hpp
     src/utils/logger.hpp
     src/ui/ui-components.cpp
     src/ui/ui-components.hpp
@@ -131,6 +139,10 @@ if(ENABLE_TESTS)
   add_executable(packet-window-test tests/packet-window-test.cpp)
   target_include_directories(packet-window-test PRIVATE src)
   add_test(NAME packet-window COMMAND packet-window-test)
+
+  add_executable(version-compare-test tests/version-compare-test.cpp src/utils/version-compare.cpp)
+  target_include_directories(version-compare-test PRIVATE src)
+  add_test(NAME version-compare COMMAND version-compare-test)
 endif()
 
 # Release package configuration (Windows only)
