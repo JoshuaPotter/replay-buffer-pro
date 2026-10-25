@@ -19,7 +19,7 @@
 // Local includes
 #include "ui/ui-components.hpp"
 #include "config/config.hpp"
-#include "managers/save-button-settings.hpp"
+#include "managers/plugin-properties.hpp"
 
 namespace ReplayBufferPro
 {

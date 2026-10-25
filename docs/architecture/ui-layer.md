@@ -25,7 +25,7 @@ The dock content is wrapped in a padded `QFrame` (`replayBufferProFrame`, `NoFra
 ### Save buttons
 - Save buttons are generated from the current customizable duration settings.
 - Buttons are arranged in a grid, 3 per row.
-- 1 to 12 buttons (`SaveButtonSettings`); `UIComponents::setSaveButtons(...)` deletes and rebuilds them in the grid when the count, durations or labels change.
+- 1 to 12 buttons (`PluginProperties`); `UIComponents::setSaveButtons(...)` deletes and rebuilds them in the grid when the count, durations or labels change.
 - A button shows its custom label, or "Last <duration>" when it has none (`formatButtonLabel(...)` in `src/utils/duration-format.*`); a labelled button gets the duration as its tooltip.
 - A full buffer save button spans the final row.
 - Buttons are enabled only when the current buffer length is at least the duration they save.
@@ -36,6 +36,7 @@ The dock content is wrapped in a padded `QFrame` (`replayBufferProFrame`, `NoFra
 - **Save Buttons:** a Number of buttons spin box (1–12), then one row per slot (all 12 are built and the count shows or hides them) with duration, label (placeholder shows the default text), a hotkey field (`HotkeyEdit`) and a Clear button, and a Save Replay Buffer row with its own hotkey. Hidden rows show the bindings saved for those buttons, so raising the count shows what they will get back.
 - **About:** name, version (`PLUGIN_VERSION`, a compile definition from `buildspec.json`), links to the usage guide, changelog, website and issues, and a tip on attaching the OBS log.
 - **Experimental:** the "Write clips straight from memory" checkbox.
+- The window opens at 820×600, or at the size the user last left it (`PluginProperties` window size, kept within the minimum and the screen), and is resizable down to 800×360; it never resizes itself. `Plugin::openProperties(...)` saves the size after the window closes, however it was closed. Each page sits in a frameless `QScrollArea` that scrolls only when the page is taller than the window, for example with 12 save buttons.
 - OK and Apply emit `applied()`; `Plugin::applyProperties(...)` stores the values and refreshes the dock buttons, hotkey names and bindings. Cancel discards edits made since the last Apply.
 - While the window is open, OBS's background hotkeys are paused with `obs_hotkey_enable_background_press(false)`, as OBS does for its own Settings window, so pressing a bound key to rebind it does not save a clip. Closing restores OBS's rule from the "Hotkey focus behavior" setting (`HotkeyFocusType`). If the user switches away from OBS and back while the window is open, OBS reapplies that rule itself.
 
@@ -52,7 +53,7 @@ The dock content is wrapped in a padded `QFrame` (`replayBufferProFrame`, `NoFra
 ## Configuration inputs
 - Spinbox range uses `Config::MIN_BUFFER_LENGTH` and `Config::MAX_BUFFER_LENGTH`.
 - Debounce interval uses `Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL`.
-- Save buttons are generated from `SaveButtonSettings`; `Config::MAX_SAVE_BUTTON_COUNT`, `Config::DEFAULT_SAVE_BUTTON_COUNT` and `Config::SAVE_BUTTON_DEFAULTS` (starting durations per slot) bound them.
+- Save buttons are generated from `PluginProperties`; `Config::MAX_SAVE_BUTTON_COUNT`, `Config::DEFAULT_SAVE_BUTTON_COUNT` and `Config::SAVE_BUTTON_DEFAULTS` (starting durations per slot) bound them.
 
 ## Key classes and functions
 - `ReplayBufferPro::Plugin` (dock widget)

@@ -45,9 +45,9 @@ namespace ReplayBufferPro
 		// Create component instances
 		replayManager = new ReplayBufferManager(this);
 		settingsManager = new SettingsManager();
-		saveButtonSettings = new SaveButtonSettings();
-		saveButtonSettings->load();
-		replayManager->setInMemoryClips(saveButtonSettings->getInMemoryClips());
+		pluginProperties = new PluginProperties();
+		pluginProperties->load();
+		replayManager->setInMemoryClips(pluginProperties->getInMemoryClips());
 		
 		// Create UI components with callbacks
 		ui = new UIComponents(this, 
@@ -55,7 +55,7 @@ namespace ReplayBufferPro
 			[this]() { handleSaveFullBuffer(); },
 			[this]() { openProperties(PropertiesDialog::Page::SaveButtons); }
 		);
-		ui->setSaveButtons(saveButtonSettings->getButtons());
+		ui->setSaveButtons(pluginProperties->getButtons());
 		
 		// Mount the UI into this widget
 		{
@@ -78,7 +78,7 @@ namespace ReplayBufferPro
 		hotkeyManager = new HotkeyManager(
 			[this](int duration) { handleSaveSegment(duration); },
 			[this]() { handleSaveFullBuffer(); },
-			saveButtonSettings->getButtons()
+			pluginProperties->getButtons()
 		);
 		hotkeyManager->registerHotkeys();
 
@@ -117,7 +117,7 @@ namespace ReplayBufferPro
 		
 		// Clean up managers that were allocated with new
 		delete hotkeyManager;
-		delete saveButtonSettings;
+		delete pluginProperties;
 		delete settingsManager;
 		
 		// Qt parent-child relationship will handle cleanup for other components
@@ -231,11 +231,24 @@ namespace ReplayBufferPro
 		}
 
 		auto *mainWindow = static_cast<QMainWindow *>(obs_frontend_get_main_window());
-		PropertiesDialog dialog(saveButtonSettings->getButtons(), hotkeys,
-							  saveButtonSettings->getInMemoryClips(), page,
+		PropertiesDialog dialog(pluginProperties->getButtons(), hotkeys,
+							  pluginProperties->getInMemoryClips(), page,
 							  mainWindow ? static_cast<QWidget *>(mainWindow) : this);
+		dialog.restoreSize(pluginProperties->getWindowWidth(), pluginProperties->getWindowHeight());
 		connect(&dialog, &PropertiesDialog::applied, this, [this, &dialog]() { applyProperties(dialog); });
 		dialog.exec();
+
+		// Remember a size the user dragged it to, however the window was closed;
+		// unapplied edits never reach pluginProperties, so saving here keeps them out
+		QSize size = dialog.sizeToRemember();
+		if (size.width() != pluginProperties->getWindowWidth() || size.height() != pluginProperties->getWindowHeight())
+		{
+			pluginProperties->setWindowSize(size.width(), size.height());
+			if (!pluginProperties->save())
+			{
+				Logger::warning("Failed to save the properties window size");
+			}
+		}
 	}
 
 	// The dialog's hotkey indexes are passed to the hotkey manager as they are
@@ -243,17 +256,17 @@ namespace ReplayBufferPro
 
 	void Plugin::applyProperties(const PropertiesDialog &dialog)
 	{
-		saveButtonSettings->setButtons(dialog.buttons());
-		saveButtonSettings->setInMemoryClips(dialog.inMemoryClips());
+		pluginProperties->setButtons(dialog.buttons());
+		pluginProperties->setInMemoryClips(dialog.inMemoryClips());
 		replayManager->setInMemoryClips(dialog.inMemoryClips());
-		if (!saveButtonSettings->save())
+		if (!pluginProperties->save())
 		{
-			Logger::warning("Failed to save custom save button durations");
+			Logger::warning("Failed to save properties");
 		}
 
-		ui->setSaveButtons(saveButtonSettings->getButtons());
+		ui->setSaveButtons(pluginProperties->getButtons());
 		// Registers hotkeys for added buttons before their bindings are set below
-		hotkeyManager->setButtons(saveButtonSettings->getButtons());
+		hotkeyManager->setButtons(pluginProperties->getButtons());
 
 		auto changedHotkeys = dialog.changedHotkeys();
 		for (size_t index : changedHotkeys)

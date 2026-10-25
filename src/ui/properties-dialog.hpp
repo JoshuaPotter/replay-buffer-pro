@@ -15,13 +15,14 @@
 
 // Qt includes
 #include <QDialog>
+#include <QSize>
 
 // STL includes
 #include <vector>
 
 // Local includes
 #include "config/config.hpp"
-#include "managers/save-button-settings.hpp"
+#include "managers/plugin-properties.hpp"
 
 class QCheckBox;
 class QLabel;
@@ -92,6 +93,17 @@ namespace ReplayBufferPro
      */
     obs_key_combination_t hotkey(size_t index) const;
 
+    /**
+     * @brief Opens at a size the user chose before, kept within the minimum
+     *        and the screen; zero means the default size
+     */
+    void restoreSize(int width, int height);
+
+    /**
+     * @brief The window's size if the user changed it from the default, else 0 x 0
+     */
+    QSize sizeToRemember() const;
+
   signals:
     void applied();
 
@@ -121,10 +133,13 @@ namespace ReplayBufferPro
     void showButtonRows(int count);
 
     /**
-     * @brief Resizes the window to its content's height, keeping its width
+     * @brief Adds a page, wrapped in a scroll area that scrolls only when the
+     *        window is shorter than the page
      */
-    void fitToContent();
+    void addPage(QWidget *content);
+
     void apply();
+
   };
 
 } // namespace ReplayBufferPro

@@ -104,8 +104,8 @@ target_sources(
     src/ui/properties-dialog.hpp
     src/managers/settings-manager.cpp
     src/managers/settings-manager.hpp
-    src/managers/save-button-settings.cpp
-    src/managers/save-button-settings.hpp
+    src/managers/plugin-properties.cpp
+    src/managers/plugin-properties.hpp
     src/managers/replay-buffer-manager.cpp
     src/managers/replay-buffer-manager.hpp
     src/managers/packet-ring.cpp

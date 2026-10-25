@@ -24,5 +24,5 @@ If you are new to the plugin, read in order:
 - `ReplayBufferPro::Plugin` is the dock widget; it owns managers, UI, and timers.
 - `ReplayBufferManager` stores a pending save duration to decide if trimming is needed.
 - `SettingsManager` reads/writes OBS profile config (`RecRBTime`).
-- `SaveButtonSettings` loads/saves custom save button durations globally.
+- `PluginProperties` loads/saves the properties window's values (save buttons, in-memory clips, window size) in `properties.json`, reading the older `save_button_settings.json` when it doesn't exist yet.
 - `HotkeyManager` registers per-button hotkeys and persists bindings to JSON.

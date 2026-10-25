@@ -16,7 +16,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Replay buffer manager: `src/managers/replay-buffer-manager.hpp`, `src/managers/replay-buffer-manager.cpp`
 - Packet ring (in-memory clips): `src/managers/packet-ring.hpp`, `src/managers/packet-ring.cpp`
 - Settings manager: `src/managers/settings-manager.hpp`, `src/managers/settings-manager.cpp`
-- Save button settings: `src/managers/save-button-settings.hpp`, `src/managers/save-button-settings.cpp`
+- Plugin properties (`properties.json`): `src/managers/plugin-properties.hpp`, `src/managers/plugin-properties.cpp`
 - Hotkey manager: `src/managers/hotkey-manager.hpp`, `src/managers/hotkey-manager.cpp`
 - Utilities: `src/utils/obs-utils.*`, `src/utils/logger.hpp`, `src/utils/video-trimmer.*`, `src/utils/clip-writer.*`, `src/utils/packet-window.hpp`, `src/utils/status-reporter.*`
 - Config constants: `src/config/config.hpp`
@@ -42,7 +42,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 5. The manager's worker thread trims to a `.rbp-partial.<ext>` file, verifies its duration, renames it to `_trimmed` (numbered `_trimmed_2`... if that name is taken or reserved by a queued clip), then deletes the original.
 
 ### Save segment from memory (experimental, off by default)
-1. With "Write clips straight from memory" on (Experimental page of the properties window, `in_memory_clips` in `save_button_settings.json`), `saveSegment(...)` tries `saveFromMemory(...)` first.
+1. With "Write clips straight from memory" on (Experimental page of the properties window, `in_memory_clips` in `properties.json`), `saveSegment(...)` tries `saveFromMemory(...)` first.
 2. `PacketRing` holds a reference to every packet of the replay buffer output via `obs_output_add_packet_callback(...)`, purged like OBS's own buffer. `ensureSubscribed()` attaches it; buffer stop clears it, and a timeline that starts over (a restart whose stop was suppressed) drops the old packets. The purge rules are `purgeBuffer(...)` in `src/utils/packet-window.hpp`, unit-tested with `findWindowStart(...)`. The callback runs on OBS's interleave thread and must never block, so `takeCapture(...)` references a clip's packets in short locked chunks.
 3. `ClipWriter::describeStreams(...)` allows MKV/MP4/MOV, H.264/HEVC/AV1, AAC/Opus, SDR. Anything else, or a ring that holds less than asked, falls back to the OBS path (`SAVE MODE: obs reason=...`).
 4. A capture ends on the first packet at or after the press (OBS's `save_ts` rule). The worker writes `findWindowStart(...)`..end with `ClipWriter::write(...)`, a port of OBS's `ffmpeg-mux`, to a partial file, verifies it, then renames it to `<name>_trimmed.<ext>`. Nothing is written twice and OBS fires no saved event.
@@ -86,7 +86,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
 - Hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change.
-- Save buttons (1 to 12, each `{seconds, label}`, schema version 2) are stored in `save_button_settings.json` under the module config path, along with the `in_memory_clips` toggle. Slot limits and starting durations are `Config::MAX_SAVE_BUTTON_COUNT`, `DEFAULT_SAVE_BUTTON_COUNT` and `SAVE_BUTTON_DEFAULTS`.
+- `PluginProperties` stores everything the properties window edits in `properties.json` under the module config path: save buttons (1 to 12, each `{seconds, label}`, schema version 2), the `in_memory_clips` toggle, and the window size the user last left it at (`properties_window_width`/`height`, absent while it is the 820×600 default). When `properties.json` doesn't exist, it reads the old `save_button_settings.json` and leaves that file in place. Slot limits and starting durations are `Config::MAX_SAVE_BUTTON_COUNT`, `DEFAULT_SAVE_BUTTON_COUNT` and `SAVE_BUTTON_DEFAULTS`.
 - The About page's version is the `PLUGIN_VERSION` compile definition, set in `CMakeLists.txt` from `buildspec.json`.
 
 ## Build and localization

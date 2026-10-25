@@ -27,7 +27,7 @@
 
 // Project includes
 #include "config/config.hpp"
-#include "managers/save-button-settings.hpp"
+#include "managers/plugin-properties.hpp"
 
 namespace ReplayBufferPro
 {

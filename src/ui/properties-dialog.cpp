@@ -25,6 +25,8 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScreen>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -42,6 +44,9 @@ namespace ReplayBufferPro
     constexpr const char *kIssuesUrl = "https://github.com/JoshuaPotter/replay-buffer-pro/issues";
     constexpr int kMaxLabelLength = 40;
     constexpr int kMinimumWidth = 800;
+    constexpr int kMinimumHeight = 360;
+    constexpr int kDefaultWidth = 820;
+    constexpr int kDefaultHeight = 600;
 
     QString link(const char *url, const char *textKey)
     {
@@ -96,8 +101,10 @@ namespace ReplayBufferPro
       : QDialog(parent)
   {
     setWindowTitle(obs_module_text("PropertiesTitle"));
-    // No fixed minimum size: the layout's own minimum keeps the rows from being
-    // squeezed, and fitToContent() resizes the window as the button count changes
+    // Opens at a fixed size and is freely resizable; a page scrolls when it is
+    // taller than the window
+    setMinimumSize(kMinimumWidth, kMinimumHeight);
+    resize(kDefaultWidth, kDefaultHeight);
 
     pageList = new QListWidget(this);
     pageList->setFixedWidth(160);
@@ -106,9 +113,9 @@ namespace ReplayBufferPro
     pageList->addItem(obs_module_text("PropertiesPageAbout"));
 
     pages = new QStackedWidget(this);
-    pages->addWidget(createSaveButtonsPage(buttons, hotkeys));
-    pages->addWidget(createExperimentalPage(inMemoryClips));
-    pages->addWidget(createAboutPage());
+    addPage(createSaveButtonsPage(buttons, hotkeys));
+    addPage(createExperimentalPage(inMemoryClips));
+    addPage(createAboutPage());
 
     connect(pageList, &QListWidget::currentRowChanged, pages, &QStackedWidget::setCurrentIndex);
     pageList->setCurrentRow(static_cast<int>(page));
@@ -132,7 +139,6 @@ namespace ReplayBufferPro
     auto *layout = new QVBoxLayout(this);
     layout->addLayout(contentLayout, 1);
     layout->addWidget(buttonBox);
-    fitToContent();
 
     // OBS's Settings window disables hotkeys for as long as it is open
     obs_hotkey_enable_background_press(false);
@@ -141,6 +147,43 @@ namespace ReplayBufferPro
   PropertiesDialog::~PropertiesDialog()
   {
     restoreHotkeyPress();
+  }
+
+  void PropertiesDialog::addPage(QWidget *content)
+  {
+    auto *scrollArea = new QScrollArea(pages);
+    scrollArea->setWidget(content);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    // Let the dialog's background show through, as it did before the scroll area
+    scrollArea->viewport()->setAutoFillBackground(false);
+    content->setAutoFillBackground(false);
+    pages->addWidget(scrollArea);
+  }
+
+  void PropertiesDialog::restoreSize(int width, int height)
+  {
+    if (width <= 0 || height <= 0)
+    {
+      return;
+    }
+
+    // A size saved on a larger monitor still has to fit this one
+    QSize size(std::max(width, kMinimumWidth), std::max(height, kMinimumHeight));
+    if (QScreen *currentScreen = screen())
+    {
+      size = size.boundedTo(currentScreen->availableGeometry().size());
+    }
+    resize(size);
+  }
+
+  QSize PropertiesDialog::sizeToRemember() const
+  {
+    if (size() == QSize(kDefaultWidth, kDefaultHeight))
+    {
+      return QSize(0, 0);
+    }
+    return size();
   }
 
   QWidget *PropertiesDialog::createSaveButtonsPage(const std::vector<SaveButton> &buttons,
@@ -270,21 +313,6 @@ namespace ReplayBufferPro
       hotkeyInputs[i]->setVisible(visible);
       row.clear->setVisible(visible);
     }
-
-    // Also runs while the page is built, before the dialog has its layout
-    if (layout())
-    {
-      fitToContent();
-    }
-  }
-
-  void PropertiesDialog::fitToContent()
-  {
-    // Height follows the content (more rows, taller window; fewer, shorter);
-    // width keeps whatever the user has dragged it to, never under the minimum
-    layout()->activate();
-    QSize hint = sizeHint();
-    resize(std::max({width(), hint.width(), kMinimumWidth}), hint.height());
   }
 
   QWidget *PropertiesDialog::createExperimentalPage(bool inMemoryClips)

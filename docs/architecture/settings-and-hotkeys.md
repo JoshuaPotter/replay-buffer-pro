@@ -27,13 +27,15 @@ This document describes how replay buffer length settings are stored, how save b
 - `Config::DEFAULT_BUFFER_LENGTH` is used when OBS has no stored value.
 - `Config::SETTINGS_MONITOR_INTERVAL` controls how often the dock polls settings.
 
-## Save buttons
+## Plugin properties
 ### Responsibilities
-- Load and save the save buttons (1 to 12, each a duration and an optional label) globally (module config path).
+- `PluginProperties` loads and saves everything the properties window edits, globally (module config path): the save buttons (1 to 12, each a duration and an optional label), the in-memory clips toggle, and the window's size.
 - Normalize values to stay within valid bounds.
 
 ### Persistence
-- Settings are stored in `save_button_settings.json` under the module config path.
+- Properties are stored in `properties.json` under the module config path.
+- When `properties.json` doesn't exist, `load()` reads `save_button_settings.json`, the file's earlier name. Saves only write `properties.json` and leave the old file in place, so an older version still finds its settings.
+- `properties_window_width` and `properties_window_height` hold the size the user last left the window at; they are absent while it is the default size.
 - Schema version 2 stores a version, a `save_buttons` array of `{seconds, label}` (its length is the button count), and the `in_memory_clips` boolean (the properties window's "Write clips straight from memory" checkbox, off when missing). Version 1 files (six buttons, no labels) load unchanged.
 - Invalid or missing data falls back to default durations.
 
@@ -67,8 +69,8 @@ This document describes how replay buffer length settings are stored, how save b
 - `SettingsManager::getConfigContext()`
 - `SettingsManager::updateBufferLengthSettings(...)`
 - `SettingsManager::getCurrentBufferLength()`
-- `SaveButtonSettings::load()`
-- `SaveButtonSettings::save()`
+- `PluginProperties::load()`
+- `PluginProperties::save()`
 - `HotkeyManager::registerHotkeys()`
 - `HotkeyManager::saveHotkeySettings()`
 - `HotkeyManager::loadHotkeySettings()`
@@ -76,8 +78,8 @@ This document describes how replay buffer length settings are stored, how save b
 ## Related code
 - `src/managers/settings-manager.hpp`
 - `src/managers/settings-manager.cpp`
-- `src/managers/save-button-settings.hpp`
-- `src/managers/save-button-settings.cpp`
+- `src/managers/plugin-properties.hpp`
+- `src/managers/plugin-properties.cpp`
 - `src/managers/hotkey-manager.hpp`
 - `src/managers/hotkey-manager.cpp`
 - `src/config/config.hpp`

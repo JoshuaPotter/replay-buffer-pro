@@ -72,7 +72,7 @@ namespace ReplayBufferPro
 
     bufferLengthDebounceTimer->setSingleShot(true);
     bufferLengthDebounceTimer->setInterval(Config::BUFFER_LENGTH_DEBOUNCE_INTERVAL);
-    saveButtonConfig = SaveButtonSettings::getDefaultButtons();
+    saveButtonConfig = PluginProperties::getDefaultButtons();
   }
 
   //=============================================================================
@@ -269,7 +269,7 @@ namespace ReplayBufferPro
 
   void UIComponents::setSaveButtons(const std::vector<SaveButton> &buttons)
   {
-    saveButtonConfig = buttons.empty() ? SaveButtonSettings::getDefaultButtons() : buttons;
+    saveButtonConfig = buttons.empty() ? PluginProperties::getDefaultButtons() : buttons;
 
     if (saveButtonGrid)
     {
