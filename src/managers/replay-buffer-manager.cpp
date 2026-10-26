@@ -1249,15 +1249,11 @@ namespace ReplayBufferPro
       const std::string candidate =
           number == 1 ? path : stem + "_" + std::to_string(number) + extension;
 
-      // The disk is checked outside the lock, which the worker and the main
-      // thread both take; the reservation itself is atomic under it
-      if (os_file_exists(candidate.c_str()))
-      {
-        continue;
-      }
-
+      // The disk is checked under the lock too: a clip takes its name on disk
+      // before it releases the reservation, so a name is always seen as one or
+      // the other, never as free in between
       std::lock_guard<std::mutex> lock(jobMutex);
-      if (reservedPaths.insert(candidate).second)
+      if (!os_file_exists(candidate.c_str()) && reservedPaths.insert(candidate).second)
       {
         return candidate;
       }

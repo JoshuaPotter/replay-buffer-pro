@@ -51,7 +51,8 @@ namespace ReplayBufferPro
     //=========================================================================
     /**
      * @brief Constructor
-     * @param context Object presses are posted to; must outlive this
+     * @param context Object presses are posted to; delete this manager only
+     *        while the context is being destroyed, so its queued presses go with it
      * @param saveSegmentCallback Callback for save segment hotkeys
      * @param saveFullBufferCallback Callback for the Save Replay Buffer hotkey
      * @param buttons Current save buttons

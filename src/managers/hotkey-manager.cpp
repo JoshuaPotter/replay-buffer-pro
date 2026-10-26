@@ -112,8 +112,9 @@ namespace ReplayBufferPro
         if (!pressed)
           return;
         // Runs under libobs's hotkey lock: post and return, so the save runs
-        // after it is released. The context outlives this manager, so a queued
-        // press never reaches a deleted one.
+        // after it is released. The manager is deleted only while its context
+        // is destroyed, which drops the context's queued events, so a queued
+        // press never reaches a deleted manager.
         auto self = static_cast<HotkeyManager *>(data);
         QMetaObject::invokeMethod(self->context, [self]() {
           if (self->onSaveFullBuffer)
@@ -287,25 +288,20 @@ namespace ReplayBufferPro
   void HotkeyManager::saveHotkeySettings()
   {
     // Start from the saved file so buttons that are not registered keep their bindings
-    OBSDataRAII data(readBindingsFile());
-    OBSDataRAII fresh(data.isValid() ? nullptr : obs_data_create());
-    obs_data_t *target = data.isValid() ? data.get() : fresh.get();
-    if (!target)
+    obs_data_t *saved = readBindingsFile();
+    OBSDataRAII data(saved ? saved : obs_data_create());
+    if (!data.isValid())
       return;
 
-    std::vector<size_t> targets;
-    for (size_t i = 0; i < Config::MAX_SAVE_BUTTON_COUNT; i++)
-      targets.push_back(i);
-    targets.push_back(FULL_BUFFER);
-
-    for (size_t t : targets) {
+    // Every save button slot, then FULL_BUFFER
+    for (size_t t = 0; t <= FULL_BUFFER; t++) {
       obs_hotkey_id id = hotkeyId(t);
       if (id == OBS_INVALID_HOTKEY_ID)
         continue;
 
       obs_data_array_t *hotkeyArray = obs_hotkey_save(id);
       if (hotkeyArray) {
-        obs_data_set_array(target, bindingsKey(t).c_str(), hotkeyArray);
+        obs_data_set_array(data.get(), bindingsKey(t).c_str(), hotkeyArray);
         obs_data_array_release(hotkeyArray);
       }
     }
@@ -328,7 +324,7 @@ namespace ReplayBufferPro
     std::string config_path = std::string(config_dir) + "/" + kHotkeyBindingsFile;
     bfree(config_dir);
 
-    if (!obs_data_save_json_safe(target, config_path.c_str(),
+    if (!obs_data_save_json_safe(data.get(), config_path.c_str(),
                                  Config::TEMP_FILE_SUFFIX, Config::BACKUP_FILE_SUFFIX))
     {
       Logger::error("Failed to save hotkey bindings to: %s", config_path.c_str());

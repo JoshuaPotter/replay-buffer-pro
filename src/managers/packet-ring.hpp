@@ -166,6 +166,7 @@ namespace ReplayBufferPro
     bool purgeFront();
     void dropPacketsLocked();
     void clearLocked();
+    void closeCaptureLocked(uint64_t captureId);
     double spanSecondsLocked() const;
 
     ReadyCallback onReady;

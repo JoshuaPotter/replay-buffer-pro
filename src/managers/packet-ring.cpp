@@ -176,6 +176,11 @@ namespace ReplayBufferPro
   void PacketRing::cancelCapture(uint64_t captureId)
   {
     std::lock_guard<std::mutex> lock(mutex);
+    closeCaptureLocked(captureId);
+  }
+
+  void PacketRing::closeCaptureLocked(uint64_t captureId)
+  {
     captures.erase(std::remove_if(captures.begin(), captures.end(),
                                   [captureId](const Capture &c) { return c.id == captureId; }),
                    captures.end());
@@ -187,12 +192,6 @@ namespace ReplayBufferPro
 
     // Packets referenced per hold of the lock
     constexpr size_t CHUNK = 2048;
-
-    auto closeCapture = [this, captureId]() {
-      captures.erase(std::remove_if(captures.begin(), captures.end(),
-                                    [captureId](const Capture &c) { return c.id == captureId; }),
-                     captures.end());
-    };
 
     uint64_t startSeq = 0;
     uint64_t endSeq = 0;
@@ -213,14 +212,14 @@ namespace ReplayBufferPro
 
       if (!capture.ready)
       {
-        closeCapture();
+        closeCaptureLocked(captureId);
         result.reason = "capture-not-ready";
         return result;
       }
 
       if (capture.expired)
       {
-        closeCapture();
+        closeCaptureLocked(captureId);
         result.reason = "timeline-restarted";
         return result;
       }
@@ -229,7 +228,7 @@ namespace ReplayBufferPro
       // timeline restarted in between
       if (capture.endSeq < frontSeq || capture.endSeq - frontSeq >= packets.size())
       {
-        closeCapture();
+        closeCaptureLocked(captureId);
         result.reason = "capture-purged";
         return result;
       }
@@ -246,7 +245,7 @@ namespace ReplayBufferPro
                                          });
       if (!start)
       {
-        closeCapture();
+        closeCaptureLocked(captureId);
         result.reason = "no-keyframe";
         return result;
       }
@@ -264,7 +263,7 @@ namespace ReplayBufferPro
       std::lock_guard<std::mutex> lock(mutex);
       if (startSeq < frontSeq || endSeq - frontSeq > packets.size())
       {
-        closeCapture();
+        closeCaptureLocked(captureId);
         result.packets = PacketRefs();
         result.reason = "capture-purged";
         return result;
@@ -281,7 +280,7 @@ namespace ReplayBufferPro
 
     {
       std::lock_guard<std::mutex> lock(mutex);
-      closeCapture();
+      closeCaptureLocked(captureId);
     }
 
     int64_t lastVideoDts = result.packets.packets.front().dts_usec;
