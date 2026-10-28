@@ -10,7 +10,7 @@ An experimental option to write clips straight from memory, and up to 12 save bu
 - **Up to 12 save buttons.** The dock can show up to 12 save buttons, up from 6. Set each button's duration, an optional label and its hotkey in the new properties window. Your current buttons carry over.
 - **Properties window.** A window for managing the plugin, opened from the gear button at the bottom of the dock or Tools → Replay Buffer Pro Properties. It replaces the dock's Customize button.
 - **Check for updates.** The About page of the properties window asks GitHub for the latest release when you click the button. It is the plugin's only network request.
-- **Fixed status messages not appearing in OBS's status bar.** The message shown after each save now appears in OBS's own status bar.
+- **Fixed status messages not appearing in OBS's status bar.** The message shown after each save now correctly appears in OBS's status bar.
 
 ## 1.9.0 (2026-10-20)
 
