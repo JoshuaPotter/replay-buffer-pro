@@ -2,6 +2,18 @@
 
 What changed in each release of Replay Buffer Pro. Full release notes and downloads: https://github.com/JoshuaPotter/replay-buffer-pro/releases
 
+## 1.10.0 (2026-10-27)
+
+A properties window with up to 12 labelled save buttons, and an experimental option to write clips straight from memory.
+
+- **Write clips straight from memory (experimental).** With this option on, each clip is written from the replay buffer's memory, so only the clip reaches the disk instead of the whole buffer followed by a trimmed copy. It works with MKV, MP4 and MOV recordings using H.264, HEVC or AV1 video and AAC or Opus audio, in SDR. Other formats still save through OBS and are trimmed as before. Off by default.
+- **Save Replay Buffer hotkey.** The Save Replay Buffer button has its own hotkey, which saves the whole buffer untrimmed.
+- **Clips saved in the same second are kept.** A clip whose name is already taken is numbered `_trimmed_2`, `_trimmed_3` and so on, instead of replacing the earlier file.
+- **Replay Buffer Pro Properties.** The gear button at the bottom of the dock, or Tools → Replay Buffer Pro Properties, opens a window with Save Buttons, Experimental and About pages. It replaces the dock's Customize button.
+- **Up to 12 save buttons, with labels and hotkeys.** The dock shows from 1 to 12 save buttons, each with a duration, an optional label and a hotkey. Your current buttons carry over.
+- **Check for updates.** The About page asks GitHub for the latest release when you click the button. It is the plugin's only network request.
+- **Status messages appear in OBS's status bar.** The message shown after each save now appears in OBS's own status bar.
+
 ## 1.9.0 (2026-10-20)
 
 Write clip durations the way your tools show them.
