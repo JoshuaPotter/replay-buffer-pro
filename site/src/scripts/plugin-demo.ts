@@ -1,13 +1,14 @@
 /**
  * The homepage's interactive dock demo (components/PluginDemo.astro).
  */
-import { clipButtons } from '../data/demo';
+import { saveButtonSlots, DEFAULT_BUTTON_COUNT } from '../data/demo';
 
-/** Default durations in seconds, matching Config::SAVE_BUTTONS in the real plugin */
-const DEFAULT_DURATIONS = clipButtons.map(({ seconds }) => seconds);
+type SaveButton = { seconds: number; label: string };
 
-/** Live duration state for the 6 clip buttons (mutated by the customize modal) */
-let currentDurations = [...DEFAULT_DURATIONS];
+/** Live save buttons (set by the properties modal); custom labels are empty by default */
+let buttons: SaveButton[] = saveButtonSlots
+  .slice(0, DEFAULT_BUTTON_COUNT)
+  .map(({ seconds }) => ({ seconds, label: '' }));
 
 /**
  * Formats a duration in seconds to a human-readable label.
@@ -28,36 +29,37 @@ function formatDurationLabel(seconds: number): string {
 }
 
 /**
- * Clamps a value to [1, 21600] and returns an integer.
- * Mirrors normalizeDurations in the real plugin.
- * @param {number} value
- * @returns {number}
+ * Clamps a value to [min, max] and returns an integer, or fallback when it isn't a number.
+ * Mirrors normalizeButtons in the real plugin.
  */
-function clampDuration(value: string): number {
+function clampInt(value: string, min: number, max: number, fallback: number): number {
   const n = parseInt(value, 10);
-  if (isNaN(n)) return DEFAULT_DURATIONS[0];
-  return Math.max(1, Math.min(21600, n));
+  if (isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
 }
 
 /**
- * Applies currentDurations to the 6 clip button labels.
+ * Shows as many dock buttons as there are save buttons, with their labels.
+ * A custom label keeps the duration as its tooltip, as in the plugin.
  */
-function applyDurationsToButtons() {
-  document.querySelectorAll('.clip-btn').forEach((btn, i) => {
-    if (i < currentDurations.length) {
-      btn.textContent = formatDurationLabel(currentDurations[i]);
-    }
+function applyButtonsToDock() {
+  document.querySelectorAll<HTMLButtonElement>('.clip-btn').forEach((btn, i) => {
+    const button = buttons[i];
+    btn.hidden = !button;
+    if (!button) return;
+    btn.textContent = button.label || formatDurationLabel(button.seconds);
+    btn.title = button.label ? formatDurationLabel(button.seconds) : '';
   });
 }
 
 /**
  * Updates clip button enabled/disabled states based on buffer length.
- * Reads durations from currentDurations (not button text) for accuracy.
+ * Reads durations from buttons (not button text) for accuracy.
  * @param {number} bufferLengthSeconds
  */
 function updateClipButtonStates(bufferLengthSeconds: number) {
   document.querySelectorAll<HTMLButtonElement>('.clip-btn').forEach((btn, i) => {
-    const clipDuration = currentDurations[i] ?? 0;
+    const clipDuration = buttons[i]?.seconds ?? 0;
     if (clipDuration > bufferLengthSeconds) {
       btn.disabled = true;
       btn.classList.add('disabled');
@@ -69,30 +71,56 @@ function updateClipButtonStates(bufferLengthSeconds: number) {
 }
 
 /**
- * Initializes the Customize Save Buttons modal.
- * Opens on Customize button click, allows editing 6 durations in seconds,
- * saves with clamping, updates button labels, refreshes disabled states.
+ * Initializes the properties modal, opened by the dock footer's gear button.
+ * Like the Save Buttons page of the real window: a button count, and a duration and
+ * label per button. Apply updates the dock, OK applies and closes, Cancel closes.
  */
-function initializeCustomizeModal() {
-  const overlay = document.getElementById('customize-modal');
-  const openBtn = document.getElementById('customize-btn');
+function initializePropertiesModal() {
+  const overlay = document.getElementById('properties-modal');
+  const openBtn = document.getElementById('properties-btn');
   const closeBtn = document.getElementById('modal-close');
   const cancelBtn = document.getElementById('modal-cancel');
-  const saveBtn = document.getElementById('modal-save');
+  const applyBtn = document.getElementById('modal-apply');
+  const okBtn = document.getElementById('modal-ok');
+  const countInput = document.getElementById('btn-count') as HTMLInputElement | null;
   const panel = document.getElementById('plugin-ui-demo');
 
-  if (!overlay || !openBtn) return;
+  if (!overlay || !openBtn || !countInput) return;
   const modal = overlay;
+  const count = countInput;
 
-  const inputs = Array.from({ length: 6 }, (_, i) =>
-    document.getElementById(`btn-input-${i}`) as HTMLInputElement | null
+  const rows = Array.from(modal.querySelectorAll<HTMLElement>('[data-slot-row]'));
+  const durations = saveButtonSlots.map((_, i) =>
+    document.getElementById(`btn-input-${i}`) as HTMLInputElement
+  );
+  const labels = saveButtonSlots.map((_, i) =>
+    document.getElementById(`btn-label-${i}`) as HTMLInputElement
   );
 
+  function currentCount(): number {
+    return clampInt(count.value, 1, saveButtonSlots.length, buttons.length);
+  }
+
+  function showRows(visible: number) {
+    rows.forEach((row, i) => { row.hidden = i >= visible; });
+  }
+
+  // An empty label shows the default "Last ..." text as its placeholder
+  function updatePlaceholder(i: number) {
+    const seconds = clampInt(durations[i].value, 1, 21600, saveButtonSlots[i].seconds);
+    labels[i].placeholder = formatDurationLabel(seconds);
+  }
+
   function openModal() {
-    // Sync inputs to current durations before showing
-    inputs.forEach((input, i) => {
-      if (input) input.value = String(currentDurations[i] ?? DEFAULT_DURATIONS[i]);
+    // Fill every slot: buttons in use from their settings, the rest from their defaults
+    count.value = String(buttons.length);
+    saveButtonSlots.forEach((slot, i) => {
+      const button = buttons[i] ?? { seconds: slot.seconds, label: '' };
+      durations[i].value = String(button.seconds);
+      labels[i].value = button.label;
+      updatePlaceholder(i);
     });
+    showRows(buttons.length);
     modal.setAttribute('aria-hidden', 'false');
 
     // Recede the panel first, then reveal the modal after a beat
@@ -100,7 +128,7 @@ function initializeCustomizeModal() {
     if (panel) panel.classList.add('panel-recessed');
     setTimeout(() => {
       modal.classList.add('show');
-      if (inputs[0]) inputs[0].focus();
+      count.focus();
     }, 60);
   }
 
@@ -111,31 +139,41 @@ function initializeCustomizeModal() {
     openBtn!.focus();
   }
 
-  function saveModal() {
-    const newDurations = inputs.map((input, i) =>
-      input ? clampDuration(input.value) : DEFAULT_DURATIONS[i]
-    );
-    currentDurations = newDurations;
+  function apply() {
+    const visible = currentCount();
+    count.value = String(visible);
+    buttons = saveButtonSlots.slice(0, visible).map((slot, i) => ({
+      seconds: clampInt(durations[i].value, 1, 21600, slot.seconds),
+      label: labels[i].value.trim(),
+    }));
 
-    // Reflect clamped values back into inputs
-    inputs.forEach((input, i) => {
-      if (input) input.value = String(currentDurations[i]);
+    // Reflect clamped values back into the inputs
+    buttons.forEach((button, i) => {
+      durations[i].value = String(button.seconds);
+      labels[i].value = button.label;
+      updatePlaceholder(i);
     });
 
-    applyDurationsToButtons();
+    applyButtonsToDock();
 
     // Re-evaluate disabled states against the current buffer length value
     const bufferInput = document.getElementById('buffer-length-input') as HTMLInputElement | null;
     const bufferLength = bufferInput ? parseInt(bufferInput.value, 10) : 21600;
     updateClipButtonStates(bufferLength);
-
-    closeModal();
   }
 
   openBtn.addEventListener('click', openModal);
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-  if (saveBtn) saveBtn.addEventListener('click', saveModal);
+  if (applyBtn) applyBtn.addEventListener('click', apply);
+  if (okBtn) okBtn.addEventListener('click', () => {
+    apply();
+    closeModal();
+  });
+
+  count.addEventListener('input', () => showRows(currentCount()));
+  count.addEventListener('blur', () => { count.value = String(currentCount()); });
+  durations.forEach((input, i) => input.addEventListener('input', () => updatePlaceholder(i)));
 
   // Close on backdrop click (click directly on overlay, not the modal card)
   modal.addEventListener('click', (e) => {
@@ -149,13 +187,14 @@ function initializeCustomizeModal() {
     }
   });
 
-  // Allow Enter key to submit from any input
-  inputs.forEach(input => {
-    if (input) {
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') saveModal();
-      });
-    }
+  // Enter in any field is OK, as in the real window
+  modal.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        apply();
+        closeModal();
+      }
+    });
   });
 }
 
@@ -190,8 +229,8 @@ export function initPluginDemo() {
     updateClipButtonStates(value);
   }
 
-  // Apply initial button labels from currentDurations
-  applyDurationsToButtons();
+  // Apply initial button labels
+  applyButtonsToDock();
 
   // Update button states as the user types (without clamping mid-edit)
   input.addEventListener('input', () => {
@@ -208,8 +247,8 @@ export function initPluginDemo() {
   // Initialize button states based on the current buffer length
   updateClipButtonStates(parseInt(input.value));
 
-  // Initialize customize modal
-  initializeCustomizeModal();
+  // Initialize properties modal
+  initializePropertiesModal();
 
   // Initialize easter egg
   initializeClipButtonEasterEgg();
@@ -250,10 +289,13 @@ const adjectives = ['excellent', 'impressive', 'unstoppable', 'dominating', 'mon
     toast.innerHTML = `
       ${!isAchievement ? `<div class="toast-icon">${icon}</div>` : ''}
       <div class="toast-content">
-        <strong class="toast-title">${title}</strong>
-        ${subtitle ? `<div class="toast-subtitle">${subtitle}</div>` : ''}
+        <strong class="toast-title"></strong>
+        ${subtitle ? `<div class="toast-subtitle"></div>` : ''}
       </div>
     `;
+    // The file name comes from the button text, so set it as text, never as HTML
+    toast.querySelector('.toast-title')!.textContent = title;
+    if (subtitle) toast.querySelector('.toast-subtitle')!.textContent = subtitle;
     
     toasts.appendChild(toast);
     
@@ -328,7 +370,8 @@ const adjectives = ['excellent', 'impressive', 'unstoppable', 'dominating', 'mon
   // Add click handlers to all clip buttons
   document.querySelectorAll<HTMLButtonElement>('.clip-btn, .save-buffer-btn').forEach((btn, index) => {
     btn.addEventListener('click', () => {
-      const buttonText = (btn.textContent ?? '').trim();
+      // A custom label keeps its duration in the tooltip, which names the clip file
+      const buttonText = (btn.title || btn.textContent || '').trim();
 
       // Button press animation
       btn.style.transform = 'scale(0.95)';

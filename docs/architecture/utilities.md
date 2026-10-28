@@ -16,9 +16,17 @@ This document covers shared utilities used across the plugin.
 - `duration-format` formats localized duration labels (seconds/minutes/hours).
 - Used for save button labels and hotkey descriptions.
 
+## Update check
+- `UpdateChecker` (`src/utils/update-checker.*`) fetches `https://api.github.com/repos/JoshuaPotter/replay-buffer-pro/releases/latest` with libcurl on a worker thread, reads `tag_name`, and compares it with `PLUGIN_VERSION`. It runs only when `check()` is called (the About page's button) and emits `finished(...)` on the owner's thread.
+- `compareVersions(...)` (`src/utils/version-compare.*`) compares dotted versions part by part, ignoring a leading `v`. It is pure C++ with unit tests in `tests/version-compare-test.cpp`. A build newer than the latest release counts as up to date.
+- Destroying the checker (closing the window) aborts a request in flight through curl's progress callback and joins the thread, so the module never unloads with the worker still running.
+- Logged `UPDATE CHECK: current=... latest=... update=yes|no`, or `UPDATE CHECK: failed reason=...`.
+- libcurl is the one OBS itself links: the system library on macOS, the obs-deps build on Windows. OBS ships Qt Network but no Qt TLS backend, so `QNetworkAccessManager` can't make HTTPS requests inside OBS.
+
 ## Status bar messages
 - `StatusReporter::showMessage(text, timeoutMs)` posts transient text to the OBS main window status bar.
 - It reaches the bar through `obs_frontend_get_main_window()` and marshals onto the Qt main thread, so it is safe to call from the trim worker thread.
+- It calls the bar's `showMessage` slot by name. OBS's `OBSBasicStatusBar` hides the non-virtual `QStatusBar::showMessage` with a slot that writes the label OBS displays; calling the base method through a `QStatusBar*` puts the text under OBS's status widget, where it never shows.
 - It does nothing when the main window is unavailable, which is the case during shutdown.
 
 ## Video trimming (FFmpeg libavformat)
@@ -65,3 +73,4 @@ It returns a `TrimResult` carrying the source duration, requested start, actual 
 - `src/utils/status-reporter.cpp`
 - `src/utils/video-trimmer.hpp`
 - `src/utils/video-trimmer.cpp`
+- `src/utils/libav-utils.hpp` (`avErrorString`, `closeOutput`, shared with `ClipWriter`)

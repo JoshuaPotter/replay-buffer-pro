@@ -1,11 +1,13 @@
 ---
-// The interactive OBS dock on the homepage. scripts/plugin-demo.ts relabels the save
-// buttons from the Customize dialog and shows toasts when they are clicked.
+// The interactive OBS dock on the homepage. scripts/plugin-demo.ts sets the save buttons
+// from the properties modal (opened by the footer gear) and shows toasts when they are
+// clicked. Every slot is rendered; the button count shows or hides them.
 import ChevronDown from '../icons/chevron-down.svg';
 import ChevronUp from '../icons/chevron-up.svg';
 import Close from '../icons/close.svg';
+import Gear from '../icons/gear.svg';
 import Popout from '../icons/popout.svg';
-import { clipButtons } from '../data/demo';
+import { saveButtonSlots, DEFAULT_BUTTON_COUNT } from '../data/demo';
 ---
 <div class="plugin-ui-stage">
   <div class="plugin-ui-demo" id="plugin-ui-demo">
@@ -19,7 +21,7 @@ import { clipButtons } from '../data/demo';
 
     <div class="plugin-body">
       <div class="plugin-section">
-        <h3 class="plugin-section-title">Replay Buffer Settings</h3>
+        <h3 class="plugin-section-title">Replay Buffer Properties</h3>
 
         <div class="buffer-length-container">
           <label class="buffer-length-label" for="buffer-length-input">Maximum Replay Buffer Length</label>
@@ -43,43 +45,83 @@ import { clipButtons } from '../data/demo';
       </div>
 
       <div class="plugin-section">
-        <div class="plugin-section-header">
-          <h3 class="plugin-section-title">Save Clips</h3>
-          <button type="button" class="customize-btn" id="customize-btn" aria-haspopup="dialog">Customize</button>
-        </div>
+        <h3 class="plugin-section-title">Save Clips</h3>
 
         <div class="clip-buttons-grid">
-          {clipButtons.map(({ label }) => <button class="clip-btn">{label}</button>)}
+          {saveButtonSlots.map(({ label }, i) => (
+            <button class="clip-btn" hidden={i >= DEFAULT_BUTTON_COUNT}>{label}</button>
+          ))}
         </div>
 
         <button class="save-buffer-btn">Save Replay Buffer</button>
       </div>
     </div>
+
+    <!-- The dock's footer toolbar: a separator, then the properties button on the right -->
+    <div class="plugin-footer">
+      <span class="plugin-footer-separator"></span>
+      <button
+        type="button"
+        class="plugin-control-btn"
+        id="properties-btn"
+        aria-label="Replay Buffer Pro Properties"
+        title="Replay Buffer Pro Properties"
+        aria-haspopup="dialog"
+      ><Gear /></button>
+    </div>
   </div>
 
-  <!-- Customize Save Buttons Modal (panel-scoped) -->
-  <div id="customize-modal" class="demo-modal-overlay" aria-hidden="true">
+  <!-- Properties modal (panel-scoped), the Save Buttons page of the real window -->
+  <div id="properties-modal" class="demo-modal-overlay" aria-hidden="true">
     <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="demo-modal-header">
-        <span id="modal-title" class="demo-modal-title">Customize Save Buttons</span>
+        <span id="modal-title" class="demo-modal-title">Replay Buffer Pro Properties</span>
         <button type="button" class="demo-modal-close" id="modal-close" aria-label="Close"><Close /></button>
       </div>
       <div class="demo-modal-body">
+        <div class="demo-modal-row demo-modal-count">
+          <label class="demo-modal-label" for="btn-count">Number of buttons</label>
+          <div class="demo-modal-input-wrap">
+            <input
+              type="number"
+              class="demo-modal-input demo-modal-input-short"
+              id="btn-count"
+              min="1"
+              max={saveButtonSlots.length}
+              value={DEFAULT_BUTTON_COUNT}
+            >
+          </div>
+        </div>
+
         <div class="demo-modal-form" id="modal-form">
-          {clipButtons.map(({ seconds }, i) => (
-            <div class="demo-modal-row">
+          <div class="demo-modal-row demo-modal-columns" aria-hidden="true">
+            <span class="demo-modal-label"></span>
+            <span class="demo-modal-heading demo-modal-heading-duration">Duration</span>
+            <span class="demo-modal-heading demo-modal-heading-label">Label</span>
+          </div>
+          {saveButtonSlots.map(({ seconds, label }, i) => (
+            <div class="demo-modal-row" data-slot-row hidden={i >= DEFAULT_BUTTON_COUNT}>
               <label class="demo-modal-label" for={`btn-input-${i}`}>Button {i + 1}</label>
               <div class="demo-modal-input-wrap">
                 <input type="number" class="demo-modal-input" id={`btn-input-${i}`} min="1" max="21600" value={seconds}>
                 <span class="demo-modal-unit">sec</span>
               </div>
+              <input
+                type="text"
+                class="demo-modal-text"
+                id={`btn-label-${i}`}
+                maxlength="40"
+                placeholder={label}
+                aria-label={`Button ${i + 1} label`}
+              >
             </div>
           ))}
         </div>
       </div>
       <div class="demo-modal-footer">
         <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-cancel">Cancel</button>
-        <button type="button" class="demo-modal-btn demo-modal-save" id="modal-save">Save</button>
+        <button type="button" class="demo-modal-btn demo-modal-cancel" id="modal-apply">Apply</button>
+        <button type="button" class="demo-modal-btn demo-modal-save" id="modal-ok">OK</button>
       </div>
     </div>
   </div>
@@ -289,35 +331,22 @@ import { clipButtons } from '../data/demo';
   .clip-btn.disabled:active {
     transform: none;
   }
-  .plugin-section-header {
+  .clip-btn[hidden] {
+    display: none;
+  }
+  /* Footer toolbar, as OBS builds its Audio Mixer footer */
+  .plugin-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+    justify-content: flex-end;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-top: 0.0625rem solid rgba(0, 0, 0, 0.3);
   }
-  .plugin-section-header .plugin-section-title {
-    margin-bottom: 0;
-  }
-  .customize-btn {
-    background: #4a5060;
-    border: 0.0625rem solid rgba(0, 0, 0, 0.3);
-    border-radius: 0.25rem;
-    color: #e8eaed;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    font-family: inherit;
-    padding: 0.1875rem 0.5rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    white-space: nowrap;
-    line-height: 1.4;
-  }
-  .customize-btn:hover {
-    background: #555c6e;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  .customize-btn:active {
-    opacity: 0.9;
+  .plugin-footer-separator {
+    width: 0.0625rem;
+    height: 1rem;
+    background: rgba(255, 255, 255, 0.12);
   }
   .plugin-ui-stage {
     max-width: 26rem;
@@ -356,7 +385,7 @@ import { clipButtons } from '../data/demo';
       0 0 0 0.0625rem rgba(0, 0, 0, 0.35),
       0 0.5rem 1.25rem rgba(0, 0, 0, 0.35);
     width: 100%;
-    max-width: 14rem;
+    max-width: 20rem;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     opacity: 0;
     transform: scale(1.06);
@@ -400,19 +429,65 @@ import { clipButtons } from '../data/demo';
     background: rgba(255, 255, 255, 0.08);
     color: #d4d8de;
   }
+  /* Twelve rows don't fit the dock, so the page scrolls as the real window's does */
   .demo-modal-body {
     padding: 0.75rem 0.875rem;
+    max-height: 15rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
+  /* One set of columns for every row, so the headings sit over their inputs */
   .demo-modal-form {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 3.25rem auto minmax(0, 1fr);
     gap: 0.5rem;
   }
   .demo-modal-row {
-    display: flex;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
+  }
+  .demo-modal-row[hidden] {
+    display: none;
+  }
+  .demo-modal-count {
+    display: flex;
     justify-content: space-between;
     gap: 0.75rem;
+    padding-bottom: 0.625rem;
+    margin-bottom: 0.625rem;
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.3);
+  }
+  .demo-modal-columns {
+    margin-bottom: -0.25rem;
+  }
+  .demo-modal-heading {
+    font-size: 0.6875rem;
+    color: #9aa7b2;
+  }
+  .demo-modal-text {
+    width: 100%;
+    min-width: 0;
+    background: #3a3f4a;
+    border: 0.0625rem solid rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    color: #d4d8de;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-family: inherit;
+    line-height: inherit;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .demo-modal-text::placeholder {
+    color: #7e8490;
+  }
+  .demo-modal-text:focus {
+    border-color: rgba(107, 163, 255, 0.5);
+    box-shadow: 0 0 0 0.125rem rgba(107, 163, 255, 0.15);
   }
   .demo-modal-label {
     font-size: 0.75rem;
@@ -441,12 +516,15 @@ import { clipButtons } from '../data/demo';
     font-size: 0.6875rem;
     font-weight: 500;
     font-family: inherit;
-    width: 3rem;
+    width: 2.25rem;
     text-align: right;
     outline: none;
     padding: 0;
     appearance: textfield;
     -moz-appearance: textfield;
+  }
+  .demo-modal-input-short {
+    width: 1.5rem;
   }
   .demo-modal-input::-webkit-outer-spin-button,
   .demo-modal-input::-webkit-inner-spin-button {

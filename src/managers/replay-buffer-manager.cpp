@@ -52,6 +52,18 @@ namespace ReplayBufferPro
     }
 
     /**
+     * @brief Runs a function when it goes out of scope
+     */
+    template <typename F>
+    struct ScopeExit
+    {
+      F run;
+      ~ScopeExit() { run(); }
+    };
+    template <typename F>
+    ScopeExit(F) -> ScopeExit<F>;
+
+    /**
      * @brief Quotes a path for a log line
      */
     std::string quoted(const std::string &value)
@@ -65,7 +77,12 @@ namespace ReplayBufferPro
   //=============================================================================
 
   ReplayBufferManager::ReplayBufferManager(QObject *parent)
-      : QObject(parent)
+      : QObject(parent),
+        // Runs on OBS's interleave thread: post and return, never block
+        ring([this](uint64_t captureId) {
+          QMetaObject::invokeMethod(
+              this, [this, captureId]() { completeCapture(captureId); }, Qt::QueuedConnection);
+        })
   {
     // Not subscribed here: the manager is built in obs_module_post_load, before
     // OBS creates its output handler. REPLAY_BUFFER_STARTED and every save
@@ -124,6 +141,14 @@ namespace ReplayBufferPro
       return false;
     }
 
+    if (inMemoryClips)
+    {
+      if (const std::optional<bool> handled = saveFromMemory(duration))
+      {
+        return *handled;
+      }
+    }
+
     return requestSave(duration);
   }
 
@@ -149,6 +174,10 @@ namespace ReplayBufferPro
     switch (event)
     {
     case OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED:
+      // OBS reads its limits only when the buffer starts. A restart whose
+      // stop was suppressed is caught by the ring itself, from the timeline
+      // starting over, which expires the captures still open.
+      ring.refreshLimits();
       // Subscribe now rather than at the first press, so saves from outside
       // the plugin are logged from the start
       ensureSubscribed();
@@ -163,6 +192,26 @@ namespace ReplayBufferPro
     }
   }
 
+  void ReplayBufferManager::setInMemoryClips(bool enabled)
+  {
+    if (enabled == inMemoryClips)
+    {
+      return;
+    }
+    inMemoryClips = enabled;
+    Logger::info("In-memory clips %s", enabled ? "enabled" : "disabled");
+
+    if (enabled)
+    {
+      ensureSubscribed();
+    }
+    else
+    {
+      closeCaptures("in-memory-disabled", true);
+      ring.attach(nullptr);
+    }
+  }
+
   void ReplayBufferManager::shutdown()
   {
     if (shutDown)
@@ -170,6 +219,11 @@ namespace ReplayBufferPro
       return;
     }
     shutDown = true;
+
+    // Waits for a packet callback already running, so none is running or can
+    // start once this returns
+    closeCaptures("shutdown", false);
+    ring.attach(nullptr);
 
     if (watchdog)
     {
@@ -370,6 +424,11 @@ namespace ReplayBufferPro
 
   void ReplayBufferManager::handleBufferStopped()
   {
+    // OBS empties its buffer on stop. A capture whose last packet arrived is
+    // still written; one still waiting will never get it.
+    closeCaptures("replay-buffer-stopped", true);
+    ring.clear();
+
     // Nothing can arm once the buffer is gone
     if (deferred)
     {
@@ -480,6 +539,16 @@ namespace ReplayBufferPro
     }
 
     OBSOutputAutoRelease current(obs_frontend_get_replay_buffer_output());
+
+    // The ring follows the current output at once: unlike the saved signal, it
+    // owes the old output nothing, since a capture's packets are referenced
+    // as soon as it is taken
+    if (inMemoryClips && ring.attachedOutput() != current.Get())
+    {
+      closeCaptures("output-replaced", true);
+      ring.attach(current);
+    }
+
     if (current.Get() == subscribedOutput.Get())
     {
       return;
@@ -639,6 +708,150 @@ namespace ReplayBufferPro
   }
 
   //=============================================================================
+  // IN-MEMORY CLIPS
+  //=============================================================================
+
+  std::optional<bool> ReplayBufferManager::saveFromMemory(int duration)
+  {
+    if (shutDown)
+    {
+      return false;
+    }
+
+    // The same refusals as a save through OBS: with the encoder paused or the
+    // buffer inactive, no packet will arrive to end the clip
+    if (const char *refusal = armRefusalReason())
+    {
+      reportSkipped(refusal, newRequest(duration), false);
+      return false;
+    }
+
+    ensureSubscribed();
+
+    auto fallBack = [duration](const std::string &reason) -> std::optional<bool> {
+      Logger::info("SAVE MODE: obs duration=%ds reason=%s", duration, reason.c_str());
+      return std::nullopt;
+    };
+
+    OBSOutputAutoRelease rb(obs_frontend_get_replay_buffer_output());
+    if (!rb || ring.attachedOutput() != rb.Get())
+    {
+      return fallBack("ring-not-attached");
+    }
+
+    PendingCapture pending;
+    std::string unsupported;
+    if (!ClipWriter::describeStreams(rb, &pending.streams, &unsupported))
+    {
+      return fallBack(unsupported);
+    }
+
+    // Attached after the buffer started, the ring holds less than OBS until it
+    // has filled once
+    if (!ring.covers(duration))
+    {
+      return fallBack("ring-not-filled");
+    }
+
+    pending.duration = duration;
+    pending.generation = nextGeneration++;
+    pending.captureId = ring.beginCapture(static_cast<int64_t>(os_gettime_ns() / 1000));
+
+    Logger::info("SAVE STATE: capturing gen=%llu duration=%ds",
+                 static_cast<unsigned long long>(pending.generation), duration);
+    captures.push_back(std::move(pending));
+    return true;
+  }
+
+  void ReplayBufferManager::completeCapture(uint64_t captureId)
+  {
+    auto it = std::find_if(captures.begin(), captures.end(),
+                           [captureId](const PendingCapture &c) { return c.captureId == captureId; });
+    if (it == captures.end() || shutDown)
+    {
+      // Already closed, and reported, by a stop or an output swap
+      return;
+    }
+
+    PendingCapture pending = std::move(*it);
+    captures.erase(it);
+
+    const std::string requested = " requested=" + std::to_string(pending.duration) + "s";
+    auto fail = [&](const std::string &reason) {
+      reportVerdict("failed", "mode=memory reason=" + reason + requested,
+                    QString(obs_module_text("StatusClipFailed")).arg(QString::fromStdString(reason)),
+                    true);
+    };
+
+    CaptureResult capture = ring.takeCapture(captureId, pending.duration);
+    if (!capture.success)
+    {
+      fail(capture.reason);
+      return;
+    }
+
+    obs_output_t *output = ring.attachedOutput();
+    const std::string path = output ? ClipWriter::generatePath(output) : std::string();
+    if (path.empty())
+    {
+      fail("no-output-path");
+      return;
+    }
+
+    Logger::info("SAVE STATE: captured gen=%llu duration=%ds clip=%.1fs buffered=%.1fs packets=%zu",
+                 static_cast<unsigned long long>(pending.generation), pending.duration,
+                 capture.clipSeconds, capture.bufferedSeconds, capture.packets.packets.size());
+
+    ClipJob job;
+    job.packets = std::move(capture.packets);
+    job.streams = std::move(pending.streams);
+    job.finalPath = reserveUniquePath(getTrimmedOutputPath(path));
+    job.duration = pending.duration;
+    job.clipSeconds = capture.clipSeconds;
+    job.bufferedSeconds = capture.bufferedSeconds;
+    job.generation = pending.generation;
+
+    {
+      std::lock_guard<std::mutex> lock(jobMutex);
+      jobQueue.emplace_back(std::move(job));
+    }
+    jobCv.notify_one();
+  }
+
+  void ReplayBufferManager::closeCaptures(const char *reason, bool completeReady)
+  {
+    std::vector<uint64_t> ids;
+    ids.reserve(captures.size());
+    for (const PendingCapture &pending : captures)
+    {
+      ids.push_back(pending.captureId);
+    }
+
+    for (uint64_t id : ids)
+    {
+      if (completeReady && ring.isCaptureReady(id))
+      {
+        completeCapture(id);
+        continue;
+      }
+
+      auto it = std::find_if(captures.begin(), captures.end(),
+                             [id](const PendingCapture &c) { return c.captureId == id; });
+      if (it == captures.end())
+      {
+        continue;
+      }
+
+      reportVerdict("skipped",
+                    std::string("mode=memory reason=") + reason +
+                        " requested=" + std::to_string(it->duration) + "s",
+                    QString(), false);
+      ring.cancelCapture(id);
+      captures.erase(it);
+    }
+  }
+
+  //=============================================================================
   // SAVE COMPLETION
   //=============================================================================
 
@@ -714,7 +927,7 @@ namespace ReplayBufferPro
     // shutDown is set, and stopping is only set after that, on this thread.
     {
       std::lock_guard<std::mutex> lock(jobMutex);
-      jobQueue.push_back(TrimJob{savedPath, request.duration, endOffsetSeconds});
+      jobQueue.emplace_back(TrimJob{savedPath, request.duration, endOffsetSeconds});
     }
     jobCv.notify_one();
   }
@@ -727,7 +940,7 @@ namespace ReplayBufferPro
   {
     for (;;)
     {
-      TrimJob job;
+      Job job;
 
       {
         std::unique_lock<std::mutex> lock(jobMutex);
@@ -737,8 +950,8 @@ namespace ReplayBufferPro
         {
           if (!jobQueue.empty())
           {
-            Logger::warning("Abandoning %zu queued trim(s) during shutdown; "
-                            "those clips keep their full length",
+            Logger::warning("Abandoning %zu queued trim(s) or clip(s) during shutdown; "
+                            "trimmed clips keep their full length, clips from memory are not written",
                             jobQueue.size());
             jobQueue.clear();
           }
@@ -749,7 +962,14 @@ namespace ReplayBufferPro
         jobQueue.pop_front();
       }
 
-      processTrimJob(job);
+      if (const auto *trim = std::get_if<TrimJob>(&job))
+      {
+        processTrimJob(*trim);
+      }
+      else
+      {
+        processClipJob(std::get<ClipJob>(job));
+      }
     }
   }
 
@@ -758,7 +978,10 @@ namespace ReplayBufferPro
     const auto startedAt = std::chrono::steady_clock::now();
 
     const std::string partialPath = getPartialOutputPath(job.sourcePath);
-    const std::string finalPath = getTrimmedOutputPath(job.sourcePath);
+    // Reserved like a clip from memory, so a trim never replaces one, or a
+    // clip from memory written the same second, that took this name first
+    const std::string finalPath = reserveUniquePath(getTrimmedOutputPath(job.sourcePath));
+    const ScopeExit release{[this, &finalPath]() { releasePath(finalPath); }};
     const std::string requested = std::to_string(job.duration) + "s";
 
     auto elapsedSeconds = [&startedAt]() {
@@ -818,12 +1041,6 @@ namespace ReplayBufferPro
 
     // Only now is the trim allowed to take the final name, so nothing watching
     // the recordings folder ever sees a half-written clip.
-    if (os_file_exists(finalPath.c_str()))
-    {
-      Logger::warning("Replacing existing file: %s", finalPath.c_str());
-      removeFileWithRetry(finalPath);
-    }
-
     if (os_rename(partialPath.c_str(), finalPath.c_str()) != 0)
     {
       fail("rename-failed", "could not rename to " + finalPath);
@@ -855,6 +1072,82 @@ namespace ReplayBufferPro
     line += " elapsed=" + QString::number(elapsedSeconds(), 'f', 1).toStdString() + "s";
 
     reportVerdict("ok", line,
+                  QString(obs_module_text("StatusTrimSuccess"))
+                      .arg(formatDurationValue(job.duration)),
+                  false);
+  }
+
+  void ReplayBufferManager::processClipJob(const ClipJob &job)
+  {
+    const auto startedAt = std::chrono::steady_clock::now();
+
+    const std::string partialPath = getPartialOutputPath(job.finalPath);
+    const std::string requested = std::to_string(job.duration) + "s";
+
+    auto elapsedSeconds = [&startedAt]() {
+      return std::chrono::duration<double>(std::chrono::steady_clock::now() - startedAt).count();
+    };
+
+    // Release the name on every way out, once the file has taken it or never will
+    const ScopeExit release{[this, &job]() { releasePath(job.finalPath); }};
+
+    auto fail = [&](const std::string &reason, const std::string &detail) {
+      removeFileWithRetry(partialPath);
+
+      std::string line = "mode=memory reason=" + reason;
+      if (!detail.empty())
+      {
+        line += " detail=" + quoted(detail);
+      }
+      line += " file=" + quoted(job.finalPath) +
+              " requested=" + requested +
+              " elapsed=" + QString::number(elapsedSeconds(), 'f', 1).toStdString() + "s";
+
+      reportVerdict("failed", line,
+                    QString(obs_module_text("StatusClipFailed"))
+                        .arg(QString::fromStdString(reason)),
+                    true);
+    };
+
+    Logger::info("Writing %d second clip from memory", job.duration);
+
+    if (os_file_exists(partialPath.c_str()))
+    {
+      Logger::warning("Removing leftover partial file: %s", partialPath.c_str());
+      removeFileWithRetry(partialPath);
+    }
+
+    const ClipWriteResult write = ClipWriter::write(partialPath, job.streams, job.packets.packets);
+    if (!write.success)
+    {
+      fail(write.reason, write.detail);
+      return;
+    }
+
+    double actualDuration = 0.0;
+    std::string verifyReason;
+    if (!verifyTrimmedOutput(partialPath, job.duration, job.bufferedSeconds,
+                             &actualDuration, &verifyReason))
+    {
+      Logger::error("Clip from memory failed verification (%s): %.2fs written, %.2fs captured",
+                    verifyReason.c_str(), actualDuration, job.clipSeconds);
+      fail(verifyReason, "measured " + QString::number(actualDuration, 'f', 1).toStdString() + "s");
+      return;
+    }
+
+    if (os_rename(partialPath.c_str(), job.finalPath.c_str()) != 0)
+    {
+      fail("rename-failed", "could not rename to " + job.finalPath);
+      return;
+    }
+
+    reportVerdict("ok",
+                  "mode=memory file=" + quoted(job.finalPath) +
+                      " requested=" + requested +
+                      " actual=" + QString::number(actualDuration, 'f', 1).toStdString() + "s" +
+                      " buffered=" + QString::number(job.bufferedSeconds, 'f', 1).toStdString() + "s" +
+                      " packets=" + std::to_string(write.packetsWritten) +
+                      " elapsed=" + QString::number(elapsedSeconds(), 'f', 1).toStdString() + "s",
                   QString(obs_module_text("StatusTrimSuccess"))
                       .arg(formatDurationValue(job.duration)),
                   false);
@@ -943,6 +1236,34 @@ namespace ReplayBufferPro
     }
 
     return !os_file_exists(path.c_str());
+  }
+
+  std::string ReplayBufferManager::reserveUniquePath(const std::string &path)
+  {
+    std::string stem;
+    std::string extension;
+    splitExtension(path, &stem, &extension);
+
+    for (int number = 1;; number++)
+    {
+      const std::string candidate =
+          number == 1 ? path : stem + "_" + std::to_string(number) + extension;
+
+      // The disk is checked under the lock too: a clip takes its name on disk
+      // before it releases the reservation, so a name is always seen as one or
+      // the other, never as free in between
+      std::lock_guard<std::mutex> lock(jobMutex);
+      if (!os_file_exists(candidate.c_str()) && reservedPaths.insert(candidate).second)
+      {
+        return candidate;
+      }
+    }
+  }
+
+  void ReplayBufferManager::releasePath(const std::string &path)
+  {
+    std::lock_guard<std::mutex> lock(jobMutex);
+    reservedPaths.erase(path);
   }
 
   void ReplayBufferManager::reportVerdict(const char *outcome, const std::string &detail,

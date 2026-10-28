@@ -8,14 +8,22 @@ namespace ReplayBufferPro
   namespace Config
   {
     /**
-     * @brief Default save button durations in seconds
+     * @brief Starting duration in seconds for each save button slot
+     *
+     * The first DEFAULT_SAVE_BUTTON_COUNT are the default buttons; the rest
+     * are what a button starts at when the user raises the button count.
      */
-    constexpr int SAVE_BUTTONS[] = {15, 30, 60, 300, 900, 1800};
+    constexpr int SAVE_BUTTON_DEFAULTS[] = {15, 30, 60, 300, 900, 1800, 180, 600, 3600, 7200, 10800, 21600};
 
     /**
-     * @brief Number of save buttons
+     * @brief Most save buttons the dock can show
      */
-    constexpr size_t SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTONS) / sizeof(int);
+    constexpr size_t MAX_SAVE_BUTTON_COUNT = sizeof(SAVE_BUTTON_DEFAULTS) / sizeof(int);
+
+    /**
+     * @brief Number of save buttons a new install shows
+     */
+    constexpr size_t DEFAULT_SAVE_BUTTON_COUNT = 6;
 
     // Buffer length configuration
     constexpr int MIN_BUFFER_LENGTH = 1;      // 1 seconds minimum

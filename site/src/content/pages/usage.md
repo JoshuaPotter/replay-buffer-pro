@@ -14,7 +14,7 @@ Replay Buffer Pro trims clips three ways: dock buttons, hotkeys, and an obs-webs
 | Interface | Best for | Trimmed to your duration | Needs |
 | --- | --- | --- | --- |
 | Dock save buttons | Clicking a length while OBS is in front | Yes | Replay buffer running |
-| Hotkeys | Clipping mid-game without leaving it | Yes | A binding for each **Replay Buffer Pro: Save …** hotkey |
+| Hotkeys | Clipping mid-game without leaving it | Yes | A hotkey for each save button, set in **Replay Buffer Pro Properties** or OBS **Settings → Hotkeys** |
 | obs-websocket `SaveClip` | Scripts, Stream Deck plugins, and other apps | Yes, any length from 1 second to 6 hours | obs-websocket server turned on |
 | Save Replay Buffer button | Keeping the whole buffer | No, saved at full buffer length | Replay buffer running |
 | OBS's own Save Replay (hotkey, tray menu, `SaveReplayBuffer` request) | Nothing in this plugin; it is OBS's save | No, logged as `skipped reason=no-pending-request` | Replay buffer running |
@@ -30,15 +30,17 @@ Recording must not be paused. OBS drops replay saves while recording is paused, 
 Open **Docks → Replay Buffer Pro** in OBS Studio. The dock has four parts.
 
 - **Maximum Replay Buffer Length.** A numeric field from 1 second to 6 hours. It writes the same OBS profile setting as **Settings → Output**. It is disabled while the replay buffer is running, so stop the buffer to change it.
-- **Save Clips.** Six buttons, **Last 15 Seconds**, **Last 30 Seconds**, **Last 1 Minute**, **Last 5 Minutes**, **Last 15 Minutes** and **Last 30 Minutes** by default. A button is disabled when the buffer is shorter than its duration.
-- **Customize.** Opens a dialog where each button can be any whole number of seconds from 1 to 21600. The durations are shared across scene collections and profiles, and the hotkey names follow them.
+- **Save Clips.** Six buttons by default, **Last 15 Seconds**, **Last 30 Seconds**, **Last 1 Minute**, **Last 5 Minutes**, **Last 15 Minutes** and **Last 30 Minutes**, and up to 12. A button is disabled when the buffer is shorter than its duration.
 - **Save Replay Buffer.** Saves the whole buffer without trimming.
+- **Properties (gear) button.** At the bottom of the dock. Opens **Replay Buffer Pro Properties** on its **Save Buttons** page. **Number of buttons** sets how many the dock shows, from 1 to 12. Each button can be any whole number of seconds from 1 to 21600, and can have a hotkey and a label. A label replaces the **Last …** text on the button and in its hotkey name; leave it empty to keep the duration. The buttons are shared across scene collections and profiles, and the hotkey names follow them. The **About** page shows the plugin version and links to this guide and the issue tracker. **Check for updates** asks GitHub for the latest release and says whether you have it, with a **Download** link when a newer version is out. **Tools → Replay Buffer Pro Properties** opens the same window.
 
 ## How do I save with hotkeys?
 
-Open **Settings → Hotkeys** in OBS Studio and search for **Replay Buffer Pro**. Each save button has its own hotkey, named after its duration, such as **Replay Buffer Pro: Save 30 Seconds**. Bindings are stored in `hotkey_bindings.json` in the plugin's config folder.
+Each save button has its own hotkey. Set them on the **Save Buttons** page of **Replay Buffer Pro Properties** (the gear button at the bottom of the dock, or **Tools → Replay Buffer Pro Properties**): click a button's **Hotkey** field, press the key, combination or mouse side button, and click **Apply**. **Clear** removes it. Hotkeys are paused while the window is open, so pressing a key that is already bound does not save a clip.
 
-The Save Replay Buffer button has no hotkey of its own. To save the full buffer from a key, use OBS's built-in **Save Replay** hotkey, which also saves it untrimmed.
+The same hotkeys are in OBS **Settings → Hotkeys**, named after their durations, such as **Replay Buffer Pro: Save 30 Seconds**, or after their labels, such as **Replay Buffer Pro: Clip**. Lowering the button count removes the extra hotkeys from that list; raising it again brings them back with their keys. Both places change the same bindings. The properties window sets one key per button; add more for a button in OBS's Hotkeys page, and they stay unless you change that button's hotkey in the properties window. Bindings are stored in `hotkey_bindings.json` in the plugin's config folder.
+
+The **Save Replay Buffer hotkey** on the same page is OBS's own **Save Replay** hotkey, the one in **Settings → Hotkeys** under Replay Buffer. Setting it in either place sets the same key. It saves the whole buffer untrimmed, like the dock's Save Replay Buffer button. OBS keeps it per profile.
 
 ## How do I save clips over obs-websocket? {#obs-websocket}
 
@@ -117,9 +119,17 @@ The official Stream Deck OBS Studio plugin's Save Replay Buffer action saves the
 
 ## Where do the clips go?
 
-Each trimmed clip is saved as `<name>_trimmed.<ext>` next to the replay OBS wrote, in your Replay Buffer save directory. It is written to a `.rbp-partial.<ext>` file first and renamed into place, so the `_trimmed` file is complete the moment it exists. Then the original full-length file is deleted.
+Each trimmed clip is saved as `<name>_trimmed.<ext>` next to the replay OBS wrote, in your Replay Buffer save directory. It is written to a `.rbp-partial.<ext>` file first and renamed into place, so the `_trimmed` file is complete the moment it exists. Then the original full-length file is deleted. If that name is already taken, for example by two clips saved in the same second, the new one is numbered `_trimmed_2`, `_trimmed_3` and so on.
 
 A failed trim keeps the original. Replays saved outside the plugin, and Save Replay Buffer clicks, stay full length with no `_trimmed` file. Every save writes one `TRIM VERDICT` line to the OBS log that says what happened. The [troubleshooting section](https://joshuapotter.github.io/replay-buffer-pro/#troubleshooting) lists the reasons.
+
+## Can I skip writing the whole buffer to disk? {#in-memory-clips}
+
+Yes, as an experiment, with Replay Buffer Pro 1.10.0 or later. Turn on **Write clips straight from memory (experimental)** on the **Experimental** page of **Replay Buffer Pro Properties** (the gear button at the bottom of the dock, or **Tools → Replay Buffer Pro Properties**). Each clip is then written straight from the replay buffer's memory, so only the clip reaches the disk instead of the whole buffer followed by a trimmed copy. The file name is the same `<name>_trimmed.<ext>`.
+
+It works with MKV, MP4 and MOV recordings using H.264, HEVC or AV1 video and AAC or Opus audio, in SDR. Other formats, and **Save Replay Buffer**, still save through OBS as usual. A save right after the buffer starts also goes through OBS until the buffer has filled once.
+
+OBS does not see these saves, so tools that react to OBS's own replay-saved event, and OBS's automatic remux to MP4, skip them. If a clip from memory fails, there is no full-length file to fall back on. The `TRIM VERDICT` line for these clips starts with `mode=memory`.
 
 ## What happens if I press save twice?
 

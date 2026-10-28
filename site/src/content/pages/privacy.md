@@ -9,7 +9,7 @@ datePublished: "2026-10-22"
 
 ## What the plugin collects {#plugin}
 
-Nothing. The Replay Buffer Pro plugin runs inside OBS Studio on your computer. It sends no analytics, telemetry or crash reports, and it makes no network requests of its own.
+Nothing. The Replay Buffer Pro plugin runs inside OBS Studio on your computer. It sends no analytics, telemetry or crash reports. It makes one network request, and only when you click **Check for updates** on the **About** page of its properties window: it asks the GitHub API for the latest release number. GitHub receives your IP address and the plugin version, as with any request to it. Nothing is checked in the background.
 
 ## What this website measures {#website}
 

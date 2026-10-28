@@ -81,6 +81,39 @@ The `saved` callback runs on OBS's mux thread and only reads the path, bumps an 
 3. If active, it requests a save with duration `0`, an explicit do-not-trim marker that goes through the same gate and slots as any other request.
 4. The completion carrying that marker is reported `skipped reason=save-full-buffer` and left untrimmed.
 
+## In-memory clips (experimental)
+
+Off by default; turned on with "Write clips straight from memory" on the Experimental page of the properties window and stored as `in_memory_clips` in `properties.json`. With it on, `saveSegment(...)` writes the clip straight from the packets OBS already holds, so OBS never writes the full buffer and nothing is trimmed. Disk writes drop from the whole buffer plus the clip to the clip alone.
+
+### Packet ring
+`PacketRing` (`src/managers/packet-ring.*`) registers `obs_output_add_packet_callback(...)` on the replay buffer output. OBS calls it on its interleave thread for every packet, just before the output stores it (`send_interleaved()` in `obs-output.c`). The ring keeps a reference to each packet (`obs_encoder_packet_ref`), which shares the output's own copy of the data, so it costs almost no memory. It purges by the same rules as `replay_buffer_purge()` in `obs-ffmpeg-mux.c`, from the output's `max_time_sec` and `max_size_mb`, so it holds the same packets as OBS's buffer and always starts on a video keyframe.
+
+- `ensureSubscribed()` attaches the ring to the current output, so it follows output swaps the same way the `saved` signal does. Unlike the signal, it swaps at once: a capture's packets are referenced as soon as it is taken.
+- `REPLAY_BUFFER_STOPPED` clears it, as OBS clears its own buffer. A restart whose stop event was suppressed shows up as the output's timeline starting over (a video packet whose DTS is not after the previous video packet's), and the ring drops the old session's packets then. Captures still waiting for their last packet expire at that point and fail with `timeline-restarted`, because their presses came before the stop.
+- The purge rules live in `purgeBuffer(...)` (`src/utils/packet-window.hpp`), a port of `replay_buffer_purge()` that `tests/packet-window-test.cpp` checks without OBS.
+- The callback takes a short lock and never blocks, because the interleave thread belongs to the encoder and every output it feeds waits on it.
+
+### Capture flow
+1. `saveFromMemory(...)` runs the same refusal gate as `requestSave(...)` (buffer inactive, encoder paused).
+2. It falls back to the OBS path, logging `SAVE MODE: obs reason=...`, when the ring is not attached, the format is not supported, or the ring holds less than requested because it was attached after the buffer started and has not filled yet (`ring-not-filled`).
+3. `ClipWriter::describeStreams(...)` reads the encoder parameters, and `PacketRing::beginCapture(...)` opens a capture stamped with the press time. Logged `SAVE STATE: capturing`.
+4. The capture ends on the first packet whose system time reaches the press, the same rule as OBS's `save_ts`, and includes it. Purging pauses while a capture is open. The callback posts `completeCapture(...)` to the main thread.
+5. `takeCapture(...)` references the packets, in chunks of 2048 per hold of the lock so a long clip never stalls the interleave thread, from the newest video keyframe at or before the clip's last video packet minus N (`findWindowStart` in `src/utils/packet-window.hpp`, unit-tested in `tests/packet-window-test.cpp`). Logged `SAVE STATE: captured`.
+6. The worker thread writes them with `ClipWriter::write(...)` to `<name>_trimmed.rbp-partial.<ext>`, verifies the duration with `verifyTrimmedOutput(...)`, then renames it to `<name>_trimmed.<ext>`. The name is the one OBS would give a replay saved then, numbered `_2`, `_3`... if a file or another queued clip already has it, since OBS names files to the second.
+
+Each save is independent: there is no single armed save to share, so presses never fold or defer, and a held press needs no end offset.
+
+### Writer
+`ClipWriter` (`src/utils/clip-writer.*`) ports what OBS 32.2 does when it saves: the stream parameters from `add_video_encoder_params()` and `add_audio_encoder_params()`, the stream setup from `create_video_stream()` and `create_audio_stream()` in `ffmpeg-mux/ffmpeg-mux.c`, the rebasing and ordering from `replay_buffer_save()` and `insert_packet()`, and the timestamp scaling from `ffmpeg_mux_packet()`. It runs in-process with libavformat, not in the `obs-ffmpeg-mux` helper. One deliberate difference: OBS rebases each audio track from its own first packet, which is safe for OBS because its buffer starts where the output aligned audio to video. A clip cut from the middle has no such alignment (measured 27 ms off), so the writer rebases audio against the first video packet's DTS on the shared `dts_usec` clock and drops audio from before it. DTS, not PTS, because the output starts audio and video at the same DTS; PTS runs ahead by the encoder's reorder delay. Diff it against those functions when the OBS dependency moves.
+
+`describeStreams(...)` accepts only formats checked against OBS's output: MKV, MP4 and MOV (including fragmented, via the output's `muxer_settings`), H.264, HEVC or AV1 video, AAC or Opus audio, SDR. Anything else (ProRes, FLAC, ALAC, PCM, FLV, MPEG-TS, HDR) falls back to the OBS path. Widen the list only after comparing a clip from each path with `ffprobe`.
+
+### Differences from the OBS path
+- OBS does not write these clips, so its `saved` signal, `OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED`, obs-websocket's `ReplayBufferSaved` event and the last-replay path do not change. Tools that react to saves do not see them.
+- OBS's automatic remux to MP4 does not run on them.
+- A writer crash takes OBS down with it, where an `obs-ffmpeg-mux` crash only fails the save.
+- Save Replay Buffer always goes through OBS; the whole buffer is the file it wants.
+
 ## Trimming details
 
 Trims run on a single worker thread owned by `ReplayBufferManager`, joined in its destructor. One trim runs at a time, and none can outlive the manager.
@@ -89,7 +122,7 @@ Trims run on a single worker thread owned by `ReplayBufferManager`, joined in it
 
 1. Trim into `<name>.rbp-partial.<ext>`, never straight to the final name.
 2. Verify the result with `VideoTrimmer::getVideoDuration(...)`. The output is rejected if it is unreadable, shorter than `Config::TRIM_MIN_DURATION_RATIO` of what was achievable, or longer than both `Config::TRIM_MAX_DURATION_RATIO` and `Config::TRIM_MAX_DURATION_SLACK_SECONDS` allow. The upper bound is deliberately loose because keyframe alignment legitimately makes clips longer, never shorter.
-3. Rename the partial to `<name>_trimmed.<ext>`.
+3. Rename the partial to `<name>_trimmed.<ext>`. The name is reserved the same way as a clip from memory, so a trim never replaces an existing file or a clip from memory written the same second; it is numbered `_trimmed_2`, `_trimmed_3`... instead.
 4. Delete the original, retrying while another process still holds it.
 
 Any failure deletes the partial and leaves the original untouched.
@@ -136,6 +169,12 @@ Grepping an OBS log for `TRIM VERDICT` gives a complete per-save accounting. The
 | `no-packets-written` | Nothing was copied; writing would have produced an empty clip |
 | `window-not-in-buffer` | A held save's press is older than everything the buffer still holds, so the requested clip does not exist |
 | `rename-failed` | The verified clip could not take its final name |
+| `capture-not-ready` / `capture-purged` / `no-keyframe` / `timeline-restarted` | In-memory: the ring could not provide the clip |
+| `no-output-path` | In-memory: the output has no recording directory |
+| `in-memory-disabled` | In-memory: the setting was turned off while a capture waited for its last packet |
+| `write-header-failed` / `write-packet-failed` / `write-trailer-failed` / `open-output-failed` | In-memory: libavformat could not write the clip |
+
+Verdicts for in-memory clips start with `mode=memory` and carry `buffered=` (seconds the ring held) and `packets=` instead of `source=` and `cut_at=`. A failed in-memory clip has no full-length file to fall back on.
 
 Refused and abandoned requests carry `requested=Ns` instead of `file=`, plus `deferred` when it was the deferred request. A successful trim of a held request adds `end_at=` (where the clip ends in the saved file) and `end_offset=` (recorded time the request was held). Its `promoted` line carries the same value as `delayed=`, plus `paused=` when recording was paused during the wait.
 
@@ -146,6 +185,8 @@ Successes and failures also surface briefly in the OBS status bar via `StatusRep
 ## Third-party compatibility
 - [Smart Replay Mover](https://github.com/SlonickLab/Smart-Replay-Mover) (SlonickLab) is a third-party OBS Lua script that waits for this plugin to finish trimming, then moves the final `_trimmed` file into per-game folders. See [issue #23](https://github.com/JoshuaPotter/replay-buffer-pro/issues/23).
 - The `_trimmed` suffix and the deletion of the original are unchanged. Trims are now written to a `.rbp-partial.<ext>` scratch file and renamed into place, so the `_trimmed` file appears atomically and is complete the moment it exists — previously a watcher could observe it partially written.
+- A `_trimmed` name that is already taken is now numbered (`_trimmed_2`) instead of replaced.
+- In-memory clips also appear atomically as `_trimmed` files, but OBS fires no saved event for them and there is no original to delete. Watchers that wait for OBS's event will not see them.
 - If the `_trimmed` suffix, the original-file deletion, or the timing of when the final file appears changes, open an issue at https://github.com/SlonickLab/Smart-Replay-Mover so they can update their compatibility handling.
 
 ## Error handling
@@ -167,6 +208,13 @@ Successes and failures also surface briefly in the OBS status bar via `StatusRep
 - `ReplayBufferManager::processTrimJob(...)`
 - `ReplayBufferManager::verifyTrimmedOutput(...)`
 - `VideoTrimmer::trimToWindow(...)`
+- `ReplayBufferManager::saveFromMemory(...)`
+- `ReplayBufferManager::completeCapture(...)`
+- `ReplayBufferManager::processClipJob(...)`
+- `PacketRing::takeCapture(...)`
+- `findWindowStart(...)`
+- `ClipWriter::describeStreams(...)`
+- `ClipWriter::write(...)`
 - `StatusReporter::showMessage(...)`
 
 ## Related code
@@ -174,5 +222,10 @@ Successes and failures also surface briefly in the OBS status bar via `StatusRep
 - `src/managers/replay-buffer-manager.cpp`
 - `src/utils/video-trimmer.hpp`
 - `src/utils/video-trimmer.cpp`
+- `src/managers/packet-ring.hpp`
+- `src/managers/packet-ring.cpp`
+- `src/utils/packet-window.hpp`
+- `src/utils/clip-writer.hpp`
+- `src/utils/clip-writer.cpp`
 - `src/utils/status-reporter.hpp`
 - `src/utils/status-reporter.cpp`

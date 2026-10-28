@@ -72,6 +72,10 @@ endif()
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_INCLUDE_DIR})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY})
 
+# libcurl for the About page's update check (OBS links and ships it too)
+find_package(CURL REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE CURL::libcurl)
+
 # Plugin sources
 target_sources(
   ${CMAKE_PROJECT_NAME}
@@ -89,23 +93,39 @@ target_sources(
     src/utils/duration-parse.hpp
     src/utils/video-trimmer.cpp
     src/utils/video-trimmer.hpp
+    src/utils/clip-writer.cpp
+    src/utils/libav-utils.hpp
+    src/utils/clip-writer.hpp
+    src/utils/packet-window.hpp
     src/utils/status-reporter.cpp
     src/utils/status-reporter.hpp
+    src/utils/update-checker.cpp
+    src/utils/update-checker.hpp
+    src/utils/version-compare.cpp
+    src/utils/version-compare.hpp
     src/utils/logger.hpp
     src/ui/ui-components.cpp
     src/ui/ui-components.hpp
+    src/ui/hotkey-edit.cpp
+    src/ui/hotkey-edit.hpp
+    src/ui/properties-dialog.cpp
+    src/ui/properties-dialog.hpp
     src/managers/settings-manager.cpp
     src/managers/settings-manager.hpp
-    src/managers/save-button-settings.cpp
-    src/managers/save-button-settings.hpp
+    src/managers/plugin-properties.cpp
+    src/managers/plugin-properties.hpp
     src/managers/replay-buffer-manager.cpp
     src/managers/replay-buffer-manager.hpp
+    src/managers/packet-ring.cpp
+    src/managers/packet-ring.hpp
     src/managers/hotkey-manager.cpp
     src/managers/hotkey-manager.hpp
     src/config/config.hpp
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
+# Shown on the Properties window's About page
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE PLUGIN_VERSION="${PLUGIN_VERSION}")
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})
 
@@ -115,6 +135,14 @@ if(ENABLE_TESTS)
   add_executable(duration-parse-test tests/duration-parse-test.cpp src/utils/duration-parse.cpp)
   target_include_directories(duration-parse-test PRIVATE src)
   add_test(NAME duration-parse COMMAND duration-parse-test)
+
+  add_executable(packet-window-test tests/packet-window-test.cpp)
+  target_include_directories(packet-window-test PRIVATE src)
+  add_test(NAME packet-window COMMAND packet-window-test)
+
+  add_executable(version-compare-test tests/version-compare-test.cpp src/utils/version-compare.cpp)
+  target_include_directories(version-compare-test PRIVATE src)
+  add_test(NAME version-compare COMMAND version-compare-test)
 endif()
 
 # Release package configuration (Windows only)
