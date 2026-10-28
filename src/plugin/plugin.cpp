@@ -78,7 +78,6 @@ namespace ReplayBufferPro
 		hotkeyManager = new HotkeyManager(
 			this,
 			[this](int duration) { handleSaveSegment(duration); },
-			[this]() { handleSaveFullBuffer(); },
 			pluginProperties->getButtons()
 		);
 		hotkeyManager->registerHotkeys();
@@ -222,7 +221,7 @@ namespace ReplayBufferPro
 
 	void Plugin::openProperties(PropertiesDialog::Page page)
 	{
-		// Every slot, including buttons not in use, then Save Replay Buffer
+		// Every slot, including buttons not in use, then OBS's Save Replay hotkey
 		std::vector<obs_key_combination_t> hotkeys;
 		for (const auto &bindings : hotkeyManager->getAllBindings())
 		{

@@ -9,9 +9,12 @@
 #include "utils/duration-format.hpp"
 
 // OBS includes
+#include <obs.hpp>
+#include <util/config-file.h>
 #include <util/platform.h>
 
 // STL includes
+#include <cstring>
 #include <sstream>
 
 namespace ReplayBufferPro
@@ -19,13 +22,17 @@ namespace ReplayBufferPro
   namespace
   {
     constexpr const char *kHotkeyBindingsFile = "hotkey_bindings.json";
-    constexpr const char *kFullBufferHotkeyName = "ReplayBufferPro.SaveFullBuffer";
 
-    // Key of a hotkey's bindings in hotkey_bindings.json
+    // OBS's own Save Replay hotkey (obs-ffmpeg-mux.c). OBS registers it on the
+    // replay buffer output, which exists only while the replay buffer is on in
+    // its Output settings, and keeps its bindings in the profile config.
+    constexpr const char *kReplayHotkeyName = "ReplayBuffer.Save";
+    constexpr const char *kReplayHotkeySection = "Hotkeys";
+    constexpr const char *kReplayHotkeyKey = "ReplayBuffer";
+
+    // Key of a save button hotkey's bindings in hotkey_bindings.json
     std::string bindingsKey(size_t target)
     {
-      if (target == HotkeyManager::FULL_BUFFER)
-        return "hotkey_full";
       return std::string("hotkey_") + std::to_string(target);
     }
 
@@ -59,6 +66,58 @@ namespace ReplayBufferPro
       combination.key = obs_key_from_name(obs_data_get_string(item, "key"));
       return combination;
     }
+
+    // Inverse of decodeBinding(...)
+    obs_data_t *encodeBinding(obs_key_combination_t combination)
+    {
+      obs_data_t *item = obs_data_create();
+      obs_data_set_bool(item, "shift", (combination.modifiers & INTERACT_SHIFT_KEY) != 0);
+      obs_data_set_bool(item, "control", (combination.modifiers & INTERACT_CONTROL_KEY) != 0);
+      obs_data_set_bool(item, "alt", (combination.modifiers & INTERACT_ALT_KEY) != 0);
+      obs_data_set_bool(item, "command", (combination.modifiers & INTERACT_COMMAND_KEY) != 0);
+      obs_data_set_string(item, "key", obs_key_to_name(combination.key));
+      return item;
+    }
+
+    // Bindings of the replay buffer output's hotkeys, keyed by hotkey name: the
+    // live ones while the output exists, else what the profile config holds for
+    // the next output OBS creates. nullptr if there are none.
+    obs_data_t *readReplayHotkeys(obs_output_t *output)
+    {
+      if (output)
+        return obs_hotkeys_save_output(output);
+
+      const char *json = config_get_string(obs_frontend_get_profile_config(),
+                                           kReplayHotkeySection, kReplayHotkeyKey);
+      return json ? obs_data_create_from_json(json) : nullptr;
+    }
+
+    // ID of the Save Replay hotkey OBS registered on the output
+    obs_hotkey_id findReplayHotkey(obs_output_t *output)
+    {
+      struct Query
+      {
+        obs_weak_output_t *weak;
+        obs_hotkey_id id;
+      } query{obs_output_get_weak_output(output), OBS_INVALID_HOTKEY_ID};
+
+      obs_enum_hotkeys(
+        [](void *data, obs_hotkey_id id, obs_hotkey_t *key) {
+          auto q = static_cast<Query *>(data);
+          if (obs_hotkey_get_registerer_type(key) == OBS_HOTKEY_REGISTERER_OUTPUT &&
+              obs_hotkey_get_registerer(key) == q->weak &&
+              strcmp(obs_hotkey_get_name(key), kReplayHotkeyName) == 0)
+          {
+            q->id = id;
+            return false;
+          }
+          return true;
+        },
+        &query);
+
+      obs_weak_output_release(query.weak);
+      return query.id;
+    }
   } // namespace
 
   //=============================================================================
@@ -68,11 +127,9 @@ namespace ReplayBufferPro
   HotkeyManager::HotkeyManager(
       QObject *context,
       std::function<void(int)> saveSegmentCallback,
-      std::function<void()> saveFullBufferCallback,
       const std::vector<SaveButton> &buttons
   ) : context(context),
       onSaveSegment(saveSegmentCallback),
-      onSaveFullBuffer(saveFullBufferCallback),
       buttons(buttons)
   {
     // Initialize hotkey IDs to invalid
@@ -88,9 +145,6 @@ namespace ReplayBufferPro
         obs_hotkey_unregister(saveHotkeys[i]);
       }
     }
-    if (saveFullHotkey != OBS_INVALID_HOTKEY_ID) {
-      obs_hotkey_unregister(saveFullHotkey);
-    }
   }
 
   //=============================================================================
@@ -104,26 +158,6 @@ namespace ReplayBufferPro
       registerButtonHotkey(i);
       targets.push_back(i);
     }
-
-    saveFullHotkey = obs_hotkey_register_frontend(
-      kFullBufferHotkeyName,
-      obs_module_text("SaveFullHotkey"),
-      [](void *data, obs_hotkey_id, obs_hotkey_t *, bool pressed) {
-        if (!pressed)
-          return;
-        // Runs under libobs's hotkey lock: post and return, so the save runs
-        // after it is released. The manager is deleted only while its context
-        // is destroyed, which drops the context's queued events, so a queued
-        // press never reaches a deleted manager.
-        auto self = static_cast<HotkeyManager *>(data);
-        QMetaObject::invokeMethod(self->context, [self]() {
-          if (self->onSaveFullBuffer)
-            self->onSaveFullBuffer();
-        }, Qt::QueuedConnection);
-      },
-      this
-    );
-    targets.push_back(FULL_BUFFER);
 
     // Load saved hotkey bindings after registration
     loadHotkeySettings(targets);
@@ -144,7 +178,9 @@ namespace ReplayBufferPro
         if (!pressed)
           return;
         // Runs under libobs's hotkey lock: post and return, so the save runs
-        // after it is released
+        // after it is released. The manager is deleted only while its context
+        // is destroyed, which drops the context's queued events, so a queued
+        // press never reaches a deleted manager.
         auto self = static_cast<HotkeyManager *>(data);
         QMetaObject::invokeMethod(self->context, [self, id]() {
           int duration = 0;
@@ -214,8 +250,6 @@ namespace ReplayBufferPro
 
   obs_hotkey_id HotkeyManager::hotkeyId(size_t target) const
   {
-    if (target == FULL_BUFFER)
-      return saveFullHotkey;
     if (target < Config::MAX_SAVE_BUTTON_COUNT)
       return saveHotkeys[target];
     return OBS_INVALID_HOTKEY_ID;
@@ -229,7 +263,7 @@ namespace ReplayBufferPro
     // when the button count went down
     OBSDataRAII saved(readBindingsFile());
 
-    for (size_t target = 0; target <= FULL_BUFFER; target++)
+    for (size_t target = 0; target < FULL_BUFFER; target++)
     {
       struct Query
       {
@@ -268,17 +302,75 @@ namespace ReplayBufferPro
         &query);
     }
 
+    OBSOutputAutoRelease output(obs_frontend_get_replay_buffer_output());
+    OBSDataRAII replayHotkeys(readReplayHotkeys(output));
+    if (replayHotkeys.isValid())
+    {
+      obs_data_array_t *array = obs_data_get_array(replayHotkeys.get(), kReplayHotkeyName);
+      for (size_t i = 0; array && i < obs_data_array_count(array); i++)
+      {
+        obs_data_t *item = obs_data_array_item(array, i);
+        obs_key_combination_t combination = decodeBinding(item);
+        if (!obs_key_combination_is_empty(combination))
+          all[FULL_BUFFER].push_back(combination);
+        obs_data_release(item);
+      }
+      obs_data_array_release(array);
+    }
+
     return all;
   }
 
   void HotkeyManager::setBinding(size_t target, const obs_key_combination_t *combination)
   {
+    if (target == FULL_BUFFER)
+    {
+      setReplayBinding(combination);
+      return;
+    }
+
     obs_hotkey_id id = hotkeyId(target);
     if (id == OBS_INVALID_HOTKEY_ID)
       return;
 
     obs_key_combination_t combo = combination ? *combination : obs_key_combination_t{0, OBS_KEY_NONE};
     obs_hotkey_load_bindings(id, &combo, combination ? 1 : 0);
+  }
+
+  void HotkeyManager::setReplayBinding(const obs_key_combination_t *combination)
+  {
+    OBSOutputAutoRelease output(obs_frontend_get_replay_buffer_output());
+    obs_hotkey_id id = output ? findReplayHotkey(output) : OBS_INVALID_HOTKEY_ID;
+    if (id != OBS_INVALID_HOTKEY_ID)
+    {
+      obs_key_combination_t combo = combination ? *combination : obs_key_combination_t{0, OBS_KEY_NONE};
+      obs_hotkey_load_bindings(id, &combo, combination ? 1 : 0);
+    }
+
+    // Read back from the output, or edit what the profile config holds for the
+    // next output OBS creates
+    obs_data_t *read = readReplayHotkeys(id != OBS_INVALID_HOTKEY_ID ? output.Get() : nullptr);
+    OBSDataRAII hotkeys(read ? read : obs_data_create());
+    if (id == OBS_INVALID_HOTKEY_ID)
+    {
+      obs_data_array_t *array = obs_data_array_create();
+      if (combination)
+      {
+        obs_data_t *item = encodeBinding(*combination);
+        obs_data_array_push_back(array, item);
+        obs_data_release(item);
+      }
+      obs_data_set_array(hotkeys.get(), kReplayHotkeyName, array);
+      obs_data_array_release(array);
+    }
+
+    // Where OBS Settings saves it (SaveHotkeySettings) and the output reads it
+    config_t *config = obs_frontend_get_profile_config();
+    config_set_string(config, kReplayHotkeySection, kReplayHotkeyKey, obs_data_get_json(hotkeys.get()));
+    if (config_save_safe(config, "tmp", nullptr) != CONFIG_SUCCESS)
+    {
+      Logger::error("Failed to save OBS's Save Replay hotkey to the profile config");
+    }
   }
 
   //=============================================================================
@@ -293,8 +385,8 @@ namespace ReplayBufferPro
     if (!data.isValid())
       return;
 
-    // Every save button slot, then FULL_BUFFER
-    for (size_t t = 0; t <= FULL_BUFFER; t++) {
+    // Every save button slot
+    for (size_t t = 0; t < FULL_BUFFER; t++) {
       obs_hotkey_id id = hotkeyId(t);
       if (id == OBS_INVALID_HOTKEY_ID)
         continue;

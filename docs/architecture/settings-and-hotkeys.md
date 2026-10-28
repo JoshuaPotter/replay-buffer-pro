@@ -41,11 +41,12 @@ This document describes how replay buffer length settings are stored, how save b
 
 ## Hotkeys
 ### Responsibilities
-- Register a hotkey per save button in use, and one for Save Replay Buffer (`ReplayBufferPro.SaveFullBuffer`).
+- Register a hotkey per save button in use.
 - Register or unregister button hotkeys when the button count changes (`setButtons(...)`).
 - Save hotkey bindings to a module config JSON file.
 - Load hotkey bindings after registration.
 - Read and replace a button's bindings for the properties window (`getAllBindings()`, `setBinding(...)`).
+- Read and replace OBS's own Save Replay hotkey for the properties window's Save Replay Buffer row (target `FULL_BUFFER`). See below.
 - Unregister every hotkey in its destructor. OBS holds its hotkey lock while a callback runs, so none is running once that returns.
 
 ### Hotkey registration details
@@ -56,9 +57,17 @@ This document describes how replay buffer length settings are stored, how save b
 ### Persistence
 - `saveHotkeySettings()` writes bindings to `hotkey_bindings.json` under the module config path, on exit and whenever the properties window applies a hotkey change.
 - Uses OBS data APIs: `obs_hotkey_save(...)`, `obs_data_set_array(...)`, and `obs_data_save_json_safe(...)`.
-- Keys are `hotkey_{index}` per button and `hotkey_full` for Save Replay Buffer.
+- Keys are `hotkey_{index}` per button.
 - Saving starts from the existing file, so a button removed by lowering the count keeps its `hotkey_{index}` entry; registering it again loads it back.
 - `loadHotkeySettings(...)` loads the JSON and calls `obs_hotkey_load(...)` for the given hotkeys.
+
+### OBS's Save Replay hotkey
+- The properties window's Save Replay Buffer row edits OBS's own Save Replay hotkey, so it and OBS **Settings → Hotkeys → Save Replay** always show the same key. The plugin registers no full-buffer hotkey of its own, so one key never saves twice.
+- OBS registers it on the replay buffer output (`ReplayBuffer.Save`, `obs-ffmpeg-mux.c`), which exists only while the replay buffer is on in Output settings, and keeps its bindings in the profile config under `[Hotkeys] ReplayBuffer`, read when OBS creates the output.
+- `getAllBindings()` reads the output's bindings (`obs_hotkeys_save_output(...)`), or the profile config while there is no output.
+- `setBinding(FULL_BUFFER, ...)` finds the hotkey's ID with `obs_enum_hotkeys(...)` (registered by that output, named `ReplayBuffer.Save`), replaces its bindings, and writes the output's bindings to the profile config the way `OBSBasicSettings::SaveHotkeySettings` does, because OBS writes them only when its own Settings are applied. Without an output it edits the profile config alone.
+- Both need the frontend's output handler, so they run only from the properties window, after OBS has loaded.
+- A press of it is OBS's own save: the plugin logs it `no-pending-request` and leaves it untrimmed, the same as the dock's Save Replay Buffer button's result.
 
 ### Properties window access
 - Targets are a button index or `HotkeyManager::FULL_BUFFER` (the same index as `PropertiesDialog::FULL_BUFFER_HOTKEY`).

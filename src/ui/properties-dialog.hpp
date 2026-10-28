@@ -60,13 +60,14 @@ namespace ReplayBufferPro
     };
 
     /**
-     * @brief Hotkey index of the Save Replay Buffer row (same as HotkeyManager::FULL_BUFFER)
+     * @brief Hotkey index of the Save Replay Buffer row, OBS's own Save Replay hotkey
+     *        (same as HotkeyManager::FULL_BUFFER)
      */
     static constexpr size_t FULL_BUFFER_HOTKEY = Config::MAX_SAVE_BUTTON_COUNT;
 
     /**
      * @param buttons Current save buttons
-     * @param hotkeys Current hotkey of every save button slot, then of Save Replay Buffer
+     * @param hotkeys Current hotkey of every save button slot, then OBS's Save Replay hotkey
      *                (MAX_SAVE_BUTTON_COUNT + 1 entries; an empty combination if unbound)
      * @param inMemoryClips Whether in-memory clips are on
      * @param page Page to open on
