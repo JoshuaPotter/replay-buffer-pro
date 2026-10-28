@@ -289,10 +289,13 @@ const adjectives = ['excellent', 'impressive', 'unstoppable', 'dominating', 'mon
     toast.innerHTML = `
       ${!isAchievement ? `<div class="toast-icon">${icon}</div>` : ''}
       <div class="toast-content">
-        <strong class="toast-title">${title}</strong>
-        ${subtitle ? `<div class="toast-subtitle">${subtitle}</div>` : ''}
+        <strong class="toast-title"></strong>
+        ${subtitle ? `<div class="toast-subtitle"></div>` : ''}
       </div>
     `;
+    // The file name comes from the button text, so set it as text, never as HTML
+    toast.querySelector('.toast-title')!.textContent = title;
+    if (subtitle) toast.querySelector('.toast-subtitle')!.textContent = subtitle;
     
     toasts.appendChild(toast);
     
