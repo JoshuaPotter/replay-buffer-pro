@@ -57,7 +57,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 6. The wait is bounded to 2 seconds, because obs-websocket restarts its server on the main thread (settings dialog) and waits for in-flight requests. A timed-out request answers `timeout` and is abandoned, so it never saves later.
 
 ### Save full buffer
-1. User clicks “Save Replay Buffer” or presses its hotkey (`ReplayBufferPro.SaveFullBuffer`).
+1. User clicks “Save Replay Buffer”. Its hotkey row in the properties window is OBS's own Save Replay hotkey (`ReplayBuffer.Save` on the replay buffer output), so a press of it is OBS's save, logged `no-pending-request` and left untrimmed.
 2. `ReplayBufferManager::saveFullBuffer(...)` requests a `0`-duration save, an explicit do-not-trim marker.
 3. The completion carrying that marker is logged `save-full-buffer` and left untrimmed.
 
@@ -79,14 +79,14 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - `HotkeyEdit` captures one key combination the way OBS's unexported `OBSHotkeyEdit` does.
 - `ReplayBufferManager` handles save requests and trimming, and owns the replay buffer output reference and its `saved` signal subscription.
 - `SettingsManager` reads/writes OBS profile config and updates output settings.
-- `HotkeyManager` registers a hotkey per save button in use plus one for Save Replay Buffer, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getAllBindings()`, `setBinding(...)`, which replaces every binding of that hotkey). The OBS frontend already reroutes its callbacks to the Qt main thread, but under libobs's hotkey lock, so they only post the press and the save runs once the lock is released; its destructor unregisters every hotkey.
+- `HotkeyManager` registers a hotkey per save button in use, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getAllBindings()`, `setBinding(...)`, which replaces every binding of that hotkey). Its `FULL_BUFFER` target is OBS's own Save Replay hotkey, not one of the plugin's: it reads the replay buffer output's binding (or the profile config's `[Hotkeys] ReplayBuffer` while there is no output) and writes both, as OBS Settings does, because OBS saves it only when its own Settings are applied. The OBS frontend already reroutes its callbacks to the Qt main thread, but under libobs's hotkey lock, so they only post the press and the save runs once the lock is released; its destructor unregisters every hotkey.
 - `VideoTrimmer` trims using libavformat stream copy.
 - `UpdateChecker` fetches the latest GitHub release (`releases/latest`, `tag_name`) with libcurl on a worker thread, only when the About page's button is clicked, and compares it with `PLUGIN_VERSION` using `compareVersions(...)` (pure C++, unit-tested in `tests/`). Closing the window aborts the request and joins the thread. It uses OBS's own libcurl because OBS ships Qt Network without a TLS backend.
 
 ## Configuration and persistence
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
-- Hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change.
+- Save button hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change. OBS's Save Replay hotkey, which the properties window's Save Replay Buffer row edits, stays in the profile config (`[Hotkeys] ReplayBuffer`, per profile).
 - `PluginProperties` stores everything the properties window edits in `properties.json` under the module config path: save buttons (1 to 12, each `{seconds, label}`, schema version 2), the `in_memory_clips` toggle, and the window size the user last left it at (`properties_window_width`/`height`, absent while it is the 820×600 default). When `properties.json` doesn't exist, it reads the old `save_button_settings.json` and leaves that file in place. Slot limits and starting durations are `Config::MAX_SAVE_BUTTON_COUNT`, `DEFAULT_SAVE_BUTTON_COUNT` and `SAVE_BUTTON_DEFAULTS`.
 - The About page's version is the `PLUGIN_VERSION` compile definition, set in `CMakeLists.txt` from `buildspec.json`.
 

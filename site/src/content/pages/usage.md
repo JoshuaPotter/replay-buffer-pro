@@ -40,7 +40,7 @@ Each save button has its own hotkey. Set them on the **Save Buttons** page of **
 
 The same hotkeys are in OBS **Settings → Hotkeys**, named after their durations, such as **Replay Buffer Pro: Save 30 Seconds**, or after their labels, such as **Replay Buffer Pro: Clip**. Lowering the button count removes the extra hotkeys from that list; raising it again brings them back with their keys. Both places change the same bindings. The properties window sets one key per button; add more for a button in OBS's Hotkeys page, and they stay unless you change that button's hotkey in the properties window. Bindings are stored in `hotkey_bindings.json` in the plugin's config folder.
 
-The Save Replay Buffer button has its own hotkey too, on the same page and in OBS as **Replay Buffer Pro: Save Replay Buffer**. It saves the whole buffer untrimmed.
+The **Save Replay Buffer hotkey** on the same page is OBS's own **Save Replay** hotkey, the one in **Settings → Hotkeys** under Replay Buffer. Setting it in either place sets the same key. It saves the whole buffer untrimmed, like the dock's Save Replay Buffer button. OBS keeps it per profile.
 
 ## How do I save clips over obs-websocket? {#obs-websocket}
 

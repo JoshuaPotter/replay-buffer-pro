@@ -24,7 +24,7 @@ Start the Replay Buffer in OBS, then save a clip any of these ways. Each one is 
 - **Dock buttons.** **Docks → Replay Buffer Pro** has six save buttons by default, up to 12. Use the properties (gear) button in the dock's footer (or **Tools → Replay Buffer Pro Properties**) to choose how many, set each to any length from 1 second to 6 hours, and give it a label if you like, and the numeric field to set the buffer length (while the buffer is stopped).
 - **Hotkeys.** Bind each save button's hotkey in **Replay Buffer Pro Properties**, or bind its **Replay Buffer Pro: Save …** entry in **Settings → Hotkeys**.
 - **obs-websocket.** Send `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and data `{"duration": "2:00"}`. The duration can be seconds (`120`) or text such as `"5:22"`, `"1:05:00"` or `"1h30m"`, from 1 second to 6 hours, and a request longer than the buffer saves the whole buffer. The response is `{"accepted": true, ...}` or `{"accepted": false, "error": "..."}`; the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) lists the errors and has examples.
-- **Save Replay Buffer button.** Saves the whole buffer, untrimmed. It has its own hotkey, **Replay Buffer Pro: Save Replay Buffer**.
+- **Save Replay Buffer button.** Saves the whole buffer, untrimmed. Its hotkey in **Replay Buffer Pro Properties** is OBS's own **Save Replay** hotkey, so setting it in either place sets the same key.
 
 Saves made with OBS's own Save Replay hotkey or tray menu are not trimmed.
 

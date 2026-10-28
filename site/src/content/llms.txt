@@ -84,7 +84,7 @@ Full guide: https://joshuapotter.github.io/replay-buffer-pro/usage/ ([Markdown](
 - **Dock save buttons**: click a button (e.g., "Last 30 Seconds"). Six by default, up to 12, each customizable from 1 second to 6 hours with an optional label in Replay Buffer Pro Properties (the gear button at the bottom of the dock, or Tools → Replay Buffer Pro Properties). Trimmed.
 - **Hotkeys**: set each save button's hotkey in **Replay Buffer Pro Properties**, or in **OBS Studio Settings → Hotkeys** (search "Replay Buffer Pro" and bind each "Replay Buffer Pro: Save ..." entry). Trimmed.
 - **obs-websocket**: a `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and `{"duration": "2:00"}` (see the FAQ below). Trimmed.
-- **Save Replay Buffer button**: saves the whole buffer. Not trimmed. Its hotkey is "Replay Buffer Pro: Save Replay Buffer".
+- **Save Replay Buffer button**: saves the whole buffer. Not trimmed. Its hotkey in the properties window is OBS's own "Save Replay" hotkey.
 - **OBS's own Save Replay** (hotkey, tray menu, `SaveReplayBuffer` request): not trimmed, logged as `no-pending-request`.
 
 ### Important Notes
