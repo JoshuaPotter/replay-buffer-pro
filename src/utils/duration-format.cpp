@@ -57,4 +57,19 @@ namespace ReplayBufferPro
     QString templateText = QString::fromUtf8(obs_module_text("SaveClipHotkeyTemplate"));
     return templateText.arg(formatDurationValue(seconds));
   }
+
+  QString formatButtonLabel(int seconds, const std::string &label)
+  {
+    if (label.empty())
+      return formatDurationLabel(seconds);
+    return QString::fromStdString(label);
+  }
+
+  QString formatButtonHotkeyDescription(int seconds, const std::string &label)
+  {
+    if (label.empty())
+      return formatHotkeyDescription(seconds);
+    QString templateText = QString::fromUtf8(obs_module_text("SaveClipHotkeyLabelTemplate"));
+    return templateText.arg(QString::fromStdString(label));
+  }
 } // namespace ReplayBufferPro

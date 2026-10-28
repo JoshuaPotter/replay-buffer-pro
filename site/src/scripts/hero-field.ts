@@ -45,11 +45,10 @@ export async function initHeroField(
   await field.compile(target);
 
   // The flare sits behind the dock, a little above its middle; when the hero stacks (below
-  // 60rem) it moves up to the dock's top edge, lighting the clouds between text and dock. The
+  // 48rem) it moves up to the dock's top edge, lighting the clouds between text and dock. The
   // copy stays calm: faint clouds behind it side by side, none at all when stacked, where the
-  // field would otherwise sit right behind the buttons. The calm box hugs the text, so on
-  // tablet widths the clouds fill the space beside the shorter lines.
-  const wide = matchMedia('(min-width: 60rem)');
+  // field would otherwise sit right behind the buttons.
+  const wide = matchMedia('(min-width: 48rem)');
   const place = () => {
     const box = canvas.getBoundingClientRect();
     const dpr = target.size[0] / Math.max(box.width, 1);

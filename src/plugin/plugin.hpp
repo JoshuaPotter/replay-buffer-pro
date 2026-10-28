@@ -29,8 +29,9 @@
 
 // Local includes
 #include "ui/ui-components.hpp"
+#include "ui/properties-dialog.hpp"
 #include "managers/settings-manager.hpp"
-#include "managers/save-button-settings.hpp"
+#include "managers/plugin-properties.hpp"
 #include "managers/replay-buffer-manager.hpp"
 #include "managers/hotkey-manager.hpp"
 
@@ -116,18 +117,13 @@ namespace ReplayBufferPro
      */
     void loadBufferLength();
 
-    /**
-     * @brief Opens dialog to customize save button durations
-     */
-    void handleCustomizeSaveButtons();
-
   private:
     //=========================================================================
     // COMPONENT INSTANCES
     //=========================================================================
     UIComponents *ui;                   ///< UI components
     SettingsManager *settingsManager;   ///< Settings manager
-    SaveButtonSettings *saveButtonSettings; ///< Save button settings manager
+    PluginProperties *pluginProperties; ///< Properties window values (properties.json)
     ReplayBufferManager *replayManager; ///< Replay buffer manager
     HotkeyManager *hotkeyManager;       ///< Hotkey manager
     QTimer *settingsMonitorTimer;       ///< Timer for monitoring OBS settings changes
@@ -168,6 +164,21 @@ namespace ReplayBufferPro
      * Shows error if buffer is not active.
      */
     void handleSaveFullBuffer();
+
+    /**
+     * @brief Opens the properties window, modal over the OBS main window
+     * @param page Page to open on
+     */
+    void openProperties(PropertiesDialog::Page page);
+
+    /**
+     * @brief Stores and applies what the properties window holds
+     * @param dialog Properties window that emitted applied()
+     *
+     * Saves durations and the in-memory flag, rebinds the hotkeys the user
+     * changed, and refreshes the dock buttons and hotkey names.
+     */
+    void applyProperties(const PropertiesDialog &dialog);
 
     /**
      * @brief Handles OBS frontend events for buffer state changes

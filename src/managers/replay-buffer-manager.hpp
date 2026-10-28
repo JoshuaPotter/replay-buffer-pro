@@ -19,9 +19,12 @@
 #include <deque>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <variant>
+#include <vector>
 
 // Qt includes
 #include <QObject>
@@ -29,6 +32,8 @@
 #include <QTimer>
 
 // Local includes
+#include "managers/packet-ring.hpp"
+#include "utils/clip-writer.hpp"
 #include "utils/video-trimmer.hpp"
 
 namespace ReplayBufferPro
@@ -49,6 +54,11 @@ namespace ReplayBufferPro
    * exactly as OBS folds it into save_ts. Requests OBS would silently drop are
    * refused before any state is recorded, and completions come from the replay
    * buffer output's own "saved" signal, which fires once per written file.
+   *
+   * With in-memory clips on, saveSegment() skips all of that where it can: a
+   * PacketRing mirrors the buffer's packets and the clip is written straight
+   * from them, so OBS never writes the full buffer. Formats the writer does
+   * not support, and Save Replay Buffer, still go through OBS.
    *
    * All correlation state lives on the Qt main thread.
    */
@@ -112,6 +122,14 @@ namespace ReplayBufferPro
     void handleFrontendEvent(obs_frontend_event event);
 
     /**
+     * @brief Turns writing clips straight from memory on or off
+     *
+     * Off by default. Turning it off drops captures still waiting for their
+     * last packet; clips already captured are still written.
+     */
+    void setInMemoryClips(bool enabled);
+
+    /**
      * @brief Disconnects from OBS and abandons any live request
      *
      * Idempotent. Call on OBS_FRONTEND_EVENT_EXIT, while the frontend API is
@@ -153,6 +171,33 @@ namespace ReplayBufferPro
       int duration;
       double endOffsetSeconds; ///< How far before the file's end the clip should end
     };
+
+    /**
+     * @brief An in-memory save waiting for its last packet
+     */
+    struct PendingCapture
+    {
+      uint64_t captureId = 0;
+      int duration = 0;
+      uint64_t generation = 0;
+      ClipStreams streams; ///< Read at the press, while the encoders are known to be live
+    };
+
+    /**
+     * @brief Captured packets waiting to be written on the worker thread
+     */
+    struct ClipJob
+    {
+      PacketRefs packets;
+      ClipStreams streams;
+      std::string finalPath;
+      int duration = 0;
+      double clipSeconds = 0.0;     ///< Video span of the captured packets
+      double bufferedSeconds = 0.0; ///< Video span of the ring when it was taken
+      uint64_t generation = 0;
+    };
+
+    using Job = std::variant<TrimJob, ClipJob>;
 
     //=========================================================================
     // REQUEST TRACKING (Qt main thread)
@@ -298,6 +343,28 @@ namespace ReplayBufferPro
                          const std::string &extra = std::string());
 
     //=========================================================================
+    // IN-MEMORY CLIPS (Qt main thread)
+    //=========================================================================
+    /**
+     * @brief Starts a save written from the packet ring
+     * @param duration Seconds to save
+     * @return The save's outcome, or nullopt if it should go through OBS instead
+     */
+    std::optional<bool> saveFromMemory(int duration);
+
+    /**
+     * @brief Takes a capture whose last packet arrived and queues its write
+     */
+    void completeCapture(uint64_t captureId);
+
+    /**
+     * @brief Closes every open capture
+     * @param reason Reason token for the ones dropped
+     * @param completeReady Whether to still write captures whose last packet arrived
+     */
+    void closeCaptures(const char *reason, bool completeReady);
+
+    //=========================================================================
     // TRIMMING
     //=========================================================================
     /**
@@ -310,6 +377,12 @@ namespace ReplayBufferPro
      * @param job File and duration to process
      */
     void processTrimJob(const TrimJob &job);
+
+    /**
+     * @brief Writes one captured clip, verifies it, then gives it its final name
+     * @param job Packets and destination
+     */
+    void processClipJob(const ClipJob &job);
 
     /**
      * @brief Checks a freshly written trim is plausibly the requested length
@@ -349,6 +422,23 @@ namespace ReplayBufferPro
     static bool removeFileWithRetry(const std::string &path);
 
     /**
+     * @brief Picks a path no existing or queued clip uses, and reserves it
+     *
+     * OBS names files to the second, so presses in the same second would share
+     * a name. Both trims and clips from memory reserve their final name; the
+     * reservation lasts until releasePath().
+     *
+     * @param path Preferred path
+     * @return path, or path with _2, _3... before the extension
+     */
+    std::string reserveUniquePath(const std::string &path);
+
+    /**
+     * @brief Ends a reservation made by reserveUniquePath()
+     */
+    void releasePath(const std::string &path);
+
+    /**
      * @brief Logs the single verdict line for a save and shows a status message
      * @param outcome One of "ok", "skipped" or "failed"
      * @param detail Trailing key=value diagnostics for the log line
@@ -380,11 +470,17 @@ namespace ReplayBufferPro
 
     QTimer *watchdog = nullptr;             ///< Single-shot; armed only while a request is outstanding
 
+    // In-memory clips, Qt main thread only
+    bool inMemoryClips = false;
+    std::vector<PendingCapture> captures;   ///< Waiting for their last packet
+    PacketRing ring;                        ///< Attached only while inMemoryClips is on
+
     std::mutex jobMutex;             ///< Guards jobQueue and stopping
     std::condition_variable jobCv;   ///< Signals the worker
-    std::deque<TrimJob> jobQueue;    ///< Files awaiting trimming
+    std::deque<Job> jobQueue;        ///< Files awaiting trimming, clips awaiting writing
     std::thread worker;              ///< Owned so trims cannot outlive the manager
     bool stopping = false;           ///< Tells the worker to drain and exit
+    std::set<std::string> reservedPaths; ///< Clip paths queued but not yet written; guarded by jobMutex
   };
 
 } // namespace ReplayBufferPro

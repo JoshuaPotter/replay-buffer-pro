@@ -21,12 +21,14 @@ Full guide: [How to use Replay Buffer Pro](https://joshuapotter.github.io/replay
 
 Start the Replay Buffer in OBS, then save a clip any of these ways. Each one is trimmed to its duration without re-encoding, and the trimmed `_trimmed` file replaces the original.
 
-- **Dock buttons.** **Docks → Replay Buffer Pro** has six save buttons. Use **Customize** to set each to any length from 1 second to 6 hours, and the numeric field to set the buffer length (while the buffer is stopped).
-- **Hotkeys.** Bind each **Replay Buffer Pro: Save …** entry in **Settings → Hotkeys**.
+- **Dock buttons.** **Docks → Replay Buffer Pro** has six save buttons by default, up to 12. Use the properties (gear) button in the dock's footer (or **Tools → Replay Buffer Pro Properties**) to choose how many, set each to any length from 1 second to 6 hours, and give it a label if you like, and the numeric field to set the buffer length (while the buffer is stopped).
+- **Hotkeys.** Bind each save button's hotkey in **Replay Buffer Pro Properties**, or bind its **Replay Buffer Pro: Save …** entry in **Settings → Hotkeys**.
 - **obs-websocket.** Send `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and data `{"duration": "2:00"}`. The duration can be seconds (`120`) or text such as `"5:22"`, `"1:05:00"` or `"1h30m"`, from 1 second to 6 hours, and a request longer than the buffer saves the whole buffer. The response is `{"accepted": true, ...}` or `{"accepted": false, "error": "..."}`; the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) lists the errors and has examples.
-- **Save Replay Buffer button.** Saves the whole buffer, untrimmed.
+- **Save Replay Buffer button.** Saves the whole buffer, untrimmed. It has its own hotkey, **Replay Buffer Pro: Save Replay Buffer**.
 
 Saves made with OBS's own Save Replay hotkey or tray menu are not trimmed.
+
+An experimental option on the **Experimental** page of **Replay Buffer Pro Properties**, **Write clips straight from memory**, writes each clip straight from the buffer's memory so the full buffer never reaches the disk. It supports MKV, MP4 and MOV with H.264, HEVC or AV1 video and AAC or Opus audio; other formats save through OBS as before. See the [usage guide](https://joshuapotter.github.io/replay-buffer-pro/usage/#in-memory-clips).
 
 ### Community integrations
 Other people have built tools that work with Replay Buffer Pro, including a Stream Deck plugin and the Smart Replay Mover OBS script. These are not necessarily endorsed or tested by this project. See the [community integrations page](https://joshuapotter.github.io/replay-buffer-pro/integrations/) for the list and how Stream Deck fits in.
