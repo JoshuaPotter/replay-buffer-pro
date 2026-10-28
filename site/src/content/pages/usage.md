@@ -125,7 +125,7 @@ A failed trim keeps the original. Replays saved outside the plugin, and Save Rep
 
 ## Can I skip writing the whole buffer to disk? {#in-memory-clips}
 
-Yes, as an experiment. Turn on **Write clips straight from memory (experimental)** on the **Experimental** page of **Replay Buffer Pro Properties** (the gear button at the bottom of the dock, or **Tools → Replay Buffer Pro Properties**). Each clip is then written straight from the replay buffer's memory, so only the clip reaches the disk instead of the whole buffer followed by a trimmed copy. The file name is the same `<name>_trimmed.<ext>`.
+Yes, as an experiment, with Replay Buffer Pro 1.10.0 or later. Turn on **Write clips straight from memory (experimental)** on the **Experimental** page of **Replay Buffer Pro Properties** (the gear button at the bottom of the dock, or **Tools → Replay Buffer Pro Properties**). Each clip is then written straight from the replay buffer's memory, so only the clip reaches the disk instead of the whole buffer followed by a trimmed copy. The file name is the same `<name>_trimmed.<ext>`.
 
 It works with MKV, MP4 and MOV recordings using H.264, HEVC or AV1 video and AAC or Opus audio, in SDR. Other formats, and **Save Replay Buffer**, still save through OBS as usual. A save right after the buffer starts also goes through OBS until the buffer has filled once.
 
