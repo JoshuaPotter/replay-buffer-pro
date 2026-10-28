@@ -437,16 +437,17 @@ import { saveButtonSlots, DEFAULT_BUTTON_COUNT } from '../data/demo';
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
+  /* One set of columns for every row, so the headings sit over their inputs */
   .demo-modal-form {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 3.25rem auto minmax(0, 1fr);
     gap: 0.5rem;
   }
   .demo-modal-row {
     display: grid;
-    grid-template-columns: 3.25rem auto minmax(0, 1fr);
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
-    gap: 0.5rem;
   }
   .demo-modal-row[hidden] {
     display: none;
