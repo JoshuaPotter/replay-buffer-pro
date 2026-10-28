@@ -33,7 +33,12 @@ namespace ReplayBufferPro
         {
           if (QStatusBar *bar = mainWindow->statusBar())
           {
-            bar->showMessage(message, timeoutMs);
+            // OBS's OBSBasicStatusBar hides QStatusBar::showMessage with its own
+            // slot, which writes to the label OBS displays. QStatusBar's message
+            // area sits under OBS's stretched status widget and is never seen,
+            // so call the slot by name to reach the most-derived one.
+            QMetaObject::invokeMethod(bar, "showMessage", Qt::DirectConnection,
+                                      Q_ARG(QString, message), Q_ARG(int, timeoutMs));
           }
         },
         Qt::QueuedConnection);

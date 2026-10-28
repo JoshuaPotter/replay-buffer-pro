@@ -26,6 +26,7 @@ This document covers shared utilities used across the plugin.
 ## Status bar messages
 - `StatusReporter::showMessage(text, timeoutMs)` posts transient text to the OBS main window status bar.
 - It reaches the bar through `obs_frontend_get_main_window()` and marshals onto the Qt main thread, so it is safe to call from the trim worker thread.
+- It calls the bar's `showMessage` slot by name. OBS's `OBSBasicStatusBar` hides the non-virtual `QStatusBar::showMessage` with a slot that writes the label OBS displays; calling the base method through a `QStatusBar*` puts the text under OBS's status widget, where it never shows.
 - It does nothing when the main window is unavailable, which is the case during shutdown.
 
 ## Video trimming (FFmpeg libavformat)
