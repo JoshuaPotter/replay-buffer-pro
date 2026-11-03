@@ -25,7 +25,7 @@ const softwareApplication = {
   "name": "Replay Buffer Pro",
   "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding, for streamers, gamers, and content creators.",
   "applicationCategory": "MultimediaApplication",
-  "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+",
+  "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+, Ubuntu 24.04 (x86_64)",
   "softwareVersion": VERSION,
   "datePublished": "2025-03-06",
   "isAccessibleForFree": true,
@@ -54,7 +54,7 @@ const sourceCode = {
   "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
   "codeRepository": REPO_URL,
   "programmingLanguage": "C++",
-  "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+",
+  "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+, Ubuntu 24.04 (x86_64)",
   "license": "https://www.gnu.org/licenses/gpl-2.0.html",
   "targetProduct": {
     "@type": "SoftwareApplication",
@@ -67,14 +67,14 @@ const installHowTo = {
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "How to Install Replay Buffer Pro for OBS Studio",
-  "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows or macOS",
+  "description": "Step-by-step guide to install Replay Buffer Pro plugin for OBS Studio on Windows, macOS or Ubuntu",
   "totalTime": "PT5M",
   "step": [
     {
       "@type": "HowToStep",
       "position": 1,
       "name": "Download Plugin",
-      "text": "Download the latest release of Replay Buffer Pro for your platform (Windows .zip or macOS .pkg) from the link above.",
+      "text": "Download the latest release of Replay Buffer Pro for your platform (Windows .zip, macOS .pkg or Ubuntu .deb) from the link above.",
       "url": LATEST_RELEASE_URL
     },
     {
@@ -87,7 +87,7 @@ const installHowTo = {
       "@type": "HowToStep",
       "position": 3,
       "name": "Install the Plugin",
-      "text": "On Windows, extract the ZIP and copy the replay-buffer-pro folder to C:\\ProgramData\\obs-studio\\plugins\\. On macOS, open the .pkg and follow the installer, which installs to ~/Library/Application Support/obs-studio/plugins/ automatically.",
+      "text": "On Windows, extract the ZIP and copy the replay-buffer-pro folder to C:\\ProgramData\\obs-studio\\plugins\\. On macOS, open the .pkg and follow the installer, which installs to ~/Library/Application Support/obs-studio/plugins/ automatically. On Ubuntu, install the .deb with sudo apt install ./replay-buffer-pro-VERSION-x86_64-linux-gnu.deb.",
       "url": LATEST_RELEASE_URL
     },
     {
@@ -144,7 +144,7 @@ const faq = [
   },
   {
     question: "Is there a Linux version?",
-    answer: `No. Replay Buffer Pro runs on Windows 10/11 (64-bit) and macOS 13.0 or later. On Linux, OBS Studio's built-in replay buffer still works, and it saves the whole buffer each time.`
+    answer: `Yes, for Ubuntu 24.04 (x86_64) with OBS Studio installed from the official <code>ppa:obsproject/obs-studio</code>. Download the <code>.deb</code> and install it with <code>apt</code>. The Flatpak version of OBS Studio can't load it.`
   }
 ];
 
@@ -166,7 +166,7 @@ const facts = [
   'Trims in milliseconds',
   'Up to 12 custom durations',
   'Hotkey for every button',
-  'Windows & macOS',
+  'Windows, macOS & Linux',
   'Same output folder',
 ];
 
@@ -331,6 +331,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
         <dd>
           <span class="spec-line">Windows 10/11 (64-bit)</span>
           <span class="spec-line">macOS 13.0+ (Apple Silicon &amp; Intel universal)</span>
+          <span class="spec-line">Ubuntu 24.04 (x86_64), with OBS Studio from its PPA</span>
         </dd>
       </div>
     </dl>
@@ -339,6 +340,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       <div class="os-tablist" role="tablist" aria-label="Choose your operating system">
         <button type="button" class="os-tab" role="tab" id="tab-windows" aria-controls="panel-windows" data-os-tab="windows">Windows</button>
         <button type="button" class="os-tab" role="tab" id="tab-macos" aria-controls="panel-macos" data-os-tab="macos">macOS</button>
+        <button type="button" class="os-tab" role="tab" id="tab-linux" aria-controls="panel-linux" data-os-tab="linux">Ubuntu</button>
       </div>
 
       <ol class="os-tabpanel" role="tabpanel" id="panel-windows" aria-labelledby="tab-windows" data-os-panel="windows">
@@ -352,6 +354,13 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
         <li><span class="os-step-text">Download the universal <code>.pkg</code>.</span></li>
         <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
         <li><span class="os-step-text">Open the <code>.pkg</code> and follow the installer — it writes to <code>~/Library/Application Support/obs-studio/plugins/</code> automatically. If macOS blocks it as coming from an unidentified developer, Control-click the <code>.pkg</code>, choose <strong>Open</strong>, and confirm.</span></li>
+        <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
+      </ol>
+
+      <ol class="os-tabpanel" role="tabpanel" id="panel-linux" aria-labelledby="tab-linux" data-os-panel="linux">
+        <li><span class="os-step-text">Install OBS Studio from its PPA: <CopyCode>sudo add-apt-repository ppa:obsproject/obs-studio</CopyCode>, then <CopyCode>sudo apt install obs-studio</CopyCode>. The Flatpak version of OBS can't load the plugin.</span></li>
+        <li><span class="os-step-text">Download the <code>.deb</code> for Ubuntu 24.04 (x64) and quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Install it from the folder you downloaded it to with <CopyCode>sudo apt install ./replay-buffer-pro-*-x86_64-linux-gnu.deb</CopyCode>.</span></li>
         <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
       </ol>
     </div>
@@ -369,6 +378,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       <div class="os-tablist" role="tablist" aria-label="Choose your operating system for uninstalling">
         <button type="button" class="os-tab" role="tab" id="tab-uninstall-windows" aria-controls="panel-uninstall-windows" data-os-tab="windows">Windows</button>
         <button type="button" class="os-tab" role="tab" id="tab-uninstall-macos" aria-controls="panel-uninstall-macos" data-os-tab="macos">macOS</button>
+        <button type="button" class="os-tab" role="tab" id="tab-uninstall-linux" aria-controls="panel-uninstall-linux" data-os-tab="linux">Ubuntu</button>
       </div>
 
       <ol class="os-tabpanel" role="tabpanel" id="panel-uninstall-windows" aria-labelledby="tab-uninstall-windows" data-os-panel="windows">
@@ -381,6 +391,12 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
         <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
         <li><span class="os-step-text">Delete <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> to remove the plugin.</span></li>
         <li><span class="os-step-text">Optionally, delete <CopyCode>~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/</CopyCode> to remove your hotkeys and button durations too.</span></li>
+      </ol>
+
+      <ol class="os-tabpanel" role="tabpanel" id="panel-uninstall-linux" aria-labelledby="tab-uninstall-linux" data-os-panel="linux">
+        <li><span class="os-step-text">Quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Run <CopyCode>sudo apt remove replay-buffer-pro</CopyCode> to remove the plugin.</span></li>
+        <li><span class="os-step-text">Optionally, delete <CopyCode>~/.config/obs-studio/plugin_config/replay-buffer-pro/</CopyCode> to remove your hotkeys and button durations too.</span></li>
       </ol>
     </div>
   </Section>
@@ -401,7 +417,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   <Section id="troubleshooting" title="Troubleshooting">
     <div class="issue-list">
       <Issue title="Plugin not loading">
-        <p>On Windows, confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>). On macOS, confirm <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> exists. Then restart OBS Studio.</p>
+        <p>On Windows, confirm <code>replay-buffer-pro.dll</code> sits in <CopyCode>%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode> (typically <CopyCode>C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\</CopyCode>). On macOS, confirm <CopyCode>~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin</CopyCode> exists. On Ubuntu, confirm <CopyCode>/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so</CopyCode> exists and that OBS Studio came from apt, not Flatpak. Then restart OBS Studio.</p>
       </Issue>
       <Issue title="A clip wasn't trimmed">
         <p>Every replay save writes one <code>TRIM VERDICT</code> line to the OBS log (<strong>Help → Log Files → Show Log Files</strong>). Search for <code>TRIM VERDICT</code> and find the line for that clip — the <code>reason</code> field names the cause. A failed trim always leaves your original full-length clip in place, so nothing is lost.</p>
@@ -717,7 +733,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   import { detectOS } from '../scripts/os';
   import { getLatestRelease } from '../scripts/release';
 
-  // Windows/macOS tabs for the install and uninstall steps, each group defaulting to the visitor's OS.
+  // Windows/macOS/Ubuntu tabs for the install and uninstall steps, each group defaulting to the visitor's OS.
   document.querySelectorAll<HTMLElement>('[data-os-tabs]').forEach((group) => {
     const tabs = [...group.querySelectorAll<HTMLElement>('[data-os-tab]')];
     const panels = group.querySelectorAll<HTMLElement>('[data-os-panel]');

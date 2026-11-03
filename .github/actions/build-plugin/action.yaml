@@ -44,6 +44,23 @@ runs:
 
         .github/scripts/build-macos ${build_args}
 
+    - name: Run Ubuntu Build
+      if: runner.os == 'Linux'
+      shell: zsh --no-rcs --errexit --pipefail {0}
+      working-directory: ${{ inputs.workingDirectory }}
+      env:
+        CCACHE_DIR: ${{ inputs.workingDirectory }}/.ccache
+      run: |
+        : Run Ubuntu Build
+
+        local -a build_args=(
+          --target ubuntu-${{ inputs.target }}
+          --config ${{ inputs.config }}
+        )
+        if (( ${+RUNNER_DEBUG} )) build_args+=(--debug)
+
+        .github/scripts/build-ubuntu ${build_args}
+
     - name: Run Windows Build
       if: runner.os == 'Windows'
       shell: pwsh

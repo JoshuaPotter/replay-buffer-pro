@@ -58,14 +58,14 @@ if(ENABLE_QT)
   )
 endif()
 
-# FFmpeg libraries (from prebuilt obs-deps)
+# FFmpeg libraries (prebuilt obs-deps on Windows and macOS, system packages on Linux)
 find_path(AVFORMAT_INCLUDE_DIR libavformat/avformat.h)
 find_library(AVFORMAT_LIBRARY NAMES avformat)
 find_library(AVCODEC_LIBRARY NAMES avcodec)
 find_library(AVUTIL_LIBRARY NAMES avutil)
 
 if(NOT AVFORMAT_LIBRARY OR NOT AVCODEC_LIBRARY OR NOT AVUTIL_LIBRARY)
-  message(FATAL_ERROR "FFmpeg libraries (avformat, avcodec, avutil) not found in CMAKE_PREFIX_PATH. "
+  message(FATAL_ERROR "FFmpeg libraries (avformat, avcodec, avutil) not found in CMAKE_PREFIX_PATH or the system. "
     "These are required for video trimming functionality.")
 endif()
 

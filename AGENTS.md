@@ -93,17 +93,18 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
 - Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
-- `CMakePresets.json` defines `windows-x64` and `macos` (universal) configure/build presets.
-- Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
-- OBS (libobs + obs-frontend-api) is built from source during configure.
-- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
-- libcurl (update check) is the macOS SDK's on macOS and obs-deps' on Windows, the same library OBS links.
-- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), and `cmake/macos/` (Xcode/macOS-specific).
+- `CMakePresets.json` defines `windows-x64`, `macos` (universal) and `ubuntu-x86_64` configure/build presets, each with a `-ci` variant that treats warnings as errors.
+- On Windows and macOS, dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time, and OBS (libobs + obs-frontend-api) is built from source during configure.
+- On Linux, as in the template, nothing is downloaded: the build uses system packages, OBS Studio from `ppa:obsproject/obs-studio` (its libobs and obs-frontend-api CMake packages), Qt6, FFmpeg and libcurl, which `.github/scripts/utils.zsh/setup_ubuntu` installs with apt. `buildspec.json` has no Linux hashes, and the plugin is built against whatever OBS version the PPA carries.
+- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive on Windows and macOS, and from Ubuntu's own packages on Linux (FFmpeg 6.1 on 24.04, the build OBS from the PPA links).
+- libcurl (update check) is the macOS SDK's on macOS, obs-deps' on Windows and the system's on Linux, the same library OBS links.
+- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), `cmake/macos/` (Xcode/macOS-specific) and `cmake/linux/` (GCC flags, install rules, CPack; copied from the template).
 - Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
-- Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
+- Linux builds produce `replay-buffer-pro.so`, installed to `lib/x86_64-linux-gnu/obs-plugins/` with data in `share/obs/obs-plugins/replay-buffer-pro/`. CPack (`cmake/linux/defaults.cmake`) packages a `.deb`, its `-dbgsym.ddeb` and a source `.tar.xz` through `.github/scripts/package-ubuntu --package`. The `.deb` only works with OBS installed from apt; Flatpak OBS can't load it.
+- Post-build rundir at `build_x64/rundir/<config>/` (Windows), `build_macos/rundir/<config>/` (macOS) or `build_x86_64/rundir/<config>/` (Linux) for quick testing.
 - `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
-- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**`, `.agents/**`, `.claude/**` or `skills-lock.json` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
+- GitHub Actions CI: builds on push/PR for Windows, macOS and Ubuntu 24.04 x86_64, creates draft releases on semver tag push with the Windows `.zip`, macOS `.pkg`, Ubuntu `.deb` and `-dbgsym.ddeb`, and the source `.tar.xz`. The Ubuntu job caches ccache in `.ccache/`. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**`, `.agents/**`, `.claude/**` or `skills-lock.json` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
 - Releases: the `release` skill (`.agents/skills/release/`, `/release`) cuts one end to end from a develop commit: a `release/X.Y.Z` PR into `main`, a tag on the merge commit, a back-merge into `develop`, and notes on the draft release CI creates. Its `references/writing-style.md` is the house style for release notes and changelog entries.
 - macOS CI uses Xcode's built-in compilation cache (CAS), not ccache — a ccache compiler-wrapper triggers a "conflicting deployment targets" error under Xcode 26.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
@@ -121,6 +122,15 @@ cmake --install build_x64 --config RelWithDebInfo  # Install
 cmake --preset macos                 # Configure (downloads deps on first run; requires Xcode 26.5+)
 cmake --build --preset macos         # Build
 cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
+```
+
+### Build commands (Linux)
+```bash
+.github/scripts/build-ubuntu        # Install apt dependencies (sudo), configure, build, stage into release/<config>/
+.github/scripts/package-ubuntu --package  # .deb, -dbgsym.ddeb and source .tar.xz in release/
+cmake --preset ubuntu-x86_64        # Or configure directly once dependencies are installed
+cmake --build --preset ubuntu-x86_64
+sudo cmake --install build_x86_64 --prefix /usr
 ```
 
 ### Website build
