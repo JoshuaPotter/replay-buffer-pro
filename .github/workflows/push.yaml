@@ -19,6 +19,7 @@ on:
       - .agents/**
       - .claude/**
       - skills-lock.json
+      - tools/linux-desktop/**
 permissions:
   contents: write
 jobs:

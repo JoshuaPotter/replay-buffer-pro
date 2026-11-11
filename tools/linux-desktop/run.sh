@@ -25,7 +25,9 @@ case "${1:-up}" in
     ;;
   deb)
     ensure_image
-    docker run --rm --platform linux/amd64 --entrypoint bash -v "${root}:/src" -w /src "${image}" -c \
+    # Your user, not root, so build_x86_64/ and release/ stay yours on Linux hosts.
+    docker run --rm --platform linux/amd64 --user "$(id -u):$(id -g)" -e HOME=/tmp \
+      --entrypoint bash -v "${root}:/src" -w /src "${image}" -c \
       '.github/scripts/build-ubuntu --target ubuntu-x86_64 --skip-deps && cmake --build build_x86_64 --config RelWithDebInfo -t package'
     ;;
   up)
@@ -38,14 +40,22 @@ case "${1:-up}" in
       -v "${state}/config:/home/ubuntu/.config/obs-studio" \
       -v "${state}/recordings:/recordings" \
       "${image}" >/dev/null
-    until curl -fs -o /dev/null http://localhost:6080/vnc.html; do sleep 1; done
+    waited=0
+    until curl -fs -o /dev/null http://localhost:6080/vnc.html; do
+      if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null)" != true ]] || (( ++waited > 120 )); then
+        docker logs "${name}" >&2 || true
+        echo "The desktop didn't start; its log is above." >&2
+        exit 1
+      fi
+      sleep 1
+    done
     echo "Desktop: ${url}"
     echo "Recordings: ${state}/recordings"
     echo "OBS settings and logs: ${state}/config"
     if command -v open >/dev/null; then open "${url}"; elif command -v xdg-open >/dev/null; then xdg-open "${url}"; fi
     ;;
   down)
-    docker rm -f "${name}" >/dev/null
+    docker rm -f "${name}" >/dev/null 2>&1 || true
     ;;
   shell)
     docker exec -it -u ubuntu -e DISPLAY=:1 -w /home/ubuntu "${name}" bash

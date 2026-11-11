@@ -165,7 +165,7 @@ The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it
 
 Changes that only touch the website, docs or agent config skip the plugin build. `push.yaml` and
 `pr-pull.yaml` list `site/**`, `.github/workflows/pages.yaml`, `.github/workflows/site-check.yaml`,
-`'**.md'`, `docs/**`, `.agents/**` and `.claude/**` under `paths-ignore`, so a branch push or pull request builds
+`'**.md'`, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json` and `tools/linux-desktop/**` under `paths-ignore`, so a branch push or pull request builds
 only when at least one changed file falls outside them; a change that mixes these with plugin files
 builds as usual. Tag pushes always build, because GitHub does not
 evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so

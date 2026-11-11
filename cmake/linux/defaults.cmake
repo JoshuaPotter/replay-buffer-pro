@@ -19,6 +19,14 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CM
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${PLUGIN_EMAIL}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OBS Studio plugin for saving replay buffer clips of custom lengths")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${PLUGIN_WEBSITE}")
+set(CPACK_DEBIAN_PACKAGE_SECTION "video")
+
+# shlibdeps only adds an unversioned obs-studio, which Ubuntu's own OBS 30 also
+# satisfies, so require the OBS version the plugin targets in buildspec.json.
+string(JSON _obs_version GET ${buildspec} dependencies obs-studio version)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "obs-studio (>= ${_obs_version})")
 set(CPACK_SET_DESTDIR ON)
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0 OR NOT CMAKE_CROSSCOMPILING)
@@ -35,9 +43,9 @@ set(
   \\.github/
   \\.gitignore
   \\.ccache/
-  build_.*
+  "^${CMAKE_CURRENT_SOURCE_DIR}/build_"
   cmake/\\.CMakeBuildNumber
-  release/
+  "^${CMAKE_CURRENT_SOURCE_DIR}/release/"
 )
 
 set(CPACK_VERBATIM_VARIABLES YES)
