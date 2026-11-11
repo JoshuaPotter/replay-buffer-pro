@@ -33,10 +33,14 @@ sed -e "s/@VERSION@/${version}/g" -e "s/@OBS@/${obs}/g" -e "s/@MACOS@/${macos}/g
 1. Download `replay-buffer-pro-@VERSION@-macos-universal.pkg`.
 2. Close OBS and run the installer. The plugin installs to `~/Library/Application Support/obs-studio/plugins/`.
 
+**Ubuntu**
+1. Download `replay-buffer-pro-@VERSION@-x86_64-linux-gnu.deb`.
+2. Close OBS and run `sudo apt install ./replay-buffer-pro-@VERSION@-x86_64-linux-gnu.deb`. It needs OBS Studio from `ppa:obsproject/obs-studio`; the Flatpak version of OBS can't load it.
+
 ## Requirements
 
 - OBS Studio @OBS@+
-- Windows 10/11 (64-bit) or macOS @MACOS@+
+- Windows 10/11 (64-bit), macOS @MACOS@+, or Ubuntu 24.04 (x86_64)
 
 ---
 
