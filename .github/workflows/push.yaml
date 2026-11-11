@@ -20,6 +20,7 @@ on:
       - .claude/**
       - skills-lock.json
       - tools/linux-desktop/**
+      - tools/flatpak/**
 permissions:
   contents: write
 jobs:

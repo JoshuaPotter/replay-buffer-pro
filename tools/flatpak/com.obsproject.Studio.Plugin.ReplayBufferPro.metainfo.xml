@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="addon">
+  <id>com.obsproject.Studio.Plugin.ReplayBufferPro</id>
+  <extends>com.obsproject.Studio</extends>
+  <name>Replay Buffer Pro</name>
+  <developer id="io.github.joshuapotter">
+    <name>Replay Buffer Pro Contributors</name>
+  </developer>
+  <summary>Save replay buffer clips of any length</summary>
+  <description>
+    <p>
+      Replay Buffer Pro adds a dock to OBS Studio with save buttons for clips of different lengths.
+      Keep a long replay buffer running and save the last 30 seconds, 2 minutes or 5 minutes on demand,
+      from the dock, a hotkey or obs-websocket.
+    </p>
+    <p>
+      Each clip is cut from the saved replay without re-encoding, so it keeps the quality of the original.
+    </p>
+  </description>
+  <url type="homepage">https://joshuapotter.github.io/replay-buffer-pro/</url>
+  <url type="bugtracker">https://github.com/JoshuaPotter/replay-buffer-pro/issues</url>
+  <url type="vcs-browser">https://github.com/JoshuaPotter/replay-buffer-pro</url>
+  <url type="help">https://joshuapotter.github.io/replay-buffer-pro/usage/</url>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>

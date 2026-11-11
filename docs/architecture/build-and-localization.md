@@ -117,6 +117,15 @@ The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks
 
 It checks behaviour, not performance: x86 is emulated and OBS renders with Mesa's software rasterizer. The display is X11 only.
 
+### Flathub extension
+
+Flatpak OBS loads plugins only as Flatpak extensions of `com.obsproject.Studio`, so the plugin also ships on Flathub as `com.obsproject.Studio.Plugin.ReplayBufferPro`. `tools/flatpak/` holds the manifest, metainfo and `flathub.json` submitted to Flathub, and a Docker setup that builds and runs it (`tools/flatpak/README.md` has the commands and the submission and per-release steps).
+
+- The manifest builds only from a published release's `replay-buffer-pro-<version>-source.tar.xz` (an `archive` source pinned by sha256), never from a git tag or branch. Its `x-checker-data` watches `releases/latest` on the GitHub API, so Flathub's bot opens an update pull request in `flathub/com.obsproject.Studio.Plugin.ReplayBufferPro` when a release is published, and adds the release to the metainfo there.
+- It builds against Flatpak OBS itself (`runtime: com.obsproject.Studio`, `build-extension: true`): its libobs, obs-frontend-api and Qt 6 CMake packages and its FFmpeg headers in `/app`, and libcurl from `org.freedesktop.Sdk`, whose version must match the freedesktop runtime Flatpak OBS uses (26.08 for OBS 33). At run time the plugin uses the FFmpeg OBS ships in `/app/lib`.
+- It configures with the `ubuntu-x86_64` preset plus `-DCMAKE_INSTALL_LIBDIR=lib`, installing to `/app/plugins/ReplayBufferPro/lib/obs-plugins/` and `share/obs/obs-plugins/replay-buffer-pro/`, the folders Flatpak OBS merges from every extension. Not `ubuntu-ci-x86_64`: the tarball can't change once published, so a warning from a newer compiler in a future SDK must not fail the rebuild.
+- `tools/flatpak/run.sh` runs flatpak-builder in a privileged x86_64 container with the SDK and Flatpak OBS in the Docker volume `rbp-flatpak`. Under emulation on an ARM host it runs bubblewrap through `bwrap-no-seccomp`, because an ARM kernel rejects bubblewrap's x86_64 seccomp filter.
+
 ### Post-build rundir
 
 After building, output is automatically copied to:
@@ -154,7 +163,9 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 - with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links. It only adds an unversioned `obs-studio`, which Ubuntu's own OBS 30 also satisfies, so `cmake/linux/defaults.cmake` adds `obs-studio (>= X.Y)` from the libobs the plugin was built against. Configure warns when that OBS differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`. Tag builds use the Release config, which `cmake/linux/compilerconfig.cmake` builds with `-g` so the `-dbgsym.ddeb` holds real debug info.
 - without it: `replay-buffer-pro-<version>-x86_64-ubuntu-gnu.tar.xz`, an archive of the staged `lib/` and `share/` trees.
 
-The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; Flatpak plugins ship as Flathub extensions.
+The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; it gets the Flathub extension built from the source `.tar.xz` instead (see [Flathub extension](#flathub-extension)).
+
+The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_*` and `release/`, and builds with nothing else: the presets, `cmake/`, `buildspec.json` and `data/` are inside, and nothing reads git at configure or build time. Once a release is published, never replace any of its assets: Flathub pins the tarball's sha256, so a changed tarball breaks the Flathub build. Fix a bad release with a new version.
 
 ### CI / GitHub Actions
 
@@ -165,7 +176,7 @@ The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it
 
 Changes that only touch the website, docs or agent config skip the plugin build. `push.yaml` and
 `pr-pull.yaml` list `site/**`, `.github/workflows/pages.yaml`, `.github/workflows/site-check.yaml`,
-`'**.md'`, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json` and `tools/linux-desktop/**` under `paths-ignore`, so a branch push or pull request builds
+`'**.md'`, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json`, `tools/linux-desktop/**` and `tools/flatpak/**` under `paths-ignore`, so a branch push or pull request builds
 only when at least one changed file falls outside them; a change that mixes these with plugin files
 builds as usual. Tag pushes always build, because GitHub does not
 evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so

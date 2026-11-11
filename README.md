@@ -181,6 +181,8 @@ This creates `release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb`, its `-d
 
 Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS and Ubuntu and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu `.deb` with its `-dbgsym.ddeb`, and a source `.tar.xz`).
 
+Never replace an asset of a published release. The Flathub extension in [`tools/flatpak/`](tools/flatpak/README.md) builds from the release's source `.tar.xz` and pins its sha256, so fix a bad release with a new version.
+
 ### Project Structure
 
 ```
@@ -199,6 +201,7 @@ replay-buffer-pro/
 │   └── utils/           # Utility classes (including video-trimmer)
 ├── .github/             # CI workflows, actions, scripts (Windows + macOS + Ubuntu)
 ├── tools/linux-desktop/ # Docker Ubuntu desktop for testing the Linux build
+├── tools/flatpak/       # Flathub extension manifest and its Docker build and test desktop
 ├── site/                # Project website (Astro, deployed to GitHub Pages)
 ├── docs/                # Developer documentation
 └── README.md

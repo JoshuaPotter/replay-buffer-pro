@@ -153,11 +153,14 @@ Show the draft's URL, its five assets with sizes, and the full final body. Ask "
 gh release edit X.Y.Z --draft=false --latest
 ```
 
+From here on the release's assets are final. Never delete or re-upload one, above all `replay-buffer-pro-X.Y.Z-source.tar.xz`: Flathub pins its sha256. A broken release gets a new patch version.
+
 ## 10. Check and clean up
 
 - `gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name` prints `X.Y.Z`.
 - The Pages deploy that the merge started succeeded: `gh run list --workflow pages.yaml --branch main --limit 1`.
 - Each issue listed under `Closes` is now closed.
+- Flathub, once the extension is on Flathub (the repository `flathub/com.obsproject.Studio.Plugin.ReplayBufferPro` exists): Flathub's bot opens a pull request there within a few hours that moves the archive source to `replay-buffer-pro-X.Y.Z-source.tar.xz` and adds the release to the metainfo. Find it with `gh pr list -R flathub/com.obsproject.Studio.Plugin.ReplayBufferPro`. If it's there and its test build passed, ask the user "Merge the Flathub update for X.Y.Z?" and merge it on a yes (`gh pr merge <number> -R flathub/com.obsproject.Studio.Plugin.ReplayBufferPro --merge`). If it isn't there yet, tell the user to merge it when it appears. If the test build failed, report its log and stop.
 - Remove the worktrees and the local branch: `git worktree remove "$tmp/release"`, `git worktree remove "$tmp/develop"`, `git branch -D release/X.Y.Z`.
 
 Report the links to the release, the PR and the Pages run, the issues closed, and anything left open.
