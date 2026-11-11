@@ -1,0 +1,40 @@
+{
+  "name": "Untitled",
+  "current_scene": "Scene",
+  "current_program_scene": "Scene",
+  "scene_order": [{ "name": "Scene" }],
+  "sources": [
+    {
+      "id": "scene",
+      "versioned_id": "scene",
+      "name": "Scene",
+      "settings": {
+        "id_counter": 2,
+        "items": [
+          { "id": 1, "name": "Test pattern", "visible": true, "pos": { "x": 0.0, "y": 0.0 }, "scale": { "x": 1.0, "y": 1.0 }, "align": 5 },
+          { "id": 2, "name": "Test tone", "visible": true, "pos": { "x": 0.0, "y": 0.0 }, "scale": { "x": 1.0, "y": 1.0 }, "align": 5 }
+        ]
+      }
+    },
+    {
+      "id": "ffmpeg_source",
+      "versioned_id": "ffmpeg_source",
+      "name": "Test pattern",
+      "settings": {
+        "is_local_file": false,
+        "input": "testsrc2=size=1280x720:rate=30",
+        "input_format": "lavfi"
+      }
+    },
+    {
+      "id": "ffmpeg_source",
+      "versioned_id": "ffmpeg_source",
+      "name": "Test tone",
+      "settings": {
+        "is_local_file": false,
+        "input": "sine=frequency=440:sample_rate=48000",
+        "input_format": "lavfi"
+      }
+    }
+  ]
+}

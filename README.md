@@ -152,7 +152,9 @@ cmake --build --preset ubuntu-x86_64
 sudo cmake --install build_x86_64 --prefix /usr
 ```
 
-The install places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`. After building, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
+The install places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`.
+
+To build and test the Linux version on macOS or Windows, use the Docker desktop in [`tools/linux-desktop/`](tools/linux-desktop/README.md): `tools/linux-desktop/run.sh deb` builds the `.deb`, and `tools/linux-desktop/run.sh up` opens OBS with it installed on an Ubuntu desktop in your browser. After building, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
 
 ### Release (Windows)
 
@@ -196,6 +198,7 @@ replay-buffer-pro/
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
 ├── .github/             # CI workflows, actions, scripts (Windows + macOS + Ubuntu)
+├── tools/linux-desktop/ # Docker Ubuntu desktop for testing the Linux build
 ├── site/                # Project website (Astro, deployed to GitHub Pages)
 ├── docs/                # Developer documentation
 └── README.md

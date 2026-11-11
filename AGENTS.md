@@ -23,6 +23,7 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
 - CI/CD: `.github/workflows/`, `.github/actions/`, `.github/scripts/`
+- Linux test desktop (Docker, noVNC; builds and runs the `.deb` on any machine): `tools/linux-desktop/`
 - Website (Astro, deployed to GitHub Pages): `site/`
 
 ## Core runtime flows
@@ -132,6 +133,7 @@ cmake --preset ubuntu-x86_64        # Or configure directly once dependencies ar
 cmake --build --preset ubuntu-x86_64
 sudo cmake --install build_x86_64 --prefix /usr
 ```
+Without a Linux machine, `tools/linux-desktop/run.sh deb` builds the `.deb` in Docker and `run.sh up` runs it in OBS on an Ubuntu desktop opened in the browser (`tools/linux-desktop/README.md`). Its OBS settings, logs and recordings are in `build_linux-desktop/`.
 
 ### Website build
 `site/` is a separate Node project (Astro, Node 24 per `site/.nvmrc`). CMake, packaging and the plugin CI never read it; `.github/workflows/pages.yaml` builds and deploys it from `main`, and `site-check.yaml` builds it on pull requests.

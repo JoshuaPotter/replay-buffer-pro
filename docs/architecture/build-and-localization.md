@@ -107,6 +107,16 @@ sudo cmake --install build_x86_64 --prefix /usr
 
 `build-ubuntu` picks the `ubuntu-ci-x86_64` preset (warnings as errors, ccache) when `CI` is set, as it is on GitHub Actions.
 
+### Linux test desktop
+
+`tools/linux-desktop/` builds and runs the Linux plugin on any machine with Docker, including Apple Silicon Macs. Its image is Ubuntu 24.04 x86_64 with OBS Studio from the PPA, the packages `build-ubuntu` needs, and a desktop served to the browser by Xvfb, Openbox, x11vnc and noVNC.
+
+- `run.sh deb` runs `build-ubuntu --skip-deps` and CPack's `package` target in the image, writing the `.deb` to `release/`.
+- `run.sh up` starts the desktop on `localhost:6080` (obs-websocket on `4455`). The entrypoint installs the newest `release/*.deb` with `dpkg -i` on every start, and OBS restarts when it quits.
+- OBS settings and logs persist in `build_linux-desktop/config/` and recordings in `build_linux-desktop/recordings/`. A fresh config is seeded from `tools/linux-desktop/obs-config/`: no first-run wizard, 720p30, Advanced output with x264 `ultrafast` and 2-second keyframes, MKV to `/recordings`, Replay Buffer on at 60 seconds, and a scene of FFmpeg `lavfi` test sources (`testsrc2` video with a timecode, a `sine` tone).
+
+It checks behaviour, not performance: x86 is emulated and OBS renders with Mesa's software rasterizer. The display is X11 only.
+
 ### Post-build rundir
 
 After building, output is automatically copied to:
