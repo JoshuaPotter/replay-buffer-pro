@@ -5,10 +5,10 @@ log_debug 'Checking Linux distribution name and version...'
 
 # Check for Ubuntu version 22.10 or later, which have srt and librist available via apt-get
 typeset -g -i UBUNTU_2210_OR_LATER=0
-if [[ -f /etc/os_release ]] {
+if [[ -f /etc/os-release ]] {
   local dist_name
   local dist_version
-  read -r dist_name dist_version <<< "$(source /etc/os_release; print "${NAME} ${VERSION_ID}")"
+  read -r dist_name dist_version <<< "$(source /etc/os-release; print "${NAME} ${VERSION_ID}")"
 
   autoload -Uz is-at-least
   if [[ ${dist_name} == Ubuntu ]] && is-at-least 22.10 ${dist_version}; then

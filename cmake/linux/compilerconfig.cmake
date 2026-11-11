@@ -76,3 +76,6 @@ else()
 endif()
 
 add_compile_definitions($<$<CONFIG:DEBUG>:DEBUG> $<$<CONFIG:DEBUG>:_DEBUG> SIMDE_ENABLE_OPENMP)
+
+# Tag builds use Release; keep debug info so the -dbgsym.ddeb they ship is usable
+add_compile_options($<$<CONFIG:Release>:-g>)

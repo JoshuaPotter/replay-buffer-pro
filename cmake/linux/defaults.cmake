@@ -24,8 +24,20 @@ set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${PLUGIN_WEBSITE}")
 set(CPACK_DEBIAN_PACKAGE_SECTION "video")
 
 # shlibdeps only adds an unversioned obs-studio, which Ubuntu's own OBS 30 also
-# satisfies, so require the OBS version the plugin targets in buildspec.json.
+# satisfies, so require the OBS the plugin is built against. That is the PPA's,
+# which moves on its own and can be newer than the one buildspec.json targets.
+find_package(libobs QUIET)
 string(JSON _obs_version GET ${buildspec} dependencies obs-studio version)
+if(libobs_VERSION)
+  if(NOT libobs_VERSION VERSION_EQUAL _obs_version)
+    message(
+      WARNING
+      "Building against OBS ${libobs_VERSION}, but buildspec.json targets OBS ${_obs_version}. "
+      "ClipWriter mirrors that version's ffmpeg-mux; diff it against this one."
+    )
+  endif()
+  set(_obs_version "${libobs_VERSION_MAJOR}.${libobs_VERSION_MINOR}")
+endif()
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "obs-studio (>= ${_obs_version})")
 set(CPACK_SET_DESTDIR ON)
 
@@ -36,6 +48,8 @@ endif()
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/release")
 
 set(CPACK_SOURCE_GENERATOR "TXZ")
+# The ignore rules are regular expressions, so escape the checkout path first
+string(REGEX REPLACE "([][+.*()^$?|])" "\\\\\\1" _source_dir_regex "${CMAKE_CURRENT_SOURCE_DIR}")
 set(
   CPACK_SOURCE_IGNORE_FILES
   ".*~$"
@@ -43,9 +57,9 @@ set(
   \\.github/
   \\.gitignore
   \\.ccache/
-  "^${CMAKE_CURRENT_SOURCE_DIR}/build_"
+  "^${_source_dir_regex}/build_"
   cmake/\\.CMakeBuildNumber
-  "^${CMAKE_CURRENT_SOURCE_DIR}/release/"
+  "^${_source_dir_regex}/release/"
 )
 
 set(CPACK_VERBATIM_VARIABLES YES)
@@ -53,8 +67,6 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSIO
 set(CPACK_ARCHIVE_THREADS 0)
 
 include(CPack)
-
-find_package(libobs QUIET)
 
 if(NOT TARGET OBS::libobs)
   find_package(LibObs REQUIRED)

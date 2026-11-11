@@ -102,10 +102,10 @@ Requires Ubuntu 24.04 x86_64, zsh, and sudo for apt.
 # Or, once the dependencies are installed
 cmake --preset ubuntu-x86_64
 cmake --build --preset ubuntu-x86_64
-sudo cmake --install build_x86_64 --prefix /usr
+sudo cmake --install build_x86_64
 ```
 
-`build-ubuntu` picks the `ubuntu-ci-x86_64` preset (warnings as errors, ccache) when `CI` is set, as it is on GitHub Actions.
+The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks the `ubuntu-ci-x86_64` preset (warnings as errors, ccache) when `CI` is set, as it is on GitHub Actions.
 
 ### Linux test desktop
 
@@ -134,7 +134,7 @@ The plugin DLL embeds a VERSIONINFO resource (`cmake/windows/resources/resource.
 
 - **Windows**: `cmake --install build_x64` installs to `%ALLUSERSPROFILE%/obs-studio/plugins/<plugin-name>/bin/64bit/` and `<plugin-name>/data/`.
 - **macOS**: `cmake --install build_macos` installs the `.plugin` bundle to `~/Library/Application Support/obs-studio/plugins/` and also runs `pkgbuild`/`productbuild` to produce a `.pkg` installer.
-- **Linux**: `cmake --install build_x86_64 --prefix /usr` installs `replay-buffer-pro.so` to `/usr/lib/x86_64-linux-gnu/obs-plugins/` and `data/` to `/usr/share/obs/obs-plugins/replay-buffer-pro/`, where OBS from apt looks for plugins.
+- **Linux**: `cmake --install build_x86_64` installs `replay-buffer-pro.so` to `/usr/lib/x86_64-linux-gnu/obs-plugins/` and `data/` to `/usr/share/obs/obs-plugins/replay-buffer-pro/`, where OBS from apt looks for plugins.
 
 ### prepare_release target (Windows only)
 
@@ -151,7 +151,7 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 ### Linux packaging
 
 `.github/scripts/package-ubuntu` always builds CPack's `package_source` target (`replay-buffer-pro-<version>-source.tar.xz`). Then:
-- with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links.
+- with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links. It only adds an unversioned `obs-studio`, which Ubuntu's own OBS 30 also satisfies, so `cmake/linux/defaults.cmake` adds `obs-studio (>= X.Y)` from the libobs the plugin was built against. Configure warns when that OBS differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`. Tag builds use the Release config, which `cmake/linux/compilerconfig.cmake` builds with `-g` so the `-dbgsym.ddeb` holds real debug info.
 - without it: `replay-buffer-pro-<version>-x86_64-ubuntu-gnu.tar.xz`, an archive of the staged `lib/` and `share/` trees.
 
 The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; Flatpak plugins ship as Flathub extensions.

@@ -96,7 +96,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
 - `CMakePresets.json` defines `windows-x64`, `macos` (universal) and `ubuntu-x86_64` configure/build presets, each with a `-ci` variant that treats warnings as errors.
 - On Windows and macOS, dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time, and OBS (libobs + obs-frontend-api) is built from source during configure.
-- On Linux, as in the template, nothing is downloaded: the build uses system packages, OBS Studio from `ppa:obsproject/obs-studio` (its libobs and obs-frontend-api CMake packages), Qt6, FFmpeg and libcurl, which `.github/scripts/utils.zsh/setup_ubuntu` installs with apt. `buildspec.json` has no Linux hashes, and the plugin is built against whatever OBS version the PPA carries.
+- On Linux, as in the template, nothing is downloaded: the build uses system packages, OBS Studio from `ppa:obsproject/obs-studio` (its libobs and obs-frontend-api CMake packages), Qt6, FFmpeg and libcurl, which `.github/scripts/utils.zsh/setup_ubuntu` installs with apt. `buildspec.json` has no Linux hashes, and the plugin is built against whatever OBS version the PPA carries. The `.deb` requires that OBS's major.minor version or later, and configure warns when it differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`.
 - FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive on Windows and macOS, and from Ubuntu's own packages on Linux (FFmpeg 6.1 on 24.04, the build OBS from the PPA links).
 - libcurl (update check) is the macOS SDK's on macOS, obs-deps' on Windows and the system's on Linux, the same library OBS links.
 - CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), `cmake/macos/` (Xcode/macOS-specific) and `cmake/linux/` (GCC flags, install rules, CPack; copied from the template).
@@ -131,7 +131,7 @@ cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Appl
 .github/scripts/package-ubuntu --package  # .deb, -dbgsym.ddeb and source .tar.xz in release/
 cmake --preset ubuntu-x86_64        # Or configure directly once dependencies are installed
 cmake --build --preset ubuntu-x86_64
-sudo cmake --install build_x86_64 --prefix /usr
+sudo cmake --install build_x86_64
 ```
 Without a Linux machine, `tools/linux-desktop/run.sh deb` builds the `.deb` in Docker and `run.sh up` runs it in OBS on an Ubuntu desktop opened in the browser (`tools/linux-desktop/README.md`). Its OBS settings, logs and recordings are in `build_linux-desktop/`.
 

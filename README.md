@@ -149,7 +149,7 @@ cmake --preset ubuntu-x86_64
 cmake --build --preset ubuntu-x86_64
 
 # Install next to OBS from the PPA (close OBS first)
-sudo cmake --install build_x86_64 --prefix /usr
+sudo cmake --install build_x86_64
 ```
 
 The install places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`.
