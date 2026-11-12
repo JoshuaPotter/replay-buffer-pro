@@ -1,7 +1,9 @@
 # Build directories
 build/
 build_*/
-release/
+# The packaging output dir at the root only; a path named release anywhere
+# (e.g. .agents/skills/release) must stay addable
+/release/
 
 # Dependencies (auto-downloaded by cmake)
 .deps/

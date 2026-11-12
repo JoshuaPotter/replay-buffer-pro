@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Linux test desktop for Replay Buffer Pro. See README.md next to this file.
 #
-# Usage: tools/linux-desktop/run.sh [up|deb|down|shell|image]
-#   up     Start the desktop (installs the newest release/*.deb) and open it in the browser
-#   deb    Build release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb inside the image
+# Usage: [UBUNTU=24.04] tools/linux-desktop/run.sh [up|deb|down|shell|image]
+#   up     Start the desktop (installs the matching release/*.deb) and open it in the browser
+#   deb    Build the .deb for the image's Ubuntu release inside the image
 #   down   Stop and remove the desktop container
 #   shell  Open a shell in the running desktop as the "ubuntu" user
 #   image  Rebuild the Docker image (after editing this folder)
@@ -11,12 +11,13 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "${here}/../.." && pwd)"
-image=replay-buffer-pro-linux-desktop
-name=rbp-linux-desktop
-state="${root}/build_linux-desktop"
+ubuntu="${UBUNTU:-26.04}"
+image="replay-buffer-pro-linux-desktop-${ubuntu}"
+name="rbp-linux-desktop-${ubuntu}"
+state="${root}/build_linux-desktop-${ubuntu}"
 url='http://localhost:6080/vnc.html?autoconnect=1&resize=scale'
 
-build_image() { docker build --platform linux/amd64 -t "${image}" "${here}"; }
+build_image() { docker build --platform linux/amd64 --build-arg UBUNTU="${ubuntu}" -t "${image}" "${here}"; }
 ensure_image() { docker image inspect "${image}" >/dev/null 2>&1 || build_image; }
 
 case "${1:-up}" in

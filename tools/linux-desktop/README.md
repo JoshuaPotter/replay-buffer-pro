@@ -1,6 +1,6 @@
 # Linux test desktop
 
-An Ubuntu 26.04 x86_64 desktop in Docker, opened in your browser, for testing the plugin's Linux build without a Linux machine. It runs OBS Studio from the official PPA with the plugin's `.deb` installed, the same way a user on Ubuntu installs it. It works on Apple Silicon Macs, where an ARM Linux VM can't install the x86_64 `.deb` or get a new enough OBS.
+An Ubuntu 24.04 or 26.04 x86_64 desktop (default 26.04) in Docker, opened in your browser, for testing the plugin's Linux build without a Linux machine. It runs OBS Studio from the official PPA with the plugin's `.deb` installed, the same way a user on Ubuntu installs it. It works on Apple Silicon Macs, where an ARM Linux VM can't install the x86_64 `.deb` or get a new enough OBS.
 
 It is for checking behaviour, not performance: x86 is emulated and OBS renders in software.
 
@@ -14,8 +14,15 @@ It is for checking behaviour, not performance: x86 is emulated and OBS renders i
 From the repository root:
 
 ```bash
-tools/linux-desktop/run.sh deb   # build release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb
+tools/linux-desktop/run.sh deb   # build the .deb for the image's Ubuntu release
 tools/linux-desktop/run.sh up    # start the desktop and open it in the browser
+```
+
+The image is Ubuntu 26.04 by default. Set `UBUNTU=24.04` to build and test the 24.04 `.deb` instead:
+
+```bash
+UBUNTU=24.04 tools/linux-desktop/run.sh deb
+UBUNTU=24.04 tools/linux-desktop/run.sh up
 ```
 
 The first run builds the Docker image, which takes several minutes. After that, `up` starts in seconds.
@@ -24,7 +31,7 @@ The desktop is at <http://localhost:6080/vnc.html?autoconnect=1&resize=scale>. O
 
 | Command | What it does |
 |---|---|
-| `run.sh up` | Start the desktop. It installs the newest `release/*.deb` each time, so rebuild with `deb` and run `up` again to test a change. |
+| `run.sh up` | Start the desktop. It installs the matching `release/*.deb` each time, so rebuild with `deb` and run `up` again to test a change. |
 | `run.sh deb` | Build the `.deb` and its `-dbgsym.ddeb` inside the image with `.github/scripts/build-ubuntu`. |
 | `run.sh shell` | A shell in the running desktop as the `ubuntu` user, who has passwordless `sudo`. |
 | `run.sh down` | Stop and remove the desktop. |
@@ -32,8 +39,8 @@ The desktop is at <http://localhost:6080/vnc.html?autoconnect=1&resize=scale>. O
 
 ## What's where
 
-- Recordings and replays: `build_linux-desktop/recordings/` on your machine (`/recordings` in OBS).
-- OBS settings, plugin settings and logs: `build_linux-desktop/config/` (`~/.config/obs-studio` in the desktop). Logs are in its `logs/` folder, and the plugin's `hotkey_bindings.json` and `properties.json` are in `plugin_config/replay-buffer-pro/`. Delete the folder to start OBS from scratch.
+- Recordings and replays: `build_linux-desktop-<release>/recordings/` on your machine (`/recordings` in OBS).
+- OBS settings, plugin settings and logs: `build_linux-desktop-<release>/config/` (`~/.config/obs-studio` in the desktop). Logs are in its `logs/` folder, and the plugin's `hotkey_bindings.json` and `properties.json` are in `plugin_config/replay-buffer-pro/`. Delete the folder to start OBS from scratch.
 - obs-websocket: `localhost:4455`, once you turn the server on in **Tools → WebSocket Server Settings**.
 
 Both folders are under `build_*/`, so git ignores them.

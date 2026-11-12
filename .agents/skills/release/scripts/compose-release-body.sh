@@ -33,9 +33,13 @@ sed -e "s/@VERSION@/${version}/g" -e "s/@OBS@/${obs}/g" -e "s/@MACOS@/${macos}/g
 1. Download `replay-buffer-pro-@VERSION@-macos-universal.pkg`.
 2. Close OBS and run the installer. The plugin installs to `~/Library/Application Support/obs-studio/plugins/`.
 
-**Ubuntu**
-1. Download `replay-buffer-pro-@VERSION@-x86_64-linux-gnu.deb`.
-2. Close OBS and run `sudo apt install ./replay-buffer-pro-@VERSION@-x86_64-linux-gnu.deb`. It needs OBS Studio from `ppa:obsproject/obs-studio`; for the Flatpak version of OBS, use the `.flatpak` below.
+**Ubuntu 24.04**
+1. Download `replay-buffer-pro-@VERSION@-x86_64-ubuntu24.04-linux-gnu.deb`.
+2. Close OBS and run `sudo apt install ./replay-buffer-pro-@VERSION@-x86_64-ubuntu24.04-linux-gnu.deb`. It needs OBS Studio from `ppa:obsproject/obs-studio`; for the Flatpak version of OBS, use the `.flatpak` below.
+
+**Ubuntu 26.04**
+1. Download `replay-buffer-pro-@VERSION@-x86_64-ubuntu26.04-linux-gnu.deb`.
+2. Close OBS and run `sudo apt install ./replay-buffer-pro-@VERSION@-x86_64-ubuntu26.04-linux-gnu.deb`. It needs OBS Studio from `ppa:obsproject/obs-studio`; for the Flatpak version of OBS, use the `.flatpak` below.
 
 **Linux (Flatpak OBS from Flathub)**
 1. Download `replay-buffer-pro-@VERSION@-x86_64.flatpak`.
@@ -43,8 +47,8 @@ sed -e "s/@VERSION@/${version}/g" -e "s/@OBS@/${obs}/g" -e "s/@MACOS@/${macos}/g
 
 ## Requirements
 
-- OBS Studio @OBS@+
-- Windows 10/11 (64-bit), macOS @MACOS@+, Ubuntu 26.04 (x86_64), or Flatpak OBS on any x86_64 Linux
+- OBS Studio @OBS@+ (Ubuntu 24.04: OBS 32.2+ from its PPA)
+- Windows 10/11 (64-bit), macOS @MACOS@+, Ubuntu 24.04 or 26.04 (x86_64), or Flatpak OBS on any x86_64 Linux
 
 ---
 

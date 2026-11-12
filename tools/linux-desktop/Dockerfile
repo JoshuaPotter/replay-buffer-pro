@@ -1,9 +1,10 @@
-# Ubuntu 26.04 x86_64 desktop for testing the Linux build on any machine with Docker.
-# It has OBS Studio from the official PPA, a browser-based desktop (Xvfb, Openbox,
-# x11vnc, noVNC), and the packages .github/scripts/build-ubuntu needs, so the same
-# image builds the plugin's .deb and runs it. run.sh builds it for linux/amd64.
+# Ubuntu 24.04 or 26.04 x86_64 desktop for testing the Linux build on any machine with
+# Docker. It has OBS Studio from the official PPA, a browser-based desktop (Xvfb,
+# Openbox, x11vnc, noVNC), and the packages .github/scripts/build-ubuntu needs, so the
+# same image builds the plugin's .deb and runs it. run.sh builds it for linux/amd64.
 # See README.md next to this file.
-FROM ubuntu:26.04
+ARG UBUNTU=26.04
+FROM ubuntu:${UBUNTU}
 
 ENV DEBIAN_FRONTEND=noninteractive
 

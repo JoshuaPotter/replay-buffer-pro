@@ -45,12 +45,14 @@ case "${1:-}" in
     ;;
   tarball)
     # CI makes it with CPack's package_source from a clean checkout; git archive gives one.
-    docker image inspect replay-buffer-pro-linux-desktop >/dev/null 2>&1 || "${root}/tools/linux-desktop/run.sh" image
+    # The Linux test desktop's default (26.04) image does the build.
+    deb_image=replay-buffer-pro-linux-desktop-26.04
+    docker image inspect "${deb_image}" >/dev/null 2>&1 || "${root}/tools/linux-desktop/run.sh" image
     rm -rf "${state}/source"
     mkdir -p "${state}/source"
     git -C "${root}" archive HEAD | tar -x -C "${state}/source"
     docker run --rm --platform linux/amd64 --user "$(id -u):$(id -g)" -e HOME=/tmp --entrypoint bash \
-      -v "${state}/source:/src" -w /src replay-buffer-pro-linux-desktop -c \
+      -v "${state}/source:/src" -w /src "${deb_image}" -c \
       'cmake --preset ubuntu-x86_64 >/dev/null && cmake --build build_x86_64 -t package_source'
     mv "${state}"/source/release/replay-buffer-pro-*-source.tar.xz "${state}/"
     rm -rf "${state}/source"

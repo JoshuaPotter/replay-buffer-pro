@@ -56,6 +56,6 @@ If you save often at high bitrates, keep the buffer length modest or point the R
 
 ## Which platforms and OBS versions are supported?
 
-Replay Buffer Pro runs on Windows 10/11 (64-bit), on macOS 13.0 or later (Apple Silicon and Intel), on x86_64 Linux with the Flatpak version of OBS Studio from Flathub, and on Ubuntu 26.04 (x86_64) with OBS Studio from its PPA. It requires OBS Studio 33.0.1 or later. It is free and licensed GPL v2 or later.
+Replay Buffer Pro runs on Windows 10/11 (64-bit), on macOS 13.0 or later (Apple Silicon and Intel), on x86_64 Linux with the Flatpak version of OBS Studio from Flathub, and on Ubuntu 24.04 or 26.04 (x86_64) with OBS Studio from its PPA. It requires OBS Studio 33.0.1 or later (32.2 or later on Ubuntu 24.04). It is free and licensed GPL v2 or later.
 
 See the [install steps](https://joshuapotter.github.io/replay-buffer-pro/#install), the [comparison with the built-in replay buffer](https://joshuapotter.github.io/replay-buffer-pro/compare/), or the [changelog](https://joshuapotter.github.io/replay-buffer-pro/changelog/).
