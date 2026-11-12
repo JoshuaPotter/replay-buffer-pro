@@ -34,7 +34,9 @@ namespace ReplayBufferPro
    * button count again restores them.
    *
    * The Save Replay Buffer row of the properties window edits OBS's own Save
-   * Replay hotkey (FULL_BUFFER) instead of one of the plugin's.
+   * Replay hotkey (FULL_BUFFER) instead of one of the plugin's. OBS 33 registers
+   * it on the frontend; OBS 32 registered it on the replay buffer output. The
+   * manager uses whichever one the running OBS has.
    *
    * The OBS frontend reroutes hotkey callbacks to the Qt main thread, but runs
    * them while holding libobs's hotkey lock. Each callback posts the press and
@@ -105,8 +107,9 @@ namespace ReplayBufferPro
      * @brief Gets the key combinations bound to every hotkey
      * @return One entry per save button slot, then FULL_BUFFER: every binding, in
      *         the order OBS holds them (empty if unbound). For a button that is not
-     *         registered, the bindings saved in the config file. For FULL_BUFFER while
-     *         OBS has no replay buffer output, the bindings in the profile config.
+     *         registered, the bindings saved in the config file. For FULL_BUFFER on
+     *         OBS 32 while there is no replay buffer output, the bindings in the
+     *         profile config.
      *
      * Call only once OBS has finished loading (it reads the replay buffer output).
      */
@@ -117,9 +120,10 @@ namespace ReplayBufferPro
      * @param target Save button index, or FULL_BUFFER
      * @param combination New binding, or nullptr to remove every binding
      *
-     * FULL_BUFFER is written to the replay buffer output's hotkey and to the
-     * profile config at once, as OBS Settings does, because OBS saves it only
-     * when its own Settings are applied. Call only once OBS has finished loading.
+     * FULL_BUFFER is written to OBS's hotkey (the frontend's on OBS 33, the
+     * replay buffer output's on OBS 32) and to the profile config at once, as
+     * OBS Settings does, because OBS saves it only when its own Settings are
+     * applied. Call only once OBS has finished loading.
      */
     void setBinding(size_t target, const obs_key_combination_t *combination);
 
