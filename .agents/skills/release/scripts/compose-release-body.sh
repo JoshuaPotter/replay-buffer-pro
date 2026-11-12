@@ -44,7 +44,7 @@ sed -e "s/@VERSION@/${version}/g" -e "s/@OBS@/${obs}/g" -e "s/@MACOS@/${macos}/g
 ## Requirements
 
 - OBS Studio @OBS@+
-- Windows 10/11 (64-bit), macOS @MACOS@+, Ubuntu 24.04 (x86_64), or Flatpak OBS on any x86_64 Linux
+- Windows 10/11 (64-bit), macOS @MACOS@+, Ubuntu 26.04 (x86_64), or Flatpak OBS on any x86_64 Linux
 
 ---
 

@@ -25,7 +25,7 @@ const softwareApplication = {
   "name": "Replay Buffer Pro",
   "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations without re-encoding, for streamers, gamers, and content creators.",
   "applicationCategory": "MultimediaApplication",
-  "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio, or Ubuntu 24.04)",
+  "operatingSystem": "Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio, or Ubuntu 26.04)",
   "softwareVersion": VERSION,
   "datePublished": "2025-03-06",
   "isAccessibleForFree": true,
@@ -42,7 +42,7 @@ const softwareApplication = {
     "priceCurrency": "USD"
   },
   "downloadUrl": LATEST_RELEASE_URL,
-  "softwareRequirements": "OBS Studio 32.2.0+",
+  "softwareRequirements": "OBS Studio 33.0.1+",
   "keywords": "OBS Studio, plugin, replay buffer, streaming, recording, clip, gaming, instant replay",
   "screenshot": SCREENSHOT_URL
 };
@@ -54,12 +54,12 @@ const sourceCode = {
   "description": "OBS Studio plugin for saving replay buffer clips at multiple customizable durations",
   "codeRepository": REPO_URL,
   "programmingLanguage": "C++",
-  "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio, or Ubuntu 24.04)",
+  "runtimePlatform": "Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio, or Ubuntu 26.04)",
   "license": "https://www.gnu.org/licenses/gpl-2.0.html",
   "targetProduct": {
     "@type": "SoftwareApplication",
     "name": "OBS Studio",
-    "version": "32.2.0+"
+    "version": "33.0.1+"
   }
 };
 
@@ -144,7 +144,7 @@ const faq = [
   },
   {
     question: "Is there a Linux version?",
-    answer: `Yes, for x86_64 Linux. With the Flatpak version of OBS Studio from Flathub, on any distribution, download the <code>.flatpak</code> and install it with <code>flatpak install --user</code>. With OBS Studio from the official <code>ppa:obsproject/obs-studio</code> on Ubuntu 24.04, download the <code>.deb</code> and install it with <code>apt</code>.`
+    answer: `Yes, for x86_64 Linux. With the Flatpak version of OBS Studio from Flathub, on any distribution, download the <code>.flatpak</code> and install it with <code>flatpak install --user</code>. With OBS Studio from the official <code>ppa:obsproject/obs-studio</code> on Ubuntu 26.04, download the <code>.deb</code> and install it with <code>apt</code>.`
   }
 ];
 
@@ -215,7 +215,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
           <ButtonLink variant="secondary" size="lg" href="#how-it-works">See how it works</ButtonLink>
         </div>
 
-        <p class="hero-meta">Free and open source · Requires OBS Studio 32.2.0+</p>
+        <p class="hero-meta">Free and open source · Requires OBS Studio 33.0.1+</p>
       </div>
 
       <div class="hero-media">
@@ -324,7 +324,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     <dl class="spec-list">
       <div class="spec-row">
         <dt>OBS Studio</dt>
-        <dd>32.2.0+</dd>
+        <dd>33.0.1+</dd>
       </div>
       <div class="spec-row">
         <dt>Operating System</dt>
@@ -332,7 +332,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
           <span class="spec-line">Windows 10/11 (64-bit)</span>
           <span class="spec-line">macOS 13.0+ (Apple Silicon &amp; Intel universal)</span>
           <span class="spec-line">Linux (x86_64), with OBS Studio from Flathub</span>
-          <span class="spec-line">Ubuntu 24.04 (x86_64), with OBS Studio from its PPA</span>
+          <span class="spec-line">Ubuntu 26.04 (x86_64), with OBS Studio from its PPA</span>
         </dd>
       </div>
     </dl>
@@ -367,8 +367,8 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
       </ol>
 
       <ol class="os-tabpanel" role="tabpanel" id="panel-ubuntu" aria-labelledby="tab-ubuntu" data-os-panel="ubuntu">
-        <li><span class="os-step-text">Install OBS Studio from its PPA: <CopyCode>sudo add-apt-repository ppa:obsproject/obs-studio</CopyCode>, then <CopyCode>sudo apt install obs-studio</CopyCode>. For the Flatpak version of OBS, follow the Flatpak steps instead.</span></li>
-        <li><span class="os-step-text">Download the <code>.deb</code> for Ubuntu 24.04 (x64) and quit OBS Studio completely.</span></li>
+        <li><span class="os-step-text">Install OBS Studio from its PPA: <CopyCode>sudo add-apt-repository ppa:obsproject/obs-studio</CopyCode>, then <CopyCode>sudo apt install obs-studio</CopyCode>. For the Flatpak version of OBS, or on Ubuntu 24.04, where the PPA has no OBS 33, follow the Flatpak steps instead.</span></li>
+        <li><span class="os-step-text">Download the <code>.deb</code> for Ubuntu 26.04 (x64) and quit OBS Studio completely.</span></li>
         <li><span class="os-step-text">Install it from the folder you downloaded it to with <CopyCode>sudo apt install ./replay-buffer-pro-*-x86_64-linux-gnu.deb</CopyCode>.</span></li>
         <li><span class="os-step-text">Restart OBS Studio — the dock is under <strong>Docks → Replay Buffer Pro</strong>.</span></li>
       </ol>

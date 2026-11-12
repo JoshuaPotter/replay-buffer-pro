@@ -79,7 +79,7 @@ jobs:
           # Collect Windows, macOS, Ubuntu, Flatpak and source artifacts
           windows_candidates=(*-windows-x64-${commit_hash}/*.@(zip))
           macos_candidates=(*-macos-universal-${commit_hash}/*.@(tar.xz|pkg))
-          ubuntu_candidates=(*-ubuntu-24.04-x86_64-${commit_hash}/*.@(tar.xz|deb|ddeb))
+          ubuntu_candidates=(*-ubuntu-26.04-x86_64-${commit_hash}/*.@(tar.xz|deb|ddeb))
           source_candidates=(*-sources-${commit_hash}/*.@(tar.xz))
           flatpak_candidates=(*-flatpak-x86_64-${commit_hash}/*.@(flatpak))
 

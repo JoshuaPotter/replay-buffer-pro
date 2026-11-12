@@ -93,7 +93,7 @@ The build produces a `.plugin` bundle at `build_macos/rundir/<config>/replay-buf
 
 ### Linux build
 
-Requires Ubuntu 24.04 x86_64, zsh, and sudo for apt.
+Requires Ubuntu 26.04 x86_64, zsh, and sudo for apt.
 
 ```bash
 # Install dependencies with apt, configure (Ninja, prefix /usr), build, and stage into release/RelWithDebInfo/
@@ -109,7 +109,7 @@ The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks
 
 ### Linux test desktop
 
-`tools/linux-desktop/` builds and runs the Linux plugin on any machine with Docker, including Apple Silicon Macs. Its image is Ubuntu 24.04 x86_64 with OBS Studio from the PPA, the packages `build-ubuntu` needs, and a desktop served to the browser by Xvfb, Openbox, x11vnc and noVNC.
+`tools/linux-desktop/` builds and runs the Linux plugin on any machine with Docker, including Apple Silicon Macs. Its image is Ubuntu 26.04 x86_64 with OBS Studio from the PPA, the packages `build-ubuntu` needs, and a desktop served to the browser by Xvfb, Openbox, x11vnc and noVNC.
 
 - `run.sh deb` runs `build-ubuntu --skip-deps` and CPack's `package` target in the image, writing the `.deb` to `release/`.
 - `run.sh up` starts the desktop on `localhost:6080` (obs-websocket on `4455`). The entrypoint installs the newest `release/*.deb` with `dpkg -i` on every start, and OBS restarts when it quits.
@@ -161,7 +161,7 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 ### Linux packaging
 
 `.github/scripts/package-ubuntu` always builds CPack's `package_source` target (`replay-buffer-pro-<version>-source.tar.xz`). Then:
-- with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links. It only adds an unversioned `obs-studio`, which Ubuntu's own OBS 30 also satisfies, so `cmake/linux/defaults.cmake` adds `obs-studio (>= X.Y)` from the libobs the plugin was built against. Configure warns when that OBS differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`. Tag builds use the Release config, which `cmake/linux/compilerconfig.cmake` builds with `-g` so the `-dbgsym.ddeb` holds real debug info.
+- with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links. It only adds an unversioned `obs-studio`, which Ubuntu's own older OBS also satisfies, so `cmake/linux/defaults.cmake` adds `obs-studio (>= X.Y)` from the libobs the plugin was built against. Configure warns when that OBS differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`. Tag builds use the Release config, which `cmake/linux/compilerconfig.cmake` builds with `-g` so the `-dbgsym.ddeb` holds real debug info.
 - without it: `replay-buffer-pro-<version>-x86_64-ubuntu-gnu.tar.xz`, an archive of the staged `lib/` and `share/` trees.
 
 The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; it gets the `.flatpak` bundle built from the source `.tar.xz` instead (see [Flatpak bundle](#flatpak-bundle)).
@@ -170,7 +170,7 @@ The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_
 
 ### CI / GitHub Actions
 
-- **Push to main/develop**: Triggers build for Windows, macOS, Ubuntu 24.04 and the Flatpak bundle, uploads artifacts.
+- **Push to main/develop**: Triggers build for Windows, macOS, Ubuntu 26.04 and the Flatpak bundle, uploads artifacts.
 - **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with the Windows zip, macOS `.pkg`, Ubuntu `.deb` and `-dbgsym.ddeb`, the `.flatpak` bundle, and the source `.tar.xz` attached with checksums. The `flatpak-build` job runs `tools/flatpak/build-bundle.sh` in Flathub's build image (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-<version>`, privileged for bubblewrap) on the source `.tar.xz` the Ubuntu job uploaded, so the bundle is built from the same tarball the release carries.
 - **Pull requests**: Triggers the same builds to validate the PR.
 - **Website**: a push to `main` that touches `site/**` or `buildspec.json` builds `site/` with Astro and deploys GitHub Pages. Pull requests touching the same paths run a build-only Site Check. The site is a separate Node project (Node version in `site/.nvmrc`); it reads the plugin version from `buildspec.json` and page dates from git history at build time, so the deploy checks out full history.

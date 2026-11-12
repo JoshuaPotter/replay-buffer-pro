@@ -6,7 +6,7 @@
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
-**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are `.deb` packages for Ubuntu 24.04 x86_64 with OBS Studio from the [official PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio). For the Flatpak version of OBS from Flathub, on any x86_64 Linux distribution, each release also has a `.flatpak` bundle.
+**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are `.deb` packages for Ubuntu 26.04 x86_64 with OBS Studio from the [official PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio). For the Flatpak version of OBS from Flathub, on any x86_64 Linux distribution, each release also has a `.flatpak` bundle.
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
@@ -64,8 +64,8 @@ obs-studio/
 
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
-**Linux (Ubuntu 24.04 x86_64):**
-1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it.
+**Linux (Ubuntu 26.04 x86_64):**
+1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it. The PPA has OBS 33 only for Ubuntu 26.04, so on Ubuntu 24.04 use Flatpak OBS and the bundle.
 2. Download the latest `.deb` release (`replay-buffer-pro-<version>-x86_64-linux-gnu.deb`)
 3. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-linux-gnu.deb`
 4. The package places the plugin at `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`
@@ -100,7 +100,7 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 No manual OBS clone, Qt6 install, or FFmpeg setup is needed on Windows or macOS — everything is fetched automatically.
 
 **Linux:**
-- Ubuntu 24.04 x86_64
+- Ubuntu 26.04 x86_64
 - CMake 3.28+, Ninja, zsh
 - `.github/scripts/build-ubuntu` installs the rest with apt (OBS Studio from `ppa:obsproject/obs-studio`, Qt6, FFmpeg and libcurl development packages)
 

@@ -1,6 +1,6 @@
 # Linux test desktop
 
-An Ubuntu 24.04 x86_64 desktop in Docker, opened in your browser, for testing the plugin's Linux build without a Linux machine. It runs OBS Studio from the official PPA with the plugin's `.deb` installed, the same way a user on Ubuntu installs it. It works on Apple Silicon Macs, where an ARM Linux VM can't install the x86_64 `.deb` or get a new enough OBS.
+An Ubuntu 26.04 x86_64 desktop in Docker, opened in your browser, for testing the plugin's Linux build without a Linux machine. It runs OBS Studio from the official PPA with the plugin's `.deb` installed, the same way a user on Ubuntu installs it. It works on Apple Silicon Macs, where an ARM Linux VM can't install the x86_64 `.deb` or get a new enough OBS.
 
 It is for checking behaviour, not performance: x86 is emulated and OBS renders in software.
 
