@@ -135,7 +135,7 @@ cmake --preset ubuntu-x86_64        # Or configure directly once dependencies ar
 cmake --build --preset ubuntu-x86_64
 sudo cmake --install build_x86_64
 ```
-Without a Linux machine, `tools/linux-desktop/run.sh deb` builds the `.deb` in Docker and `run.sh up` runs it in OBS on an Ubuntu desktop opened in the browser (`tools/linux-desktop/README.md`). Its OBS settings, logs and recordings are in `build_linux-desktop/`.
+Without a Linux machine, `tools/linux-desktop/run.sh deb` builds the `.deb` in Docker and `run.sh up` runs it in OBS on an Ubuntu desktop opened in the browser (`tools/linux-desktop/README.md`); `UBUNTU=24.04` selects the 24.04 desktop. Its OBS settings, logs and recordings are in `build_linux-desktop-<release>/`.
 
 `tools/flatpak/run.sh tarball` makes the source `.tar.xz` from `HEAD` as CI does, `run.sh build [tarball]` builds the `.flatpak` from it in Docker, and `run.sh up` installs that bundle into Flatpak OBS on a desktop in the browser (settings, logs and recordings in `build_flatpak/`). See `tools/flatpak/README.md`.
 

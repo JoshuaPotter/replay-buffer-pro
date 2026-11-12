@@ -113,7 +113,7 @@ The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks
 
 - `run.sh deb` runs `build-ubuntu --skip-deps` and CPack's `package` target in the image for the image's Ubuntu release, writing the `.deb` to `release/`.
 - `run.sh up` starts the desktop on `localhost:6080` (obs-websocket on `4455`). The entrypoint installs the newest matching `release/*.deb` with `dpkg -i` on every start, and OBS restarts when it quits.
-- OBS settings and logs persist in `build_linux-desktop/config/` and recordings in `build_linux-desktop/recordings/`. A fresh config is seeded from `tools/linux-desktop/obs-config/`: no first-run wizard, 720p30, Advanced output with x264 `ultrafast` and 2-second keyframes, MKV to `/recordings`, Replay Buffer on at 60 seconds, and a scene of FFmpeg `lavfi` test sources (`testsrc2` video with a timecode, a `sine` tone).
+- OBS settings and logs persist in `build_linux-desktop-<release>/config/` and recordings in `build_linux-desktop-<release>/recordings/`. A fresh config is seeded from `tools/linux-desktop/obs-config/`: no first-run wizard, 720p30, Advanced output with x264 `ultrafast` and 2-second keyframes, MKV to `/recordings`, Replay Buffer on at 60 seconds, and a scene of FFmpeg `lavfi` test sources (`testsrc2` video with a timecode, a `sine` tone).
 
 It checks behaviour, not performance: x86 is emulated and OBS renders with Mesa's software rasterizer. The display is X11 only.
 
