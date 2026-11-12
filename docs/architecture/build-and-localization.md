@@ -50,7 +50,7 @@ Dependencies are auto-downloaded at CMake configure time into `.deps/`:
 
 Versions and SHA256 hashes are pinned in `buildspec.json` under `dependencies.<name>.hashes` for both `windows-x64` and `macos`. The `cmake/common/buildspec_common.cmake` module handles downloading, hash verification, extraction, and building OBS.
 
-Linux follows the template and downloads nothing: there is no `cmake/linux/buildspec.cmake`. The build uses system packages that `.github/scripts/utils.zsh/setup_ubuntu` installs with apt: `obs-studio` from `ppa:obsproject/obs-studio` (it ships the libobs and obs-frontend-api headers and CMake packages), Qt6, FFmpeg (`libavformat-dev`, `libavcodec-dev`, `libavutil-dev`) and `libcurl4-openssl-dev`. The plugin is built against whatever OBS version the PPA carries, and against Ubuntu's FFmpeg, which is what that OBS links.
+Linux follows the template and downloads nothing: there is no `cmake/linux/buildspec.cmake`. The build uses system packages that `.github/scripts/utils.zsh/setup_ubuntu` installs with apt: `obs-studio` from `ppa:obsproject/obs-studio` (it ships the libobs and obs-frontend-api headers and CMake packages), Qt6, FFmpeg (`libavformat-dev`, `libavcodec-dev`, `libavutil-dev`) and `libcurl4-openssl-dev`. The plugin is built against whatever OBS version the PPA carries, and against Ubuntu's FFmpeg, which is what that OBS links. `setup_ubuntu` limits the PPA source to `Architectures: amd64`, because Launchpad advertises an empty amd64v3 index for PPAs (LP#2127888), and on a host using Ubuntu 26.04's amd64v3 packages, such as GitHub's `ubuntu-26.04` runner, apt would otherwise install Ubuntu's own older OBS instead.
 
 ### Windows build
 
