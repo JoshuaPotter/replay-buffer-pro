@@ -64,10 +64,10 @@ obs-studio/
 
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
-**Linux (Ubuntu 26.04 x86_64):**
-1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it. The PPA has OBS 33 only for Ubuntu 26.04, so on Ubuntu 24.04 use Flatpak OBS and the bundle.
-2. Download the latest `.deb` release (`replay-buffer-pro-<version>-x86_64-linux-gnu.deb`)
-3. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-linux-gnu.deb`
+**Linux (Ubuntu 24.04 or 26.04 x86_64):**
+1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it. The PPA has OBS 33 for Ubuntu 26.04 and OBS 32.2 for Ubuntu 24.04; download the `.deb` for your release.
+2. Download the latest `.deb` release for your release (`replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` or `-ubuntu26.04-linux-gnu.deb`)
+3. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` (or `-ubuntu26.04-linux-gnu.deb`)
 4. The package places the plugin at `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`
 
 **Linux (Flatpak OBS from Flathub, x86_64):**
@@ -100,7 +100,7 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 No manual OBS clone, Qt6 install, or FFmpeg setup is needed on Windows or macOS — everything is fetched automatically.
 
 **Linux:**
-- Ubuntu 26.04 x86_64
+- Ubuntu 24.04 or 26.04 x86_64
 - CMake 3.28+, Ninja, zsh
 - `.github/scripts/build-ubuntu` installs the rest with apt (OBS Studio from `ppa:obsproject/obs-studio`, Qt6, FFmpeg and libcurl development packages)
 
@@ -159,7 +159,7 @@ sudo cmake --install build_x86_64
 
 The install places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`.
 
-To build and test the Linux version on macOS or Windows, use the Docker desktop in [`tools/linux-desktop/`](tools/linux-desktop/README.md): `tools/linux-desktop/run.sh deb` builds the `.deb`, and `tools/linux-desktop/run.sh up` opens OBS with it installed on an Ubuntu desktop in your browser. After building, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
+To build and test the Linux version on macOS or Windows, use the Docker desktop in [`tools/linux-desktop/`](tools/linux-desktop/README.md): `tools/linux-desktop/run.sh deb` builds the `.deb` for the image's Ubuntu release, and `tools/linux-desktop/run.sh up` opens OBS with it installed on an Ubuntu desktop in your browser. After building, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
 
 ### Release (Windows)
 
@@ -180,17 +180,17 @@ There is no local one-command release target for macOS. Packaging (codesigning, 
 .github/scripts/build-ubuntu
 .github/scripts/package-ubuntu --package
 ```
-This creates `release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb`, its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
+This creates `release/replay-buffer-pro-<version>-x86_64-ubuntu<release>-linux-gnu.deb` (the Ubuntu release is the host's, e.g. `ubuntu24.04` or `ubuntu26.04`), its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
 
 ### CI / GitHub Actions
 
-Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS, Ubuntu and Flatpak OBS and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu `.deb` with its `-dbgsym.ddeb`, the `.flatpak` bundle, and a source `.tar.xz`).
+Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS, Ubuntu 24.04 and 26.04 and Flatpak OBS and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu 24.04 and 26.04 `.deb`s with their `-dbgsym.ddeb`s, the `.flatpak` bundle, and a source `.tar.xz`).
 
 ### Project Structure
 
 ```
 replay-buffer-pro/
-├── buildspec.json       # Plugin metadata + dependency versions (Windows + macOS; Linux uses system packages)
+├── buildspec.json       # Plugin metadata + dependency versions (Windows + macOS; Linux uses system packages and lists linuxSupported)
 ├── CMakePresets.json    # Build presets (windows-x64, macos, ubuntu-x86_64)
 ├── CMakeLists.txt       # Main build configuration
 ├── cmake/               # CMake modules (common + windows + macos + linux)
