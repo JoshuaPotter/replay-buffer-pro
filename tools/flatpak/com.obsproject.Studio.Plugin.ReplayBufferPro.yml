@@ -23,7 +23,8 @@ modules:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo ${FLATPAK_BUILDER_BUILDDIR}/${FLATPAK_ID}.metainfo.xml
     sources:
       - type: archive
-        url: https://github.com/JoshuaPotter/replay-buffer-pro/releases/download/@VERSION@/replay-buffer-pro-@VERSION@-source.tar.xz
+        # fill-manifest.sh: the release's source tarball URL, or a local tarball's path
+        @SOURCE@
         sha256: '@SHA256@'
         x-checker-data:
           type: json

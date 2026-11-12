@@ -288,6 +288,7 @@ jobs:
     # Flathub's own build image: flatpak-builder and the freedesktop SDK. Flatpak sandboxes
     # builds with bubblewrap, which needs a privileged container.
     container:
+      # Keep the tag in step with the manifest's sdk: (tools/flatpak/*.yml)
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
       options: --privileged
     defaults:
@@ -301,7 +302,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: '*-sources-${{ needs.check-event.outputs.commitHash }}'
-          path: ${{ github.workspace }}/sources
+          # Relative: in a container job, github.workspace is the host's path, not the container's
+          path: sources
           merge-multiple: true
 
       - name: Build Bundle 📦
@@ -318,7 +320,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.name }}-flatpak-x86_64-${{ needs.check-event.outputs.commitHash }}
-          path: ${{ github.workspace }}/release/*.flatpak
+          path: release/*.flatpak
 
   windows-build:
     name: Build for Windows 🪟

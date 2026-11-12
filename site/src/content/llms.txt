@@ -157,7 +157,7 @@ A: Yes, for x86_64 Linux. With the Flatpak version of OBS Studio from Flathub, o
 **Plugin Not Loading**
 - Ensure `replay-buffer-pro.dll` is in `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\` (typically `C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\`)
 - On macOS, ensure `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` exists
-- With Flatpak OBS Studio on Linux, ensure `flatpak info com.obsproject.Studio.Plugin.ReplayBufferPro` finds the plugin
+- With Flatpak OBS Studio on Linux, ensure `flatpak info com.obsproject.Studio.Plugin.ReplayBufferPro` finds the plugin. If it stopped loading after a Flatpak OBS Studio update, install the latest release's `.flatpak` again
 - On Ubuntu with the `.deb`, ensure `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` exists and that OBS Studio came from apt, not Flathub
 - Restart OBS Studio after placing the file
 - Check the OBS log (**Help → Log Files → Show Log Files**) for `[ReplayBufferPro]` entries

@@ -9,21 +9,23 @@ flatpak install --user ./replay-buffer-pro-X.Y.Z-x86_64.flatpak
 flatpak uninstall com.obsproject.Studio.Plugin.ReplayBufferPro   # to remove it
 ```
 
-A bundle has no update source, so users install each new release's bundle the same way. The same manifest is ready for Flathub, which would add automatic updates; see [Flathub, later](#flathub-later).
+A bundle has no update source, so users install each new release's bundle the same way. A bundle is also built against the Flatpak OBS of its day: when Flatpak OBS moves to a new freedesktop runtime or FFmpeg, an installed bundle stops loading, and the fix is the latest release's bundle. A Flatpak OBS runtime change therefore needs a plugin release soon after. The same manifest is ready for Flathub, which would add automatic updates; see [Flathub, later](#flathub-later).
 
 | File | What it is |
 |---|---|
-| `com.obsproject.Studio.Plugin.ReplayBufferPro.yml` | The flatpak-builder manifest, with `@VERSION@` and `@SHA256@` placeholders |
+| `com.obsproject.Studio.Plugin.ReplayBufferPro.yml` | The flatpak-builder manifest, with `@SOURCE@` (the archive's `url:` or `path:`) and `@SHA256@` placeholders |
 | `com.obsproject.Studio.Plugin.ReplayBufferPro.metainfo.xml` | AppStream metadata for software centres, with `@VERSION@` and `@DATE@` placeholders |
 | `build-bundle.sh` | Builds the `.flatpak` from a source tarball. CI's `flatpak-build` job and `run.sh build` both run it |
+| `fill-manifest.sh` | Fills the manifest's and metainfo's placeholders, with the release's tarball URL or a local tarball as the source. `build-bundle.sh` and `release-manifest.sh` both run it |
+| `release-manifest.sh` | Writes the Flathub submission files for a published release, from its source tarball's URL, digest and date. `run.sh manifest` runs it |
 | `flathub.json` | Flathub build options, for a later Flathub submission: x86_64 only, as Flatpak OBS is |
-| `run.sh`, `Dockerfile`, `session.sh`, `bwrap-no-seccomp` | The Docker build and test desktop |
+| `run.sh`, `Dockerfile`, `entrypoint.sh`, `session.sh`, `bwrap-no-seccomp` | The Docker build and test desktop |
 
 ## How it builds
 
 The bundle is built from the release's own `replay-buffer-pro-X.Y.Z-source.tar.xz`, never from a git checkout. In CI, the Ubuntu job makes that tarball with CPack's `package_source`, and the `flatpak-build` job in `.github/workflows/build-project.yaml` runs `build-bundle.sh` on it in Flathub's build image (`ghcr.io/flathub-infra/flatpak-github-actions`, privileged, because Flatpak sandboxes builds with bubblewrap). On a tag, `push.yaml` attaches the `.flatpak` to the draft release with the other assets.
 
-`build-bundle.sh` fills the manifest's placeholders, points its archive source at the local tarball, runs `flatpak-builder` into an OSTree repo, and exports the extension with `flatpak build-bundle --runtime`.
+`build-bundle.sh` fills the manifest's placeholders with the local tarball as its archive source, runs `flatpak-builder` into an OSTree repo, and exports the extension with `flatpak build-bundle --runtime`.
 
 - `runtime: com.obsproject.Studio` at `stable`, with `build-extension: true`. The extension builds against Flatpak OBS's own libobs, obs-frontend-api, Qt 6 and FFmpeg headers in `/app`, and the SDK's libcurl. At run time it uses the FFmpeg in `/app/lib` that OBS ships and the runtime's libcurl, the same libraries OBS itself loads.
 - `sdk: org.freedesktop.Sdk//26.08` must match the freedesktop runtime Flatpak OBS is built on (26.08 since OBS 33), and the CI image's `freedesktop-26.08` tag must match it too. Check `flatpak info -m com.obsproject.Studio//stable` when OBS moves to a new one.
@@ -38,14 +40,14 @@ Requires Docker. On Apple Silicon, turn on Docker Desktop's Rosetta emulation, a
 ```bash
 tools/flatpak/run.sh tarball   # build_flatpak/replay-buffer-pro-<version>-source.tar.xz from HEAD, as CI makes it
 tools/flatpak/run.sh build     # build_flatpak/replay-buffer-pro-<version>-x86_64.flatpak from the newest tarball
-tools/flatpak/run.sh up        # Flatpak OBS with that bundle installed, at http://localhost:6080
+tools/flatpak/run.sh up        # Flatpak OBS with that bundle installed, at http://localhost:6081
 ```
 
 | Command | What it does |
 |---|---|
 | `run.sh tarball` | Exports `HEAD` with `git archive` (a clean tree, like CI's checkout), configures it with the `ubuntu-x86_64` preset in the Linux test desktop's image, and runs CPack's `package_source`. Commit first: uncommitted changes aren't in it. |
 | `run.sh build [tarball]` | Runs `build-bundle.sh` on the tarball (default: the newest in `build_flatpak/` or `release/`; pass any, such as one downloaded from a release). The log is `build_flatpak/build.log`. |
-| `run.sh up` | Starts Flatpak OBS on a desktop in the browser, after installing the newest `build_flatpak/*.flatpak` with `flatpak install --user` as a user would. obs-websocket is on `localhost:4455`. Settings and logs are in `build_flatpak/config/`, recordings in `build_flatpak/recordings/`. A fresh config gets the Linux test desktop's starting settings. Closing OBS restarts it. |
+| `run.sh up` | Starts Flatpak OBS on a desktop in the browser, after installing the newest `build_flatpak/*.flatpak` with `flatpak install --user` as a user would. obs-websocket is on `localhost:4456`. The ports differ from the Linux test desktop's, so both can run at once. Settings and logs are in `build_flatpak/config/`, recordings in `build_flatpak/recordings/`. A fresh config gets the Linux test desktop's starting settings. Closing OBS restarts it. |
 | `run.sh manifest VERSION`, `run.sh lint` | Write and lint Flathub submission files for a published release (see below). |
 | `run.sh shell`, `run.sh down`, `run.sh image` | A shell in the running desktop, stop it, rebuild the image. |
 

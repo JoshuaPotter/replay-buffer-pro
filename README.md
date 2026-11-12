@@ -73,7 +73,7 @@ obs-studio/
 **Linux (Flatpak OBS from Flathub, x86_64):**
 1. Download the latest `.flatpak` release (`replay-buffer-pro-<version>-x86_64.flatpak`)
 2. Close OBS and install it with `flatpak install --user ./replay-buffer-pro-<version>-x86_64.flatpak`
-3. Start OBS. To update, install the next release's `.flatpak` the same way.
+3. Start OBS. To update, install the next release's `.flatpak` the same way. If the dock disappears after a Flatpak OBS update, install the latest release's `.flatpak` again: each bundle is built against the Flatpak OBS of its release.
 
 ### Uninstall
 

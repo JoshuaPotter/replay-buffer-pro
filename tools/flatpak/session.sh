@@ -33,7 +33,7 @@ else
   echo "No replay-buffer-pro .flatpak in build_flatpak/; OBS starts without the plugin." >&2
 fi
 
-echo "Desktop ready at http://localhost:6080/vnc.html?autoconnect=1&resize=scale"
+echo "Desktop ready (run.sh up prints its address)"
 # Clear OBS's crash sentinel before each launch, or OBS opens at its Safe Mode prompt
 # and Safe Mode turns the plugin off.
 while true; do

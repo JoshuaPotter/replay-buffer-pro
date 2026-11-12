@@ -10,10 +10,11 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates curl flatpak flatpak-builder git xz-utils \
     xvfb x11vnc novnc websockify openbox xterm dbus-x11 fonts-dejavu-core \
-    ffmpeg python3 python3-websockets \
+    python3 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY session.sh bwrap-no-seccomp /opt/rbp/
+COPY entrypoint.sh session.sh bwrap-no-seccomp /opt/rbp/
 COPY --from=linux-desktop obs-config /opt/rbp/obs-config
 
 EXPOSE 6080 4455
+ENTRYPOINT ["/opt/rbp/entrypoint.sh"]

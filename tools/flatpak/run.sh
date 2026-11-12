@@ -20,8 +20,8 @@ image=replay-buffer-pro-flatpak
 name=rbp-flatpak-desktop
 volume=rbp-flatpak
 state="${root}/build_flatpak"
-repo=JoshuaPotter/replay-buffer-pro
-url='http://localhost:6080/vnc.html?autoconnect=1&resize=scale'
+# Not the Linux test desktop's 6080 and 4455, so both can run at once
+url='http://localhost:6081/vnc.html?autoconnect=1&resize=scale'
 
 build_image() {
   docker buildx build --platform linux/amd64 --build-context "linux-desktop=${root}/tools/linux-desktop" \
@@ -38,19 +38,6 @@ in_container() {
   docker run --rm --platform linux/amd64 --privileged ${emulated[@]+"${emulated[@]}"} -v "${volume}:/var/lib/flatpak" \
     -v "${here}:/manifest:ro" -v "${state}:/state" "$@"
 }
-
-# fill VERSION SHA256 DATE OUT_DIR [TARBALL]: the manifest and metainfo with their
-# placeholders filled in. With TARBALL, the archive source is that local file instead.
-fill='
-  version=$1 sha=$2 date=$3 out=$4 tarball=${5:-}
-  mkdir -p "${out}"
-  sed -e "s|@VERSION@|${version}|g" -e "s|@SHA256@|${sha}|" /manifest/'"${id}"'.yml >"${out}/'"${id}"'.yml"
-  if [[ -n "${tarball}" ]]; then
-    sed -i "s|url: https://github.com/.*-source.tar.xz|path: ${tarball}|" "${out}/'"${id}"'.yml"
-  fi
-  sed -e "s|@VERSION@|${version}|" -e "s|@DATE@|${date}|" /manifest/'"${id}"'.metainfo.xml >"${out}/'"${id}"'.metainfo.xml"
-  cp /manifest/flathub.json "${out}/"
-'
 
 case "${1:-}" in
   image)
@@ -78,27 +65,16 @@ case "${1:-}" in
     fi
     tarball="$(cd "$(dirname "${tarball}")" && pwd)/$(basename "${tarball}")"
     mkdir -p "${state}"
-    in_container -v "${tarball}:/src/$(basename "${tarball}"):ro" --entrypoint bash "${image}" -c "
-      set -o pipefail
-      /manifest/build-bundle.sh '/src/$(basename "${tarball}")' /state /var/lib/flatpak/rbp-work 2>&1 | tee /state/build.log
-    "
+    base="$(basename "${tarball}")"
+    in_container -v "${tarball}:/src/${base}:ro" --entrypoint bash "${image}" -c \
+      "set -o pipefail; /manifest/build-bundle.sh '/src/${base}' /state /var/lib/flatpak/rbp-work 2>&1 | tee /state/build.log"
     echo "Build log: ${state}/build.log"
     ;;
   manifest)
     ensure_image
     version="${2:?Usage: run.sh manifest VERSION (a published release, such as 1.11.0)}"
     mkdir -p "${state}"
-    in_container --entrypoint bash "${image}" -c "
-      set -euo pipefail
-      fill() { ${fill} }
-      release=\$(curl -fsSL https://api.github.com/repos/${repo}/releases/tags/${version})
-      asset=\$(printf '%s' \"\${release}\" | python3 -c 'import json,sys; r=json.load(sys.stdin); u=[a[\"browser_download_url\"] for a in r[\"assets\"] if a[\"name\"].endswith(\"-source.tar.xz\")]; print(u[0]) if u else sys.exit(\"Release ${version} has no -source.tar.xz asset\")')
-      date=\$(printf '%s' \"\${release}\" | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"published_at\"][:10])')
-      sha=\$(curl -fsSL \"\${asset}\" | sha256sum | cut -d' ' -f1)
-      rm -rf /state/submission
-      fill '${version}' \"\${sha}\" \"\${date}\" /state/submission
-      grep -n -A2 'type: archive' /state/submission/${id}.yml
-    "
+    in_container --entrypoint /manifest/release-manifest.sh "${image}" "${version}" /state/submission
     echo "Files for the Flathub submission: ${state}/submission"
     ;;
   lint)
@@ -123,14 +99,13 @@ case "${1:-}" in
     mkdir -p "${state}/config" "${state}/recordings"
     docker rm -f "${name}" >/dev/null 2>&1 || true
     docker run -d --name "${name}" --platform linux/amd64 --privileged ${emulated[@]+"${emulated[@]}"} --shm-size=1g \
-      -p 127.0.0.1:6080:6080 -p 127.0.0.1:4455:4455 \
+      -p 127.0.0.1:6081:6080 -p 127.0.0.1:4456:4455 \
       -v "${volume}:/var/lib/flatpak" -v "${state}:/plugin:ro" \
       -v "${state}/config:/home/ubuntu/.var/app/com.obsproject.Studio/config/obs-studio" \
       -v "${state}/recordings:/recordings" \
-      --entrypoint bash "${image}" -c \
-      'mkdir -p /run/dbus && dbus-daemon --system --fork && chown ubuntu:ubuntu /home/ubuntu/.var /home/ubuntu/.var/app /home/ubuntu/.var/app/com.obsproject.Studio /home/ubuntu/.var/app/com.obsproject.Studio/config /home/ubuntu/.var/app/com.obsproject.Studio/config/obs-studio /recordings && exec runuser -u ubuntu -- /opt/rbp/session.sh' >/dev/null
+      "${image}" >/dev/null
     waited=0
-    until curl -fs -o /dev/null http://localhost:6080/vnc.html; do
+    until curl -fs -o /dev/null http://localhost:6081/vnc.html; do
       if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null)" != true ]] || (( ++waited > 120 )); then
         docker logs "${name}" >&2 || true
         echo "The desktop didn't start; its log is above." >&2

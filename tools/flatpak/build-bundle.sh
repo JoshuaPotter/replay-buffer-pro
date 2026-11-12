@@ -10,8 +10,14 @@ here="$(cd "$(dirname "$0")" && pwd)"
 id=com.obsproject.Studio.Plugin.ReplayBufferPro
 tarball="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 out="$(mkdir -p "$2" && cd "$2" && pwd)"
-work="$(mkdir -p "${3:-${PWD}/.flatpak-work}" && cd "${3:-${PWD}/.flatpak-work}" && pwd)"
-version="$(basename "${tarball}" | sed -E 's/^replay-buffer-pro-(.+)-source\.tar\.xz$/\1/')"
+work="${3:-$(mktemp -d)}"
+mkdir -p "${work}"
+work="$(cd "${work}" && pwd)"
+if [[ ! "$(basename "${tarball}")" =~ ^replay-buffer-pro-(.+)-source\.tar\.xz$ ]]; then
+  echo "Not a replay-buffer-pro-X.Y.Z-source.tar.xz: ${tarball}" >&2
+  exit 1
+fi
+version="${BASH_REMATCH[1]}"
 sdk="$(sed -n 's/^sdk: *//p' "${here}/${id}.yml")"
 
 # The SDK, and Flatpak OBS as the runtime the extension builds against
@@ -19,13 +25,8 @@ flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.f
 flatpak install -y --noninteractive flathub "${sdk}" com.obsproject.Studio//stable
 
 # The manifest builds from a release's tarball URL; point it at this local tarball instead
-mkdir -p "${work}/manifest"
-sed -e "s|@VERSION@|${version}|g" \
-  -e "s|@SHA256@|$(sha256sum "${tarball}" | cut -d' ' -f1)|" \
-  -e "s|url: https://github.com/.*-source.tar.xz|path: ${tarball}|" \
-  "${here}/${id}.yml" >"${work}/manifest/${id}.yml"
-sed -e "s|@VERSION@|${version}|" -e "s|@DATE@|$(date -u +%F)|" \
-  "${here}/${id}.metainfo.xml" >"${work}/manifest/${id}.metainfo.xml"
+"${here}/fill-manifest.sh" "${version}" "$(sha256sum "${tarball}" | cut -d' ' -f1)" "$(date -u +%F)" \
+  "${work}/manifest" "${tarball}"
 
 # rofiles-fuse needs FUSE, which containers usually lack
 flatpak-builder --force-clean --disable-rofiles-fuse --repo="${work}/repo" --state-dir="${work}/state" \
