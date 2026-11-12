@@ -27,7 +27,8 @@ const footer = variant === 'footer';
   <ul class="download-split-menu" role="menu" hidden>
     <li role="none"><a role="menuitem" data-download="windows" href={latest}>Windows (x64)<span class="dl-ext">.zip</span></a></li>
     <li role="none"><a role="menuitem" data-download="macos" href={latest}>macOS — Universal<span class="dl-ext">.pkg</span></a></li>
-    <li role="none"><a role="menuitem" data-download="linux" href={latest}>Ubuntu 24.04 (x64)<span class="dl-ext">.deb</span></a></li>
+    <li role="none"><a role="menuitem" data-download="linux" href={latest}>Linux, Flatpak OBS (x64)<span class="dl-ext">.flatpak</span></a></li>
+    <li role="none"><a role="menuitem" data-download="ubuntu" href={latest}>Ubuntu 24.04 (x64)<span class="dl-ext">.deb</span></a></li>
   </ul>
 </div>
 
@@ -83,18 +84,20 @@ const footer = variant === 'footer';
   const OS_LABELS = {
     windows: 'Download for Windows (x64)',
     macos: 'Download for macOS',
-    linux: 'Download for Ubuntu (x64)',
+    linux: 'Download for Linux (Flatpak)',
     other: 'Download for Windows, macOS or Linux',
   };
 
   // Release asset names are versioned (e.g. replay-buffer-pro-1.5.0-windows-x64.zip), so
   // each [data-download] link is pointed at its platform's asset once the release loads.
   // Links with no matching asset, including 'other' (phones, ChromeOS), keep their href
-  // to the latest release page.
+  // to the latest release page. Linux gets the Flatpak, which works on any distribution;
+  // the Ubuntu .deb is in the menu.
   const ASSET_MATCHERS: Record<string, RegExp> = {
     windows: /windows.*\.zip$/i,
     macos: /macos.*\.pkg$/i,
-    linux: /x86_64-linux-gnu\.deb$/i,
+    linux: /x86_64\.flatpak$/i,
+    ubuntu: /x86_64-linux-gnu\.deb$/i,
   };
 
   const os = detectPlatform();
