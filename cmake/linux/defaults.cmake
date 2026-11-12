@@ -14,7 +14,18 @@ set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL TRUE)
 
 set(CPACK_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
 set(CPACK_PACKAGE_VERSION "${CMAKE_PROJECT_VERSION}")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_C_LIBRARY_ARCHITECTURE}")
+# The plugin is built for each Ubuntu release whose PPA provides OBS, and those
+# releases build against different OBS and FFmpeg majors, so name the .deb and .ddeb
+# with the release: 24.04 and 26.04 packages must not be installed on the other. The
+# package name stays the same, so `apt remove replay-buffer-pro` keeps working.
+file(STRINGS "/etc/os-release" _os_release REGEX "^VERSION_ID=")
+string(REGEX REPLACE "^VERSION_ID=\"?([0-9]+\\.[0-9]+)\"?$" "\\1" _ubuntu_release "${_os_release}")
+if(_ubuntu_release)
+  string(REPLACE "-linux-" "-ubuntu${_ubuntu_release}-linux-" _deb_arch "${CMAKE_C_LIBRARY_ARCHITECTURE}")
+else()
+  set(_deb_arch "${CMAKE_C_LIBRARY_ARCHITECTURE}")
+endif()
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${_deb_arch}")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -29,16 +40,39 @@ set(CPACK_DEBIAN_PACKAGE_SECTION "video")
 find_package(libobs QUIET)
 string(JSON _obs_version GET ${buildspec} dependencies obs-studio version)
 if(libobs_VERSION)
-  # Patch releases don't change what the plugin builds against, so compare major.minor
-  string(REGEX MATCH "^[0-9]+\\.[0-9]+" _obs_target "${_obs_version}")
-  if(NOT "${libobs_VERSION_MAJOR}.${libobs_VERSION_MINOR}" VERSION_EQUAL _obs_target)
-    message(
-      WARNING
-      "Building against OBS ${libobs_VERSION}, but buildspec.json targets OBS ${_obs_version}. "
-      "ClipWriter mirrors that version's ffmpeg-mux; diff it against this one."
-    )
+  set(_libobs_major_minor "${libobs_VERSION_MAJOR}.${libobs_VERSION_MINOR}")
+  # Linux builds against the OBS in the distro's PPA, which may differ from the
+  # buildspec.json target Windows and macOS use. The supported Linux majors are
+  # listed in dependencies.obs-studio.linuxSupported.
+  string(JSON _linux_supported_count ERROR_VARIABLE _linux_supported_err LENGTH ${buildspec} dependencies obs-studio linuxSupported)
+  if(NOT _linux_supported_err)
+    set(_linux_supported FALSE)
+    math(EXPR _linux_supported_last "${_linux_supported_count} - 1")
+    foreach(_i RANGE 0 ${_linux_supported_last})
+      string(JSON _linux_supported_version GET ${buildspec} dependencies obs-studio linuxSupported ${_i})
+      if(_libobs_major_minor VERSION_EQUAL _linux_supported_version)
+        set(_linux_supported TRUE)
+      endif()
+    endforeach()
+    if(NOT _linux_supported)
+      message(
+        WARNING
+        "Building against OBS ${libobs_VERSION}, which is not in buildspec.json's dependencies.obs-studio.linuxSupported. "
+        "ClipWriter mirrors that version's ffmpeg-mux; diff it against this one."
+      )
+    endif()
+  else()
+    # Patch releases don't change what the plugin builds against, so compare major.minor
+    string(REGEX MATCH "^[0-9]+\\.[0-9]+" _obs_target "${_obs_version}")
+    if(NOT _libobs_major_minor VERSION_EQUAL _obs_target)
+      message(
+        WARNING
+        "Building against OBS ${libobs_VERSION}, but buildspec.json targets OBS ${_obs_version}. "
+        "ClipWriter mirrors that version's ffmpeg-mux; diff it against this one."
+      )
+    endif()
   endif()
-  set(_obs_version "${libobs_VERSION_MAJOR}.${libobs_VERSION_MINOR}")
+  set(_obs_version "${_libobs_major_minor}")
 endif()
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "obs-studio (>= ${_obs_version})")
 set(CPACK_SET_DESTDIR ON)

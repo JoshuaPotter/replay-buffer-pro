@@ -211,7 +211,7 @@ jobs:
     name: Build for Ubuntu 🐧
     strategy:
       matrix:
-        os: [ubuntu-26.04]
+        os: [ubuntu-24.04, ubuntu-26.04]
     runs-on: ${{ matrix.os }}
     needs: check-event
     defaults:
@@ -256,7 +256,9 @@ jobs:
           config: ${{ needs.check-event.outputs.config }}
           package: ${{ fromJSON(needs.check-event.outputs.package) }}
 
+      # One source tarball serves both legs; the flatpak build downloads it.
       - name: Upload Source Tarball 🗜️
+        if: matrix.os == 'ubuntu-26.04'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.setup.outputs.pluginName }}-${{ steps.setup.outputs.pluginVersion }}-${{ matrix.os }}-sources-${{ needs.check-event.outputs.commitHash }}

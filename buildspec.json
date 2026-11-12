@@ -2,6 +2,7 @@
     "dependencies": {
         "obs-studio": {
             "version": "33.0.1",
+            "linuxSupported": ["32.2", "33.0"],
             "baseUrl": "https://github.com/obsproject/obs-studio/archive/refs/tags",
             "label": "OBS sources",
             "hashes": {

@@ -20,7 +20,7 @@ If the user asked for only one piece, such as release notes or a changelog entry
 
 ## Why it works this way
 
-- **CI builds everything.** Pushing a tag runs `.github/workflows/push.yaml`, which builds signed and notarized Windows and macOS packages, an Ubuntu `.deb` and a `.flatpak` bundle for Flatpak OBS, and creates a **draft** release. The draft has the `.zip`, `.pkg`, `.deb`, `-dbgsym.ddeb`, `.flatpak` and source `.tar.xz` attached and a `### Checksums` body. Nothing is built locally, and you never run `gh release create`. Your job is to get the right commit onto `main`, tag it, and turn the draft into a finished release.
+- **CI builds everything.** Pushing a tag runs `.github/workflows/push.yaml`, which builds signed and notarized Windows and macOS packages, Ubuntu 24.04 and 26.04 `.deb`s and a `.flatpak` bundle for Flatpak OBS, and creates a **draft** release. The draft has the `.zip`, `.pkg`, both `.deb`s, both `-dbgsym.ddeb`s, `.flatpak` and source `.tar.xz` attached and a `### Checksums` body. Nothing is built locally, and you never run `gh release create`. Your job is to get the right commit onto `main`, tag it, and turn the draft into a finished release.
 - **Tags are plain versions.** The tag is `X.Y.Z` with no `v` prefix, placed on `main`'s merge commit, because that commit is what users download. History uses lightweight tags. The workflow only releases tags matching `X.Y.Z` or `X.Y.Z-beta1`/`-rc1`, and ignores anything else.
 - **Merging updates the website at once.** The site reads the version from `buildspec.json` and deploys from `main` when `buildspec.json` or `site/**` changes. The merge therefore publishes the new version number and changelog on the homepage within about a minute. Download buttons point at `/releases/latest`, so they keep serving the previous release until you publish. Keep the time between merge and publish short.
 - **The back-merge matters for the next release.** It makes the tag reachable from `develop`, so `git describe` finds it next time, and it keeps `main` and `develop` from drifting apart.
@@ -136,7 +136,7 @@ gh run list --workflow push.yaml --branch X.Y.Z --limit 1 --json databaseId,stat
 gh run watch <run-id> --exit-status
 ```
 
-When it succeeds, `gh release view X.Y.Z --json isDraft,assets` must show a draft with `replay-buffer-pro-X.Y.Z-macos-universal.pkg`, `replay-buffer-pro-X.Y.Z-windows-x64.zip`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu.deb`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu-dbgsym.ddeb`, `replay-buffer-pro-X.Y.Z-x86_64.flatpak` and `replay-buffer-pro-X.Y.Z-source.tar.xz`. Then put the finished body and the bare-version title on it, and leave it as a draft:
+When it succeeds, `gh release view X.Y.Z --json isDraft,assets` must show a draft with `replay-buffer-pro-X.Y.Z-macos-universal.pkg`, `replay-buffer-pro-X.Y.Z-windows-x64.zip`, `replay-buffer-pro-X.Y.Z-x86_64-ubuntu24.04-linux-gnu.deb`, `replay-buffer-pro-X.Y.Z-x86_64-ubuntu24.04-linux-gnu-dbgsym.ddeb`, `replay-buffer-pro-X.Y.Z-x86_64-ubuntu26.04-linux-gnu.deb`, `replay-buffer-pro-X.Y.Z-x86_64-ubuntu26.04-linux-gnu-dbgsym.ddeb`, `replay-buffer-pro-X.Y.Z-x86_64.flatpak` and `replay-buffer-pro-X.Y.Z-source.tar.xz`. Then put the finished body and the bare-version title on it, and leave it as a draft:
 
 ```bash
 .agents/skills/release/scripts/compose-release-body.sh X.Y.Z "$tmp/notes.md" > "$tmp/body.md"
