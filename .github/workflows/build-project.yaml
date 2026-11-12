@@ -281,6 +281,45 @@ jobs:
           path: ${{ github.workspace }}/.ccache
           key: ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}
 
+  flatpak-build:
+    name: Build for Flatpak OBS 📦
+    runs-on: ubuntu-24.04
+    needs: [check-event, ubuntu-build]
+    # Flathub's own build image: flatpak-builder and the freedesktop SDK. Flatpak sandboxes
+    # builds with bubblewrap, which needs a privileged container.
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      # Built from the source tarball the Ubuntu job made, the one the release carries
+      - name: Download Source Tarball 🗜️
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-sources-${{ needs.check-event.outputs.commitHash }}'
+          path: ${{ github.workspace }}/sources
+          merge-multiple: true
+
+      - name: Build Bundle 📦
+        id: build
+        run: |
+          : Build Bundle 📦
+          if [[ "${RUNNER_DEBUG}" ]]; then set -x; fi
+
+          tarball="$(ls sources/*-source.tar.xz)"
+          tools/flatpak/build-bundle.sh "${tarball}" release "${RUNNER_TEMP}/flatpak"
+          echo "name=$(basename "${tarball}" -source.tar.xz)" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifacts 📡
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.name }}-flatpak-x86_64-${{ needs.check-event.outputs.commitHash }}
+          path: ${{ github.workspace }}/release/*.flatpak
+
   windows-build:
     name: Build for Windows 🪟
     runs-on: windows-2022

@@ -117,14 +117,15 @@ The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks
 
 It checks behaviour, not performance: x86 is emulated and OBS renders with Mesa's software rasterizer. The display is X11 only.
 
-### Flathub extension
+### Flatpak bundle
 
-Flatpak OBS loads plugins only as Flatpak extensions of `com.obsproject.Studio`, so the plugin also ships on Flathub as `com.obsproject.Studio.Plugin.ReplayBufferPro`. `tools/flatpak/` holds the manifest, metainfo and `flathub.json` submitted to Flathub, and a Docker setup that builds and runs it (`tools/flatpak/README.md` has the commands and the submission and per-release steps).
+Flatpak OBS loads plugins only as Flatpak extensions of `com.obsproject.Studio`, so the plugin is also packaged as the extension `com.obsproject.Studio.Plugin.ReplayBufferPro` and shipped on each release as `replay-buffer-pro-<version>-x86_64.flatpak`, which users install with `flatpak install --user`. `tools/flatpak/` holds the manifest, metainfo, `build-bundle.sh` and a Docker setup that builds and runs it (`tools/flatpak/README.md`).
 
-- The manifest builds only from a published release's `replay-buffer-pro-<version>-source.tar.xz` (an `archive` source pinned by sha256), never from a git tag or branch. Its `x-checker-data` watches `releases/latest` on the GitHub API, so Flathub's bot opens an update pull request in `flathub/com.obsproject.Studio.Plugin.ReplayBufferPro` when a release is published, and adds the release to the metainfo there.
+- `build-bundle.sh` builds from a source `.tar.xz`, never a git checkout. It fills the manifest's `@VERSION@`/`@SHA256@` placeholders, points its archive source at the local tarball, runs `flatpak-builder` into an OSTree repo and exports the bundle with `flatpak build-bundle --runtime`.
 - It builds against Flatpak OBS itself (`runtime: com.obsproject.Studio`, `build-extension: true`): its libobs, obs-frontend-api and Qt 6 CMake packages and its FFmpeg headers in `/app`, and libcurl from `org.freedesktop.Sdk`, whose version must match the freedesktop runtime Flatpak OBS uses (26.08 for OBS 33). At run time the plugin uses the FFmpeg OBS ships in `/app/lib`.
-- It configures with the `ubuntu-x86_64` preset plus `-DCMAKE_INSTALL_LIBDIR=lib`, installing to `/app/plugins/ReplayBufferPro/lib/obs-plugins/` and `share/obs/obs-plugins/replay-buffer-pro/`, the folders Flatpak OBS merges from every extension. Not `ubuntu-ci-x86_64`: the tarball can't change once published, so a warning from a newer compiler in a future SDK must not fail the rebuild.
-- `tools/flatpak/run.sh` runs flatpak-builder in a privileged x86_64 container with the SDK and Flatpak OBS in the Docker volume `rbp-flatpak`. Under emulation on an ARM host it runs bubblewrap through `bwrap-no-seccomp`, because an ARM kernel rejects bubblewrap's x86_64 seccomp filter.
+- It configures with the `ubuntu-x86_64` preset plus `-DCMAKE_INSTALL_LIBDIR=lib`, installing to `/app/plugins/ReplayBufferPro/lib/obs-plugins/` and `share/obs/obs-plugins/replay-buffer-pro/`, the folders Flatpak OBS merges from every extension. Not `ubuntu-ci-x86_64`, so a new warning from a newer compiler in a future SDK doesn't fail a release.
+- `tools/flatpak/run.sh` runs it in a privileged x86_64 container with the SDK and Flatpak OBS in the Docker volume `rbp-flatpak`. Under emulation on an ARM host it runs bubblewrap through `bwrap-no-seccomp`, because an ARM kernel rejects bubblewrap's x86_64 seccomp filter.
+- The manifest is also ready for a Flathub submission (archive source by release URL and sha256, `x-checker-data` on `releases/latest`); `tools/flatpak/README.md` has the steps.
 
 ### Post-build rundir
 
@@ -163,20 +164,20 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 - with `--package`: CPack's `package` target builds `replay-buffer-pro-<version>-x86_64-linux-gnu.deb` and `replay-buffer-pro-<version>-x86_64-linux-gnu-dbgsym.ddeb`. `dpkg-shlibdeps` fills in the `.deb`'s dependencies from the libraries the plugin links. It only adds an unversioned `obs-studio`, which Ubuntu's own OBS 30 also satisfies, so `cmake/linux/defaults.cmake` adds `obs-studio (>= X.Y)` from the libobs the plugin was built against. Configure warns when that OBS differs from `buildspec.json`'s, because `ClipWriter` mirrors that version's `ffmpeg-mux`. Tag builds use the Release config, which `cmake/linux/compilerconfig.cmake` builds with `-g` so the `-dbgsym.ddeb` holds real debug info.
 - without it: `replay-buffer-pro-<version>-x86_64-ubuntu-gnu.tar.xz`, an archive of the staged `lib/` and `share/` trees.
 
-The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; it gets the Flathub extension built from the source `.tar.xz` instead (see [Flathub extension](#flathub-extension)).
+The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; it gets the `.flatpak` bundle built from the source `.tar.xz` instead (see [Flatpak bundle](#flatpak-bundle)).
 
-The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_*` and `release/`, and builds with nothing else: the presets, `cmake/`, `buildspec.json` and `data/` are inside, and nothing reads git at configure or build time. Once a release is published, never replace any of its assets: Flathub pins the tarball's sha256, so a changed tarball breaks the Flathub build. Fix a bad release with a new version.
+The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_*` and `release/`, and builds with nothing else: the presets, `cmake/`, `buildspec.json` and `data/` are inside, and nothing reads git at configure or build time.
 
 ### CI / GitHub Actions
 
-- **Push to main/develop**: Triggers build for Windows, macOS and Ubuntu 24.04, uploads artifacts.
-- **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with the Windows zip, macOS `.pkg`, Ubuntu `.deb` and `-dbgsym.ddeb`, and the source `.tar.xz` attached with checksums.
-- **Pull requests**: Triggers build for all three platforms to validate the PR.
+- **Push to main/develop**: Triggers build for Windows, macOS, Ubuntu 24.04 and the Flatpak bundle, uploads artifacts.
+- **Semver tag push** (e.g. `1.4.0`, `1.5.0-beta1`): Triggers build + creates a draft GitHub release with the Windows zip, macOS `.pkg`, Ubuntu `.deb` and `-dbgsym.ddeb`, the `.flatpak` bundle, and the source `.tar.xz` attached with checksums. The `flatpak-build` job runs `tools/flatpak/build-bundle.sh` in Flathub's build image (`ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-<version>`, privileged for bubblewrap) on the source `.tar.xz` the Ubuntu job uploaded, so the bundle is built from the same tarball the release carries.
+- **Pull requests**: Triggers the same builds to validate the PR.
 - **Website**: a push to `main` that touches `site/**` or `buildspec.json` builds `site/` with Astro and deploys GitHub Pages. Pull requests touching the same paths run a build-only Site Check. The site is a separate Node project (Node version in `site/.nvmrc`); it reads the plugin version from `buildspec.json` and page dates from git history at build time, so the deploy checks out full history.
 
 Changes that only touch the website, docs or agent config skip the plugin build. `push.yaml` and
 `pr-pull.yaml` list `site/**`, `.github/workflows/pages.yaml`, `.github/workflows/site-check.yaml`,
-`'**.md'`, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json`, `tools/linux-desktop/**` and `tools/flatpak/**` under `paths-ignore`, so a branch push or pull request builds
+`'**.md'`, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json` and `tools/linux-desktop/**` under `paths-ignore`, so a branch push or pull request builds
 only when at least one changed file falls outside them; a change that mixes these with plugin files
 builds as usual. Tag pushes always build, because GitHub does not
 evaluate path filters for tags. A workflow skipped by a path filter leaves its checks `Pending`, so

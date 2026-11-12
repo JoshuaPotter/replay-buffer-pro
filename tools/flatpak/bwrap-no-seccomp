@@ -22,4 +22,6 @@ def expand(args):
             i += 1
     return out
 
-os.execv("/usr/bin/bwrap", ["bwrap"] + expand(sys.argv[1:]))
+# Ubuntu has bwrap in /usr/bin; Flathub's CI image (itself a Flatpak runtime) in /app/bin
+real = next(p for p in ("/app/bin/bwrap", "/usr/bin/bwrap") if os.path.exists(p))
+os.execv(real, ["bwrap"] + expand(sys.argv[1:]))

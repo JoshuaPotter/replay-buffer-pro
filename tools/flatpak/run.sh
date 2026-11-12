@@ -3,9 +3,9 @@
 #
 # Usage: tools/flatpak/run.sh <command> [argument]
 #   tarball           Make the source tarball from HEAD the way CI does, in build_flatpak/
-#   build [tarball]   Build and install the extension from a source tarball (default: the
-#                     newest one in build_flatpak/ or release/)
-#   up                Start a desktop running Flatpak OBS with the extension, open it in the browser
+#   build [tarball]   Build build_flatpak/replay-buffer-pro-<version>-x86_64.flatpak from a source
+#                     tarball (default: the newest one in build_flatpak/ or release/)
+#   up                Start a desktop running Flatpak OBS with the newest .flatpak installed, open it
 #   manifest VERSION  Write the files for flathub/flathub, filled in from that published release
 #   lint              Run Flathub's linter on those files
 #   down              Stop and remove the desktop
@@ -77,18 +77,10 @@ case "${1:-}" in
       exit 1
     fi
     tarball="$(cd "$(dirname "${tarball}")" && pwd)/$(basename "${tarball}")"
-    version="$(basename "${tarball}" | sed -E 's/^replay-buffer-pro-(.+)-source\.tar\.xz$/\1/')"
     mkdir -p "${state}"
-    in_container -v "${tarball}:/tarball.tar.xz:ro" --entrypoint bash "${image}" -c "
-      set -euo pipefail
-      fill() { ${fill} }
-      flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-      flatpak install --system -y --noninteractive flathub org.freedesktop.Sdk//26.08 com.obsproject.Studio//stable
-      fill '${version}' \"\$(sha256sum /tarball.tar.xz | cut -d' ' -f1)\" \"\$(date -u +%F)\" /var/lib/flatpak/rbp-manifest /tarball.tar.xz
-      cd /var/lib/flatpak/rbp-manifest
-      flatpak-builder --system --install --force-clean --disable-rofiles-fuse \
-        --state-dir=/var/lib/flatpak/rbp-builder-state /var/lib/flatpak/rbp-build ${id}.yml 2>&1 | tee /state/build.log
-      flatpak list --system --columns=application,branch,arch | grep -E 'Studio|ReplayBufferPro'
+    in_container -v "${tarball}:/src/$(basename "${tarball}"):ro" --entrypoint bash "${image}" -c "
+      set -o pipefail
+      /manifest/build-bundle.sh '/src/$(basename "${tarball}")' /state /var/lib/flatpak/rbp-work 2>&1 | tee /state/build.log
     "
     echo "Build log: ${state}/build.log"
     ;;
@@ -132,7 +124,7 @@ case "${1:-}" in
     docker rm -f "${name}" >/dev/null 2>&1 || true
     docker run -d --name "${name}" --platform linux/amd64 --privileged ${emulated[@]+"${emulated[@]}"} --shm-size=1g \
       -p 127.0.0.1:6080:6080 -p 127.0.0.1:4455:4455 \
-      -v "${volume}:/var/lib/flatpak" \
+      -v "${volume}:/var/lib/flatpak" -v "${state}:/plugin:ro" \
       -v "${state}/config:/home/ubuntu/.var/app/com.obsproject.Studio/config/obs-studio" \
       -v "${state}/recordings:/recordings" \
       --entrypoint bash "${image}" -c \

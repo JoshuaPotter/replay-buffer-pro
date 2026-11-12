@@ -6,7 +6,7 @@
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
-**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are `.deb` packages for Ubuntu 24.04 x86_64 with OBS Studio from the [official PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio); the Flatpak version of OBS can't load them.
+**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are `.deb` packages for Ubuntu 24.04 x86_64 with OBS Studio from the [official PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio). For the Flatpak version of OBS from Flathub, on any x86_64 Linux distribution, each release also has a `.flatpak` bundle.
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
@@ -65,16 +65,21 @@ obs-studio/
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
 **Linux (Ubuntu 24.04 x86_64):**
-1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins.
+1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it.
 2. Download the latest `.deb` release (`replay-buffer-pro-<version>-x86_64-linux-gnu.deb`)
 3. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-linux-gnu.deb`
 4. The package places the plugin at `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`
 
+**Linux (Flatpak OBS from Flathub, x86_64):**
+1. Download the latest `.flatpak` release (`replay-buffer-pro-<version>-x86_64.flatpak`)
+2. Close OBS and install it with `flatpak install --user ./replay-buffer-pro-<version>-x86_64.flatpak`
+3. Start OBS. To update, install the next release's `.flatpak` the same way.
+
 ### Uninstall
 
 1. Quit OBS Studio.
-2. Delete the plugin: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` on macOS. On Linux, run `sudo apt remove replay-buffer-pro`.
-3. Optionally, delete its settings (hotkey bindings and button durations): `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` on Windows, `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` on macOS, or `~/.config/obs-studio/plugin_config/replay-buffer-pro/` on Linux.
+2. Delete the plugin: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` on macOS. On Linux, run `sudo apt remove replay-buffer-pro`, or `flatpak uninstall com.obsproject.Studio.Plugin.ReplayBufferPro` for the Flatpak bundle.
+3. Optionally, delete its settings (hotkey bindings and button durations): `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` on Windows, `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` on macOS, or `~/.config/obs-studio/plugin_config/replay-buffer-pro/` on Linux (`~/.var/app/com.obsproject.Studio/config/obs-studio/plugin_config/replay-buffer-pro/` with Flatpak OBS).
 
 ## Building from Source
 
@@ -175,13 +180,11 @@ There is no local one-command release target for macOS. Packaging (codesigning, 
 .github/scripts/build-ubuntu
 .github/scripts/package-ubuntu --package
 ```
-This creates `release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb`, its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`.
+This creates `release/replay-buffer-pro-<version>-x86_64-linux-gnu.deb`, its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
 
 ### CI / GitHub Actions
 
-Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS and Ubuntu and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu `.deb` with its `-dbgsym.ddeb`, and a source `.tar.xz`).
-
-Never replace an asset of a published release. The Flathub extension in [`tools/flatpak/`](tools/flatpak/README.md) builds from the release's source `.tar.xz` and pins its sha256, so fix a bad release with a new version.
+Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS, Ubuntu and Flatpak OBS and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu `.deb` with its `-dbgsym.ddeb`, the `.flatpak` bundle, and a source `.tar.xz`).
 
 ### Project Structure
 
@@ -201,7 +204,7 @@ replay-buffer-pro/
 │   └── utils/           # Utility classes (including video-trimmer)
 ├── .github/             # CI workflows, actions, scripts (Windows + macOS + Ubuntu)
 ├── tools/linux-desktop/ # Docker Ubuntu desktop for testing the Linux build
-├── tools/flatpak/       # Flathub extension manifest and its Docker build and test desktop
+├── tools/flatpak/       # Flatpak bundle: extension manifest, build script, Docker build and test desktop
 ├── site/                # Project website (Astro, deployed to GitHub Pages)
 ├── docs/                # Developer documentation
 └── README.md

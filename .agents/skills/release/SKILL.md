@@ -20,7 +20,7 @@ If the user asked for only one piece, such as release notes or a changelog entry
 
 ## Why it works this way
 
-- **CI builds everything.** Pushing a tag runs `.github/workflows/push.yaml`, which builds signed and notarized Windows and macOS packages plus an Ubuntu `.deb`, and creates a **draft** release. The draft has the `.zip`, `.pkg`, `.deb`, `-dbgsym.ddeb` and source `.tar.xz` attached and a `### Checksums` body. Nothing is built locally, and you never run `gh release create`. Your job is to get the right commit onto `main`, tag it, and turn the draft into a finished release.
+- **CI builds everything.** Pushing a tag runs `.github/workflows/push.yaml`, which builds signed and notarized Windows and macOS packages, an Ubuntu `.deb` and a `.flatpak` bundle for Flatpak OBS, and creates a **draft** release. The draft has the `.zip`, `.pkg`, `.deb`, `-dbgsym.ddeb`, `.flatpak` and source `.tar.xz` attached and a `### Checksums` body. Nothing is built locally, and you never run `gh release create`. Your job is to get the right commit onto `main`, tag it, and turn the draft into a finished release.
 - **Tags are plain versions.** The tag is `X.Y.Z` with no `v` prefix, placed on `main`'s merge commit, because that commit is what users download. History uses lightweight tags. The workflow only releases tags matching `X.Y.Z` or `X.Y.Z-beta1`/`-rc1`, and ignores anything else.
 - **Merging updates the website at once.** The site reads the version from `buildspec.json` and deploys from `main` when `buildspec.json` or `site/**` changes. The merge therefore publishes the new version number and changelog on the homepage within about a minute. Download buttons point at `/releases/latest`, so they keep serving the previous release until you publish. Keep the time between merge and publish short.
 - **The back-merge matters for the next release.** It makes the tag reachable from `develop`, so `git describe` finds it next time, and it keeps `main` and `develop` from drifting apart.
@@ -136,7 +136,7 @@ gh run list --workflow push.yaml --branch X.Y.Z --limit 1 --json databaseId,stat
 gh run watch <run-id> --exit-status
 ```
 
-When it succeeds, `gh release view X.Y.Z --json isDraft,assets` must show a draft with `replay-buffer-pro-X.Y.Z-macos-universal.pkg`, `replay-buffer-pro-X.Y.Z-windows-x64.zip`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu.deb`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu-dbgsym.ddeb` and `replay-buffer-pro-X.Y.Z-source.tar.xz`. Then put the finished body and the bare-version title on it, and leave it as a draft:
+When it succeeds, `gh release view X.Y.Z --json isDraft,assets` must show a draft with `replay-buffer-pro-X.Y.Z-macos-universal.pkg`, `replay-buffer-pro-X.Y.Z-windows-x64.zip`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu.deb`, `replay-buffer-pro-X.Y.Z-x86_64-linux-gnu-dbgsym.ddeb`, `replay-buffer-pro-X.Y.Z-x86_64.flatpak` and `replay-buffer-pro-X.Y.Z-source.tar.xz`. Then put the finished body and the bare-version title on it, and leave it as a draft:
 
 ```bash
 .agents/skills/release/scripts/compose-release-body.sh X.Y.Z "$tmp/notes.md" > "$tmp/body.md"
@@ -147,20 +147,17 @@ If the build failed, look at `gh run view <run-id> --log-failed`. A runner or ne
 
 ## 9. Gate 2: publish
 
-Show the draft's URL, its five assets with sizes, and the full final body. Ask "Publish release X.Y.Z?". When they say yes:
+Show the draft's URL, its six assets with sizes, and the full final body. Ask "Publish release X.Y.Z?". When they say yes:
 
 ```bash
 gh release edit X.Y.Z --draft=false --latest
 ```
-
-From here on the release's assets are final. Never delete or re-upload one, above all `replay-buffer-pro-X.Y.Z-source.tar.xz`: Flathub pins its sha256. A broken release gets a new patch version.
 
 ## 10. Check and clean up
 
 - `gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name` prints `X.Y.Z`.
 - The Pages deploy that the merge started succeeded: `gh run list --workflow pages.yaml --branch main --limit 1`.
 - Each issue listed under `Closes` is now closed.
-- Flathub, once the extension is on Flathub (the repository `flathub/com.obsproject.Studio.Plugin.ReplayBufferPro` exists): Flathub's bot opens a pull request there within a few hours that moves the archive source to `replay-buffer-pro-X.Y.Z-source.tar.xz` and adds the release to the metainfo. Find it with `gh pr list -R flathub/com.obsproject.Studio.Plugin.ReplayBufferPro`. If it's there and its test build passed, ask the user "Merge the Flathub update for X.Y.Z?" and merge it on a yes (`gh pr merge <number> -R flathub/com.obsproject.Studio.Plugin.ReplayBufferPro --merge`). If it isn't there yet, tell the user to merge it when it appears. If the test build failed, report its log and stop.
 - Remove the worktrees and the local branch: `git worktree remove "$tmp/release"`, `git worktree remove "$tmp/develop"`, `git branch -D release/X.Y.Z`.
 
 Report the links to the release, the PR and the Pages run, the issues closed, and anything left open.

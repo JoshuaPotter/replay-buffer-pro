@@ -25,6 +25,14 @@ if [[ ! -e "${config}/user.ini" ]]; then
   cp -R /opt/rbp/obs-config/. "${config}/"
 fi
 
+# Install the newest bundle from build_flatpak/ the way a user does, into this user's installation
+bundle="$(ls /plugin/replay-buffer-pro-*-x86_64.flatpak 2>/dev/null | sort -V | tail -n 1 || true)"
+if [[ -n "${bundle}" ]]; then
+  flatpak install --user -y --noninteractive "${bundle}"
+else
+  echo "No replay-buffer-pro .flatpak in build_flatpak/; OBS starts without the plugin." >&2
+fi
+
 echo "Desktop ready at http://localhost:6080/vnc.html?autoconnect=1&resize=scale"
 # Clear OBS's crash sentinel before each launch, or OBS opens at its Safe Mode prompt
 # and Safe Mode turns the plugin off.
