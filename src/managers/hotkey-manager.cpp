@@ -23,9 +23,14 @@ namespace ReplayBufferPro
   {
     constexpr const char *kHotkeyBindingsFile = "hotkey_bindings.json";
 
-    // OBS's own Save Replay hotkey (obs-ffmpeg-mux.c). OBS registers it on the
-    // replay buffer output, which exists only while the replay buffer is on in
-    // its Output settings, and keeps its bindings in the profile config.
+    // OBS's own Save Replay hotkey. OBS 33 registers it on the frontend
+    // (OBSBasic_Hotkeys.cpp) for as long as OBS runs, and keeps its bindings in
+    // the profile config under its name, as {"bindings": [...]}.
+    constexpr const char *kFrontendReplayHotkeyName = "OBSBasic.SaveReplayBuffer";
+    // OBS 32 registered it on the replay buffer output (obs-ffmpeg-mux.c), which
+    // exists only while the replay buffer is on in its Output settings, and kept
+    // the output's bindings in the profile config under "ReplayBuffer", keyed by
+    // hotkey name. OBS 33 copies that key once to the frontend hotkey's.
     constexpr const char *kReplayHotkeyName = "ReplayBuffer.Save";
     constexpr const char *kReplayHotkeySection = "Hotkeys";
     constexpr const char *kReplayHotkeyKey = "ReplayBuffer";
@@ -92,21 +97,24 @@ namespace ReplayBufferPro
       return json ? obs_data_create_from_json(json) : nullptr;
     }
 
-    // ID of the Save Replay hotkey OBS registered on the output
-    obs_hotkey_id findReplayHotkey(obs_output_t *output)
+    // ID of the hotkey with this name and registerer type, and with this
+    // registerer unless it is nullptr
+    obs_hotkey_id findHotkey(obs_hotkey_registerer_t type, void *registerer, const char *name)
     {
       struct Query
       {
-        obs_weak_output_t *weak;
+        obs_hotkey_registerer_t type;
+        void *registerer;
+        const char *name;
         obs_hotkey_id id;
-      } query{obs_output_get_weak_output(output), OBS_INVALID_HOTKEY_ID};
+      } query{type, registerer, name, OBS_INVALID_HOTKEY_ID};
 
       obs_enum_hotkeys(
         [](void *data, obs_hotkey_id id, obs_hotkey_t *key) {
           auto q = static_cast<Query *>(data);
-          if (obs_hotkey_get_registerer_type(key) == OBS_HOTKEY_REGISTERER_OUTPUT &&
-              obs_hotkey_get_registerer(key) == q->weak &&
-              strcmp(obs_hotkey_get_name(key), kReplayHotkeyName) == 0)
+          if (obs_hotkey_get_registerer_type(key) == q->type &&
+              (!q->registerer || obs_hotkey_get_registerer(key) == q->registerer) &&
+              strcmp(obs_hotkey_get_name(key), q->name) == 0)
           {
             q->id = id;
             return false;
@@ -115,8 +123,53 @@ namespace ReplayBufferPro
         },
         &query);
 
-      obs_weak_output_release(query.weak);
       return query.id;
+    }
+
+    // ID of OBS 33's frontend Save Replay hotkey; invalid on OBS 32
+    obs_hotkey_id findFrontendReplayHotkey()
+    {
+      return findHotkey(OBS_HOTKEY_REGISTERER_FRONTEND, nullptr, kFrontendReplayHotkeyName);
+    }
+
+    // ID of the Save Replay hotkey OBS 32 registered on the output
+    obs_hotkey_id findReplayHotkey(obs_output_t *output)
+    {
+      obs_weak_output_t *weak = obs_output_get_weak_output(output);
+      obs_hotkey_id id = findHotkey(OBS_HOTKEY_REGISTERER_OUTPUT, weak, kReplayHotkeyName);
+      obs_weak_output_release(weak);
+      return id;
+    }
+
+    // Appends every binding OBS holds for the hotkey, in order
+    void appendBindings(obs_hotkey_id id, std::vector<obs_key_combination_t> &bindings)
+    {
+      struct Query
+      {
+        obs_hotkey_id id;
+        std::vector<obs_key_combination_t> &bindings;
+      } query{id, bindings};
+
+      obs_enum_hotkey_bindings(
+        [](void *data, size_t, obs_hotkey_binding_t *binding) {
+          auto q = static_cast<Query *>(data);
+          if (obs_hotkey_binding_get_hotkey_id(binding) == q->id)
+            q->bindings.push_back(obs_hotkey_binding_get_key_combination(binding));
+          return true;
+        },
+        &query);
+    }
+
+    // Writes the hotkey bindings to the profile config, where OBS Settings saves
+    // them (SaveHotkeySettings) and OBS reads them
+    void saveProfileHotkey(const char *key, obs_data_t *hotkeys)
+    {
+      config_t *config = obs_frontend_get_profile_config();
+      config_set_string(config, kReplayHotkeySection, key, obs_data_get_json(hotkeys));
+      if (config_save_safe(config, "tmp", nullptr) != CONFIG_SUCCESS)
+      {
+        Logger::error("Failed to save OBS's Save Replay hotkey to the profile config");
+      }
     }
   } // namespace
 
@@ -265,13 +318,8 @@ namespace ReplayBufferPro
 
     for (size_t target = 0; target < FULL_BUFFER; target++)
     {
-      struct Query
-      {
-        obs_hotkey_id id;
-        std::vector<obs_key_combination_t> &bindings;
-      } query{hotkeyId(target), all[target]};
-
-      if (query.id == OBS_INVALID_HOTKEY_ID)
+      obs_hotkey_id id = hotkeyId(target);
+      if (id == OBS_INVALID_HOTKEY_ID)
       {
         if (!saved.isValid())
           continue;
@@ -285,21 +333,21 @@ namespace ReplayBufferPro
           obs_data_t *item = obs_data_array_item(array, i);
           obs_key_combination_t combination = decodeBinding(item);
           if (!obs_key_combination_is_empty(combination))
-            query.bindings.push_back(combination);
+            all[target].push_back(combination);
           obs_data_release(item);
         }
         obs_data_array_release(array);
         continue;
       }
 
-      obs_enum_hotkey_bindings(
-        [](void *data, size_t, obs_hotkey_binding_t *binding) {
-          auto q = static_cast<Query *>(data);
-          if (obs_hotkey_binding_get_hotkey_id(binding) == q->id)
-            q->bindings.push_back(obs_hotkey_binding_get_key_combination(binding));
-          return true;
-        },
-        &query);
+      appendBindings(id, all[target]);
+    }
+
+    obs_hotkey_id frontendReplay = findFrontendReplayHotkey();
+    if (frontendReplay != OBS_INVALID_HOTKEY_ID)
+    {
+      appendBindings(frontendReplay, all[FULL_BUFFER]);
+      return all;
     }
 
     OBSOutputAutoRelease output(obs_frontend_get_replay_buffer_output());
@@ -339,11 +387,25 @@ namespace ReplayBufferPro
 
   void HotkeyManager::setReplayBinding(const obs_key_combination_t *combination)
   {
+    obs_key_combination_t combo = combination ? *combination : obs_key_combination_t{0, OBS_KEY_NONE};
+
+    obs_hotkey_id frontendReplay = findFrontendReplayHotkey();
+    if (frontendReplay != OBS_INVALID_HOTKEY_ID)
+    {
+      obs_hotkey_load_bindings(frontendReplay, &combo, combination ? 1 : 0);
+
+      obs_data_array_t *array = obs_hotkey_save(frontendReplay);
+      OBSDataRAII hotkeys(obs_data_create());
+      obs_data_set_array(hotkeys.get(), "bindings", array);
+      obs_data_array_release(array);
+      saveProfileHotkey(kFrontendReplayHotkeyName, hotkeys.get());
+      return;
+    }
+
     OBSOutputAutoRelease output(obs_frontend_get_replay_buffer_output());
     obs_hotkey_id id = output ? findReplayHotkey(output) : OBS_INVALID_HOTKEY_ID;
     if (id != OBS_INVALID_HOTKEY_ID)
     {
-      obs_key_combination_t combo = combination ? *combination : obs_key_combination_t{0, OBS_KEY_NONE};
       obs_hotkey_load_bindings(id, &combo, combination ? 1 : 0);
     }
 
@@ -364,13 +426,7 @@ namespace ReplayBufferPro
       obs_data_array_release(array);
     }
 
-    // Where OBS Settings saves it (SaveHotkeySettings) and the output reads it
-    config_t *config = obs_frontend_get_profile_config();
-    config_set_string(config, kReplayHotkeySection, kReplayHotkeyKey, obs_data_get_json(hotkeys.get()));
-    if (config_save_safe(config, "tmp", nullptr) != CONFIG_SUCCESS)
-    {
-      Logger::error("Failed to save OBS's Save Replay hotkey to the profile config");
-    }
+    saveProfileHotkey(kReplayHotkeyKey, hotkeys.get());
   }
 
   //=============================================================================

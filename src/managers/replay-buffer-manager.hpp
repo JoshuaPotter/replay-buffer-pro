@@ -267,7 +267,8 @@ namespace ReplayBufferPro
     /**
      * @brief Checks the conditions under which OBS silently drops a save
      *
-     * Mirrors replay_buffer_hotkey() in obs-ffmpeg-mux.c against the current
+     * Mirrors save_replay_proc() in obs-ffmpeg-mux.c (replay_buffer_hotkey()
+     * before OBS 33) against the current
      * replay buffer output. Has no side effects.
      *
      * @return nullptr if OBS would honor a save now, else the reason token
