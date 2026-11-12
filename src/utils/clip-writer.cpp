@@ -4,7 +4,8 @@
  * @author Joshua Potter
  * @copyright GPL v2 or later
  *
- * Stream setup and timestamps follow OBS 32.2's plugins/obs-ffmpeg:
+ * Stream setup and timestamps follow OBS 32.2's plugins/obs-ffmpeg, which
+ * OBS 33.0.1 leaves unchanged:
  * add_video_encoder_params() / add_audio_encoder_params() and
  * replay_buffer_save() in obs-ffmpeg-mux.c, and create_video_stream(),
  * create_audio_stream() and ffmpeg_mux_packet() in ffmpeg-mux/ffmpeg-mux.c.

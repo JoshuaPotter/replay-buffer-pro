@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+# bwrap without its seccomp filter, for x86_64 emulated on an ARM host (Rosetta or QEMU),
+# where the kernel rejects an x86_64 filter with EINVAL. run.sh points FLATPAK_BWRAP here
+# only on such hosts. Flatpak may pass bwrap's arguments in a file (--args FD), so read those too.
+import os
+import sys
+
+def expand(args):
+    out = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--args":
+            with os.fdopen(int(args[i + 1]), "rb") as f:
+                data = f.read().decode()
+            # NUL-terminated, and empty arguments are meaningful
+            out += expand(data.split("\0")[:-1] if data else [])
+            i += 2
+        elif args[i] in ("--seccomp", "--add-seccomp-fd"):
+            i += 2
+        else:
+            out.append(args[i])
+            i += 1
+    return out
+
+# Ubuntu has bwrap in /usr/bin; Flathub's CI image (itself a Flatpak runtime) in /app/bin
+real = next(p for p in ("/app/bin/bwrap", "/usr/bin/bwrap") if os.path.exists(p))
+os.execv(real, ["bwrap"] + expand(sys.argv[1:]))

@@ -36,6 +36,15 @@ if (( ! (${skips[(Ie)all]} + ${skips[(Ie)deps]}) )) {
   }
 
   sudo add-apt-repository --yes ppa:obsproject/obs-studio
+  # Launchpad advertises an empty amd64v3 index for PPAs (LP#2127888). A host using
+  # Ubuntu's amd64v3 packages, such as GitHub's ubuntu-26.04 runner, then sees no OBS
+  # in the PPA and installs Ubuntu's own older one, so read the PPA's amd64 index.
+  local ppa_sources
+  for ppa_sources (/etc/apt/sources.list.d/*obsproject*obs-studio*.sources(N)) {
+    if ! grep -q '^Architectures:' ${ppa_sources}; then
+      sudo sed -i '/^URIs:.*obsproject/a Architectures: amd64' ${ppa_sources}
+    fi
+  }
   sudo apt update
 
   sudo apt-get install ${apt_args} \

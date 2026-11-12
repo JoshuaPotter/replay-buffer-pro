@@ -76,13 +76,14 @@ jobs:
           root_dir="$(pwd)"
           commit_hash="${GITHUB_SHA:0:9}"
 
-          # Collect Windows, macOS, Ubuntu and source artifacts
+          # Collect Windows, macOS, Ubuntu, Flatpak and source artifacts
           windows_candidates=(*-windows-x64-${commit_hash}/*.@(zip))
           macos_candidates=(*-macos-universal-${commit_hash}/*.@(tar.xz|pkg))
-          ubuntu_candidates=(*-ubuntu-24.04-x86_64-${commit_hash}/*.@(tar.xz|deb|ddeb))
+          ubuntu_candidates=(*-ubuntu-26.04-x86_64-${commit_hash}/*.@(tar.xz|deb|ddeb))
           source_candidates=(*-sources-${commit_hash}/*.@(tar.xz))
+          flatpak_candidates=(*-flatpak-x86_64-${commit_hash}/*.@(flatpak))
 
-          for candidate in "${windows_candidates[@]}" "${macos_candidates[@]}" "${ubuntu_candidates[@]}" "${source_candidates[@]}"; do
+          for candidate in "${windows_candidates[@]}" "${macos_candidates[@]}" "${ubuntu_candidates[@]}" "${source_candidates[@]}" "${flatpak_candidates[@]}"; do
             mv "${candidate}" "${root_dir}"
           done
 
@@ -94,7 +95,7 @@ jobs:
           shopt -s extglob
 
           echo "### Checksums" > ${{ github.workspace }}/CHECKSUMS.txt
-          for file in ${{ github.workspace }}/@(*.zip|*.tar.xz|*.pkg|*.deb|*.ddeb); do
+          for file in ${{ github.workspace }}/@(*.zip|*.tar.xz|*.pkg|*.deb|*.ddeb|*.flatpak); do
             echo "    ${file##*/}: $(sha256sum "${file}" | cut -d " " -f 1)" >> ${{ github.workspace }}/CHECKSUMS.txt
           done
 
@@ -114,3 +115,4 @@ jobs:
             ${{ github.workspace }}/*.pkg
             ${{ github.workspace }}/*.deb
             ${{ github.workspace }}/*.ddeb
+            ${{ github.workspace }}/*.flatpak

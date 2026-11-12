@@ -63,10 +63,12 @@ This document describes how replay buffer length settings are stored, how save b
 
 ### OBS's Save Replay hotkey
 - The properties window's Save Replay Buffer row edits OBS's own Save Replay hotkey, so it and OBS **Settings → Hotkeys → Save Replay** always show the same key. The plugin registers no full-buffer hotkey of its own, so one key never saves twice.
-- OBS registers it on the replay buffer output (`ReplayBuffer.Save`, `obs-ffmpeg-mux.c`), which exists only while the replay buffer is on in Output settings, and keeps its bindings in the profile config under `[Hotkeys] ReplayBuffer`, read when OBS creates the output.
-- `getAllBindings()` reads the output's bindings (`obs_hotkeys_save_output(...)`), or the profile config while there is no output.
-- `setBinding(FULL_BUFFER, ...)` finds the hotkey's ID with `obs_enum_hotkeys(...)` (registered by that output, named `ReplayBuffer.Save`), replaces its bindings, and writes the output's bindings to the profile config the way `OBSBasicSettings::SaveHotkeySettings` does, because OBS writes them only when its own Settings are applied. Without an output it edits the profile config alone.
-- Both need the frontend's output handler, so they run only from the properties window, after OBS has loaded.
+- Where OBS registers it depends on the OBS version. The manager looks for the OBS 33 hotkey first and falls back to the OBS 32 one, so one build works on both.
+  - **OBS 33:** a frontend hotkey, `OBSBasic.SaveReplayBuffer` (`frontend/widgets/OBSBasic_Hotkeys.cpp`), registered for as long as OBS runs. Its bindings are in the profile config under `[Hotkeys] OBSBasic.SaveReplayBuffer` as `{"bindings": [...]}`. On first start OBS 33 copies them there from the OBS 32 key below.
+  - **OBS 32:** a hotkey on the replay buffer output (`ReplayBuffer.Save`, `obs-ffmpeg-mux.c`), which exists only while the replay buffer is on in Output settings. Its bindings are in the profile config under `[Hotkeys] ReplayBuffer`, read when OBS creates the output.
+- `getAllBindings()` finds the frontend hotkey with `obs_enum_hotkeys(...)` and reads its live bindings. On OBS 32 it reads the output's bindings (`obs_hotkeys_save_output(...)`), or the profile config while there is no output.
+- `setBinding(FULL_BUFFER, ...)` replaces the hotkey's bindings and writes them to the profile config the way `OBSBasicSettings::SaveHotkeySettings` does, because OBS writes them only when its own Settings are applied. On OBS 32 it finds the output's hotkey (registered by that output, named `ReplayBuffer.Save`), and without an output it edits the profile config alone.
+- Both run only from the properties window, after OBS has loaded: on OBS 32 they need the frontend's output handler.
 - A press of it is OBS's own save: the plugin logs it `no-pending-request` and leaves it untrimmed, the same as the dock's Save Replay Buffer button's result.
 
 ### Properties window access

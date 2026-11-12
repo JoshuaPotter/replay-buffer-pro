@@ -23,13 +23,15 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OBS Studio plugin for saving replay buffe
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${PLUGIN_WEBSITE}")
 set(CPACK_DEBIAN_PACKAGE_SECTION "video")
 
-# shlibdeps only adds an unversioned obs-studio, which Ubuntu's own OBS 30 also
+# shlibdeps only adds an unversioned obs-studio, which Ubuntu's own OBS also
 # satisfies, so require the OBS the plugin is built against. That is the PPA's,
-# which moves on its own and can be newer than the one buildspec.json targets.
+# which moves on its own and can differ from the one buildspec.json targets.
 find_package(libobs QUIET)
 string(JSON _obs_version GET ${buildspec} dependencies obs-studio version)
 if(libobs_VERSION)
-  if(NOT libobs_VERSION VERSION_EQUAL _obs_version)
+  # Patch releases don't change what the plugin builds against, so compare major.minor
+  string(REGEX MATCH "^[0-9]+\\.[0-9]+" _obs_target "${_obs_version}")
+  if(NOT "${libobs_VERSION_MAJOR}.${libobs_VERSION_MINOR}" VERSION_EQUAL _obs_target)
     message(
       WARNING
       "Building against OBS ${libobs_VERSION}, but buildspec.json targets OBS ${_obs_version}. "
