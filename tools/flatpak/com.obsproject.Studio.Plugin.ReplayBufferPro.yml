@@ -1,0 +1,37 @@
+id: com.obsproject.Studio.Plugin.ReplayBufferPro
+branch: stable
+runtime: com.obsproject.Studio
+runtime-version: stable
+sdk: org.freedesktop.Sdk//26.08
+build-extension: true
+separate-locales: false
+build-options:
+  prefix: /app/plugins/ReplayBufferPro
+modules:
+  - name: replay-buffer-pro
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - --preset
+      - ubuntu-x86_64
+      # The preset's binaryDir is build_x86_64; build in flatpak-builder's own directory
+      - -B
+      - ../_flatpak_build
+      # Flatpak OBS merges <prefix>/lib/obs-plugins, not the preset's lib/x86_64-linux-gnu
+      - -DCMAKE_INSTALL_LIBDIR=lib
+    post-install:
+      - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo ${FLATPAK_BUILDER_BUILDDIR}/${FLATPAK_ID}.metainfo.xml
+    sources:
+      - type: archive
+        # fill-manifest.sh: the release's source tarball URL, or a local tarball's path
+        @SOURCE@
+        sha256: '@SHA256@'
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/JoshuaPotter/replay-buffer-pro/releases/latest
+          version-query: .tag_name
+          url-query: .assets[] | select(.name | endswith("-source.tar.xz")) | .browser_download_url
+          timestamp-query: .published_at
+          is-main-source: true
+      - type: file
+        path: com.obsproject.Studio.Plugin.ReplayBufferPro.metainfo.xml

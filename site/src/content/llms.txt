@@ -11,8 +11,8 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 ## Technical Specifications
 
 - **Type**: OBS Studio Dock Plugin
-- **Platform**: Windows 10/11 (64-bit), macOS 13.0+
-- **Requirements**: OBS Studio 32.2.0+
+- **Platform**: Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio from Flathub, or Ubuntu 24.04 or 26.04 with OBS Studio from its PPA)
+- **Requirements**: OBS Studio 33.0.1+ (32.2+ on Ubuntu 24.04, whose PPA stays at OBS 32.2)
 - **Programming Language**: C++ with Qt6
 - **Video Processing**: libavformat with stream copy (no re-encoding)
 - **License**: GPL v2 or later (Open Source)
@@ -61,11 +61,31 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 **Note**: The plugin is universal (supports both Apple Silicon and Intel Macs) and requires macOS 13.0 or later.
 
+### Quick Install (Linux, Flatpak OBS Studio)
+
+1. Use OBS Studio from Flathub, on any x86_64 Linux distribution: `flatpak install flathub com.obsproject.Studio`
+2. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest (choose `replay-buffer-pro-<version>-x86_64.flatpak`)
+3. Close OBS Studio completely
+4. Install it with `flatpak install --user ./replay-buffer-pro-<version>-x86_64.flatpak`. Install each new release's `.flatpak` the same way to update
+5. Open OBS Studio
+
+### Quick Install (Ubuntu)
+
+1. Install OBS Studio from its PPA: `sudo add-apt-repository ppa:obsproject/obs-studio`, then `sudo apt install obs-studio`. For the Flatpak version of OBS Studio, use the Flatpak steps above
+2. Download the latest release from: https://github.com/JoshuaPotter/replay-buffer-pro/releases/latest, choosing the `.deb` for your Ubuntu release: `replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` or `-ubuntu26.04-linux-gnu.deb`
+3. Close OBS Studio completely
+4. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` (or `-ubuntu26.04-linux-gnu.deb`). It places the plugin at `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`
+5. Open OBS Studio
+
+**Note**: The `.deb` is built for Ubuntu 24.04 and 26.04 (x86_64); install the one for your release.
+
 ### Uninstall
 
 - Windows: quit OBS Studio, then delete `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\`
 - macOS: quit OBS Studio, then delete `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin`
-- Settings: hotkey bindings and button durations stay in `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` (Windows) or `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` (macOS). Delete that folder too to remove them.
+- Linux, Flatpak OBS Studio: quit OBS Studio, then run `flatpak uninstall com.obsproject.Studio.Plugin.ReplayBufferPro`
+- Ubuntu: quit OBS Studio, then run `sudo apt remove replay-buffer-pro`
+- Settings: hotkey bindings and button durations stay in `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` (Windows), `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` (macOS), `~/.config/obs-studio/plugin_config/replay-buffer-pro/` (Ubuntu) or `~/.var/app/com.obsproject.Studio/config/obs-studio/plugin_config/replay-buffer-pro/` (Flatpak OBS Studio). Delete that folder too to remove them.
 
 ## Usage
 
@@ -127,16 +147,18 @@ A: Each trimmed clip keeps the name OBS Studio gave the replay, with `_trimmed` 
 A: Yes. Turn on the server in **Tools → WebSocket Server Settings**, then have your app send a `CallVendorRequest` with `vendorName` `replay-buffer-pro`, `requestType` `SaveClip` and `requestData` `{"duration": "2:00"}`. The duration can be seconds (`120`) or text such as `"5:22"`, `"1:05:00"` or `"1h30m"`, from 1 second to 6 hours. The Replay Buffer must be running, and asking for more than your buffer holds saves the whole buffer. See [how to use Replay Buffer Pro](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) for the full request and response format. In full, `duration` is a number of seconds or text: seconds (`"120"`), `m:ss` (`"5:22"`), `h:mm:ss` (`"1:05:00"`) or units largest first (`"90s"`, `"1.5h"`, `"1h30m"`). Fractions round to the nearest second, and the result must be from 1 to 21600 seconds (6 hours). The older `{"durationSeconds": 120}` still works and takes only a whole number; send one field, not both. The vendor response is `{"accepted": true, "durationSeconds": N, "requestedSeconds": N, "clamped": bool}` or `{"accepted": false, "error": "invalid-duration" | "buffer-inactive" | "save-refused" | "unavailable" | "timeout"}`.
 
 **Q: What platforms are supported?**
-A: Windows 10/11 (64-bit) and macOS 13.0+ (universal, supports Apple Silicon and Intel).
+A: Windows 10/11 (64-bit), macOS 13.0+ (universal, supports Apple Silicon and Intel), x86_64 Linux with the Flatpak version of OBS Studio from Flathub, and Ubuntu 24.04 or 26.04 (x86_64) with OBS Studio from its PPA.
 
 **Q: Is there a Linux version?**
-A: No. Replay Buffer Pro runs on Windows 10/11 (64-bit) and macOS 13.0 or later. On Linux, OBS Studio's built-in replay buffer still works, and it saves the whole buffer each time.
+A: Yes, for x86_64 Linux. With the Flatpak version of OBS Studio from Flathub, on any distribution, download the `.flatpak` and install it with `flatpak install --user`. With OBS Studio from the official `ppa:obsproject/obs-studio` on Ubuntu 24.04 or 26.04, download the matching `.deb` and install it with `apt`.
 
 ## Troubleshooting
 
 **Plugin Not Loading**
 - Ensure `replay-buffer-pro.dll` is in `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\bin\64bit\` (typically `C:\ProgramData\obs-studio\plugins\replay-buffer-pro\bin\64bit\`)
 - On macOS, ensure `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` exists
+- With Flatpak OBS Studio on Linux, ensure `flatpak info com.obsproject.Studio.Plugin.ReplayBufferPro` finds the plugin. If it stopped loading after a Flatpak OBS Studio update, install the latest release's `.flatpak` again
+- On Ubuntu with the `.deb`, ensure `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` exists and that OBS Studio came from apt, not Flathub
 - Restart OBS Studio after placing the file
 - Check the OBS log (**Help → Log Files → Show Log Files**) for `[ReplayBufferPro]` entries
 

@@ -6,7 +6,7 @@
 
 This OBS Studio plugin expands upon the built-in Replay Buffer, allowing users to save recent footage at different lengths with customizable save buttons, similar to how PlayStation/Xbox's "Save Recent Gameplay" functionality.
 
-**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64).
+**Note:** Windows builds are 64-bit only, as OBS Studio 29.0.0+ dropped 32-bit support. macOS builds are universal binaries (arm64 + x86_64). Linux builds are `.deb` packages for Ubuntu 24.04 or 26.04 x86_64 with OBS Studio from the [official PPA](https://launchpad.net/~obsproject/+archive/ubuntu/obs-studio). For the Flatpak version of OBS from Flathub, on any x86_64 Linux distribution, each release also has a `.flatpak` bundle.
 
 ## How It Works
 OBS keeps a rolling buffer of the last few seconds or minutes of footage in memory using the built-in replay buffer. The length of this footage is defined in settings. If the amount of footage exceeds the length in settings, old footage is overwritten as new footage is recorded.
@@ -64,15 +64,26 @@ obs-studio/
 
 **Note:** If macOS blocks the installer because it's from an unidentified developer, right-click (or Control-click) the `.pkg` and choose **Open**, then confirm in the dialog.
 
+**Linux (Ubuntu 24.04 or 26.04 x86_64):**
+1. Install OBS Studio from the official PPA (`sudo add-apt-repository ppa:obsproject/obs-studio && sudo apt install obs-studio`). The Flatpak version of OBS can't load system plugins; use the Flatpak bundle below for it. The PPA has OBS 33 for Ubuntu 26.04 and OBS 32.2 for Ubuntu 24.04; download the `.deb` for your release.
+2. Download the latest `.deb` release for your release (`replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` or `-ubuntu26.04-linux-gnu.deb`)
+3. Install it with `sudo apt install ./replay-buffer-pro-<version>-x86_64-ubuntu24.04-linux-gnu.deb` (or `-ubuntu26.04-linux-gnu.deb`)
+4. The package places the plugin at `/usr/lib/x86_64-linux-gnu/obs-plugins/replay-buffer-pro.so` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`
+
+**Linux (Flatpak OBS from Flathub, x86_64):**
+1. Download the latest `.flatpak` release (`replay-buffer-pro-<version>-x86_64.flatpak`)
+2. Close OBS and install it with `flatpak install --user ./replay-buffer-pro-<version>-x86_64.flatpak`
+3. Start OBS. To update, install the next release's `.flatpak` the same way. If the dock disappears after a Flatpak OBS update, install the latest release's `.flatpak` again: each bundle is built against the Flatpak OBS of its release.
+
 ### Uninstall
 
 1. Quit OBS Studio.
-2. Delete the plugin: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` on macOS.
-3. Optionally, delete its settings (hotkey bindings and button durations): `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` on macOS.
+2. Delete the plugin: `%ALLUSERSPROFILE%\obs-studio\plugins\replay-buffer-pro\` on Windows, or `~/Library/Application Support/obs-studio/plugins/replay-buffer-pro.plugin` on macOS. On Linux, run `sudo apt remove replay-buffer-pro`, or `flatpak uninstall com.obsproject.Studio.Plugin.ReplayBufferPro` for the Flatpak bundle.
+3. Optionally, delete its settings (hotkey bindings and button durations): `%APPDATA%\obs-studio\plugin_config\replay-buffer-pro\` on Windows, `~/Library/Application Support/obs-studio/plugin_config/replay-buffer-pro/` on macOS, or `~/.config/obs-studio/plugin_config/replay-buffer-pro/` on Linux (`~/.var/app/com.obsproject.Studio/config/obs-studio/plugin_config/replay-buffer-pro/` with Flatpak OBS).
 
 ## Building from Source
 
-The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. All dependencies (OBS Studio source, prebuilt obs-deps, Qt6) are **automatically downloaded** at configure time.
+The build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern. On Windows and macOS, all dependencies (OBS Studio source, prebuilt obs-deps, Qt6) are **automatically downloaded** at configure time. On Linux, the plugin builds against system packages: OBS Studio from its PPA, Qt6, FFmpeg and libcurl.
 
 ### Requirements
 
@@ -86,7 +97,12 @@ The build system follows the [obs-plugintemplate](https://github.com/obsproject/
 - Xcode 26.5+ with macOS SDK 26.5+
 - CMake 3.28+
 
-No manual OBS clone, Qt6 install, or FFmpeg setup is needed on either platform — everything is fetched automatically.
+No manual OBS clone, Qt6 install, or FFmpeg setup is needed on Windows or macOS — everything is fetched automatically.
+
+**Linux:**
+- Ubuntu 24.04 or 26.04 x86_64
+- CMake 3.28+, Ninja, zsh
+- `.github/scripts/build-ubuntu` installs the rest with apt (OBS Studio from `ppa:obsproject/obs-studio`, Qt6, FFmpeg and libcurl development packages)
 
 ### Build (Windows)
 
@@ -124,6 +140,27 @@ cmake --install build_macos --config RelWithDebInfo
 
 The install target places the `.plugin` bundle in `~/Library/Application Support/obs-studio/plugins/`. After building, a rundir is also available at `build_macos/rundir/RelWithDebInfo/` for quick testing.
 
+### Build (Linux)
+
+```bash
+git clone https://github.com/joshuapotter/replay-buffer-pro.git
+cd replay-buffer-pro
+
+# Install build dependencies with apt (asks for sudo), configure, build, and stage into release/RelWithDebInfo/
+.github/scripts/build-ubuntu
+
+# Or, with the dependencies already installed:
+cmake --preset ubuntu-x86_64
+cmake --build --preset ubuntu-x86_64
+
+# Install next to OBS from the PPA (close OBS first)
+sudo cmake --install build_x86_64
+```
+
+The install places the plugin in `/usr/lib/x86_64-linux-gnu/obs-plugins/` and its data in `/usr/share/obs/obs-plugins/replay-buffer-pro/`.
+
+To build and test the Linux version on macOS or Windows, use the Docker desktop in [`tools/linux-desktop/`](tools/linux-desktop/README.md): `tools/linux-desktop/run.sh deb` builds the `.deb` for the image's Ubuntu release, and `tools/linux-desktop/run.sh up` opens OBS with it installed on an Ubuntu desktop in your browser. After a native build, a rundir is also available at `build_x86_64/rundir/RelWithDebInfo/` for quick testing.
+
 ### Release (Windows)
 
 Update the version in `buildspec.json`, then run:
@@ -137,18 +174,26 @@ This creates `build_x64/releases/<version>/replay-buffer-pro-windows-x64.zip`.
 
 There is no local one-command release target for macOS. Packaging (codesigning, notarization, and `.pkg` creation via `.github/scripts/package-macos`) requires CI credentials and only runs in GitHub Actions — see CI / GitHub Actions below.
 
+### Release (Linux)
+
+```bash
+.github/scripts/build-ubuntu
+.github/scripts/package-ubuntu --package
+```
+This creates `release/replay-buffer-pro-<version>-x86_64-ubuntu<release>-linux-gnu.deb` (the Ubuntu release is the host's, e.g. `ubuntu24.04` or `ubuntu26.04`; on other distributions, Ubuntu derivatives such as Mint and Pop!_OS included, the name has none: `-x86_64-linux-gnu.deb`), its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
+
 ### CI / GitHub Actions
 
-Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for both Windows and macOS and creates a draft GitHub release with all artifacts attached (Windows `.zip` and macOS `.pkg`).
+Pushing a semver tag (e.g., `1.4.0`) to `main`/`master` triggers the GitHub Actions workflow, which builds the plugin for Windows, macOS, Ubuntu 24.04 and 26.04 and Flatpak OBS and creates a draft GitHub release with all artifacts attached (Windows `.zip`, macOS `.pkg`, Ubuntu 24.04 and 26.04 `.deb`s with their `-dbgsym.ddeb`s, the `.flatpak` bundle, and a source `.tar.xz`).
 
 ### Project Structure
 
 ```
 replay-buffer-pro/
-├── buildspec.json       # Plugin metadata + dependency versions (Windows + macOS)
-├── CMakePresets.json    # Build presets (windows-x64, macos)
+├── buildspec.json       # Plugin metadata + dependency versions (Windows + macOS; Linux uses system packages and lists linuxSupported)
+├── CMakePresets.json    # Build presets (windows-x64, macos, ubuntu-x86_64)
 ├── CMakeLists.txt       # Main build configuration
-├── cmake/               # CMake modules (common + windows + macos)
+├── cmake/               # CMake modules (common + windows + macos + linux)
 ├── data/               
 │   └── locale/          # Translations
 ├── src/                 # Source files (fully cross-platform)
@@ -157,7 +202,9 @@ replay-buffer-pro/
 │   ├── plugin/          # Main plugin implementation
 │   ├── ui/              # User interface components
 │   └── utils/           # Utility classes (including video-trimmer)
-├── .github/             # CI workflows, actions, scripts (Windows + macOS)
+├── .github/             # CI workflows, actions, scripts (Windows + macOS + Ubuntu)
+├── tools/linux-desktop/ # Docker Ubuntu desktop for testing the Linux build
+├── tools/flatpak/       # Flatpak bundle: extension manifest, build script, Docker build and test desktop
 ├── site/                # Project website (Astro, deployed to GitHub Pages)
 ├── docs/                # Developer documentation
 └── README.md
@@ -165,7 +212,7 @@ replay-buffer-pro/
 
 ## Troubleshooting
 
-- Verify plugin file location (`.dll` on Windows, `.plugin` bundle on macOS)
+- Verify plugin file location (`.dll` on Windows, `.plugin` bundle on macOS, `.so` in `/usr/lib/x86_64-linux-gnu/obs-plugins/` on Linux)
 - Check OBS logs for errors
 
 ### A clip wasn't trimmed

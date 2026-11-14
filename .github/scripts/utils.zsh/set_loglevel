@@ -1,4 +1,4 @@
-autoload -Uz is-at-least log_info log_error
+autoload -Uz is-at-least log_debug log_info log_error
 
 local -r _usage="Usage: %B${0}%b <loglevel>
 

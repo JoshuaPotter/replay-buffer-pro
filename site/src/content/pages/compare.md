@@ -19,13 +19,13 @@ The built-in OBS Studio replay buffer saves the whole buffer as one file, so eve
 | Re-encoding | None | None, trimming is a stream copy |
 | Disk writes per save | The whole buffer | The whole buffer, then the trimmed clip; the full-length file is deleted |
 | Saving from other apps | obs-websocket saves the whole buffer | A [`SaveClip` vendor request](https://joshuapotter.github.io/replay-buffer-pro/usage/#obs-websocket) with any duration (version 1.8.0 and later) |
-| Platforms | Everywhere OBS runs | Windows 10/11 (64-bit) and macOS 13.0 or later |
-| Requirements | OBS Studio | OBS Studio 32.2.0 or later |
+| Platforms | Everywhere OBS runs | Windows 10/11 (64-bit), macOS 13.0 or later, x86_64 Linux with OBS from Flathub, and Ubuntu 24.04 or 26.04 (x86_64) with OBS from its PPA |
+| Requirements | OBS Studio | OBS Studio 33.0.1 or later (32.2 or later on Ubuntu 24.04) |
 | Cost | Free and open source | Free and open source, GPL v2 or later |
 
 ## When is the built-in replay buffer enough?
 
-When you only ever want one clip length, or you save rarely. The built-in buffer needs no install and works on every platform OBS supports, including Linux. Set the length you need and use the Save Replay hotkey.
+When you only ever want one clip length, or you save rarely. The built-in buffer needs no install and works on every platform OBS supports, including ARM Linux and OBS builds from other sources. Set the length you need and use the Save Replay hotkey.
 
 ## When is Replay Buffer Pro the better fit?
 

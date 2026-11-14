@@ -2,6 +2,15 @@
 
 What changed in each release of Replay Buffer Pro. Full release notes and downloads: https://github.com/JoshuaPotter/replay-buffer-pro/releases
 
+## 1.11.0 (2026-11-14)
+
+Linux builds for Ubuntu and Flatpak OBS, and a move to OBS Studio 33.
+
+- **Fixed the Save Replay Buffer hotkey row on OBS 33.** On OBS 33, the Save Replay Buffer row in the properties window showed no key, and a key set there went to a setting OBS 33 no longer reads. The row now shows and changes OBS 33's Save Replay hotkey.
+- **Linux packages for Ubuntu.** Each release includes a `.deb` for Ubuntu 24.04 and one for Ubuntu 26.04 (x86_64), for OBS Studio installed from `ppa:obsproject/obs-studio`.
+- **Flatpak bundle for Flatpak OBS.** A `.flatpak` bundle installs the plugin into the Flatpak version of OBS Studio from Flathub on any x86_64 Linux. When Flatpak OBS moves to a new runtime, install the latest release's bundle again.
+- **New minimum OBS version: 33.0.1.** The Windows and macOS builds do not load on older OBS Studio versions. The Ubuntu 24.04 package needs OBS 32.2 or later. Stay on 1.10.0 if you are not ready to update OBS.
+
 ## 1.10.0 (2026-10-27)
 
 An experimental option to write clips straight from memory, and up to 12 save buttons.

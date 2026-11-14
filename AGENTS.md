@@ -23,6 +23,8 @@ This file is a concise handoff for agents working in the Replay Buffer Pro OBS p
 - Localization: `data/locale/en-US.ini`
 - Build system: `CMakeLists.txt`, `buildspec.json`, `CMakePresets.json`, `cmake/`
 - CI/CD: `.github/workflows/`, `.github/actions/`, `.github/scripts/`
+- Linux test desktop (Docker, noVNC; builds and runs the `.deb` on any machine): `tools/linux-desktop/`
+- Flatpak bundle (the `com.obsproject.Studio.Plugin.ReplayBufferPro` extension's manifest, metainfo, `build-bundle.sh`, Docker build and test desktop): `tools/flatpak/`
 - Website (Astro, deployed to GitHub Pages): `site/`
 
 ## Core runtime flows
@@ -46,7 +48,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 2. `PacketRing` holds a reference to every packet of the replay buffer output via `obs_output_add_packet_callback(...)`, purged like OBS's own buffer. `ensureSubscribed()` attaches it; buffer stop clears it, and a timeline that starts over (a video DTS not after the previous one: a restart whose stop was suppressed) drops the old packets and expires captures still waiting (`timeline-restarted`). The purge rules are `purgeBuffer(...)` in `src/utils/packet-window.hpp`, unit-tested with `findWindowStart(...)`. The callback runs on OBS's interleave thread and must never block, so `takeCapture(...)` references a clip's packets in short locked chunks.
 3. `ClipWriter::describeStreams(...)` allows MKV/MP4/MOV, H.264/HEVC/AV1, AAC/Opus, SDR. Anything else, or a ring that holds less than asked, falls back to the OBS path (`SAVE MODE: obs reason=...`).
 4. A capture ends on the first packet at or after the press (OBS's `save_ts` rule). The worker writes `findWindowStart(...)`..end with `ClipWriter::write(...)`, a port of OBS's `ffmpeg-mux`, to a partial file, verifies it, then renames it to `<name>_trimmed.<ext>`. Nothing is written twice and OBS fires no saved event.
-5. `ClipWriter` mirrors OBS 32.2's `obs-ffmpeg-mux.c` and `ffmpeg-mux.c`; diff it against them when `buildspec.json` moves OBS. Details in `docs/architecture/replay-buffer-flow.md`.
+5. `ClipWriter` mirrors OBS 32.2's `obs-ffmpeg-mux.c` and `ffmpeg-mux.c` (unchanged in 33.0.1 for what it ports); diff it against them when `buildspec.json` moves OBS. Details in `docs/architecture/replay-buffer-flow.md`.
 
 ### Save clip over obs-websocket
 1. A client sends `CallVendorRequest` with vendor `replay-buffer-pro`, request `SaveClip` and exactly one of `{"duration": ...}` or `{"durationSeconds": N}`.
@@ -57,7 +59,7 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 6. The wait is bounded to 2 seconds, because obs-websocket restarts its server on the main thread (settings dialog) and waits for in-flight requests. A timed-out request answers `timeout` and is abandoned, so it never saves later.
 
 ### Save full buffer
-1. User clicks “Save Replay Buffer”. Its hotkey row in the properties window is OBS's own Save Replay hotkey (`ReplayBuffer.Save` on the replay buffer output), so a press of it is OBS's save, logged `no-pending-request` and left untrimmed.
+1. User clicks “Save Replay Buffer”. Its hotkey row in the properties window is OBS's own Save Replay hotkey (the frontend's `OBSBasic.SaveReplayBuffer` on OBS 33, `ReplayBuffer.Save` on the replay buffer output on OBS 32), so a press of it is OBS's save, logged `no-pending-request` and left untrimmed.
 2. `ReplayBufferManager::saveFullBuffer(...)` requests a `0`-duration save, an explicit do-not-trim marker.
 3. The completion carrying that marker is logged `save-full-buffer` and left untrimmed.
 
@@ -79,32 +81,34 @@ User-facing description of the interfaces below lives in `site/src/content/pages
 - `HotkeyEdit` captures one key combination the way OBS's unexported `OBSHotkeyEdit` does.
 - `ReplayBufferManager` handles save requests and trimming, and owns the replay buffer output reference and its `saved` signal subscription.
 - `SettingsManager` reads/writes OBS profile config and updates output settings.
-- `HotkeyManager` registers a hotkey per save button in use, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getAllBindings()`, `setBinding(...)`, which replaces every binding of that hotkey). Its `FULL_BUFFER` target is OBS's own Save Replay hotkey, not one of the plugin's: it reads the replay buffer output's binding (or the profile config's `[Hotkeys] ReplayBuffer` while there is no output) and writes both, as OBS Settings does, because OBS saves it only when its own Settings are applied. The OBS frontend already reroutes its callbacks to the Qt main thread, but under libobs's hotkey lock, so they only post the press and the save runs once the lock is released; its destructor unregisters every hotkey.
+- `HotkeyManager` registers a hotkey per save button in use, re-registers them when the button count changes, persists bindings (keeping those of removed buttons), and reads/replaces them for the properties window (`getAllBindings()`, `setBinding(...)`, which replaces every binding of that hotkey). Its `FULL_BUFFER` target is OBS's own Save Replay hotkey, not one of the plugin's: on OBS 33 the frontend hotkey `OBSBasic.SaveReplayBuffer` (profile config `[Hotkeys] OBSBasic.SaveReplayBuffer`), found at runtime; on OBS 32 the replay buffer output's binding (or the profile config's `[Hotkeys] ReplayBuffer` while there is no output). It writes the live hotkey and the profile config, as OBS Settings does, because OBS saves it only when its own Settings are applied. The OBS frontend already reroutes its callbacks to the Qt main thread, but under libobs's hotkey lock, so they only post the press and the save runs once the lock is released; its destructor unregisters every hotkey.
 - `VideoTrimmer` trims using libavformat stream copy.
 - `UpdateChecker` fetches the latest GitHub release (`releases/latest`, `tag_name`) with libcurl on a worker thread, only when the About page's button is clicked, and compares it with `PLUGIN_VERSION` using `compareVersions(...)` (pure C++, unit-tested in `tests/`). Closing the window aborts the request and joins the thread. It uses OBS's own libcurl because OBS ships Qt Network without a TLS backend.
 
 ## Configuration and persistence
 - Buffer length config key: `RecRBTime`.
 - Config section is `AdvOut` for Advanced mode, otherwise `SimpleOutput`.
-- Save button hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change. OBS's Save Replay hotkey, which the properties window's Save Replay Buffer row edits, stays in the profile config (`[Hotkeys] ReplayBuffer`, per profile).
+- Save button hotkey bindings are stored in `hotkey_bindings.json` under the module config path, written on exit and when the properties window applies a hotkey change. OBS's Save Replay hotkey, which the properties window's Save Replay Buffer row edits, stays in the profile config, per profile (`[Hotkeys] OBSBasic.SaveReplayBuffer` on OBS 33, `[Hotkeys] ReplayBuffer` on OBS 32).
 - `PluginProperties` stores everything the properties window edits in `properties.json` under the module config path: save buttons (1 to 12, each `{seconds, label}`, schema version 2), the `in_memory_clips` toggle, and the window size the user last left it at (`properties_window_width`/`height`, absent while it is the 820×600 default). When `properties.json` doesn't exist, it reads the old `save_button_settings.json` and leaves that file in place. Slot limits and starting durations are `Config::MAX_SAVE_BUTTON_COUNT`, `DEFAULT_SAVE_BUTTON_COUNT` and `SAVE_BUTTON_DEFAULTS`.
 - The About page's version is the `PLUGIN_VERSION` compile definition, set in `CMakeLists.txt` from `buildspec.json`.
 
 ## Build and localization
 - Build system follows the [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) pattern.
 - Plugin metadata (name, version, author) and dependency versions are in `buildspec.json`.
-- `CMakePresets.json` defines `windows-x64` and `macos` (universal) configure/build presets.
-- Dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time.
-- OBS (libobs + obs-frontend-api) is built from source during configure.
-- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive.
-- libcurl (update check) is the macOS SDK's on macOS and obs-deps' on Windows, the same library OBS links.
-- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), and `cmake/macos/` (Xcode/macOS-specific).
+- `CMakePresets.json` defines `windows-x64`, `macos` (universal) and `ubuntu-x86_64` configure/build presets, each with a `-ci` variant that treats warnings as errors.
+- On Windows and macOS, dependencies (OBS source, prebuilt obs-deps with FFmpeg, Qt6) are auto-downloaded into `.deps/` at configure time, and OBS (libobs + obs-frontend-api) is built from source during configure.
+- On Linux, as in the template, nothing is downloaded: the build uses system packages, OBS Studio from `ppa:obsproject/obs-studio` (its libobs and obs-frontend-api CMake packages), Qt6, FFmpeg and libcurl, which `.github/scripts/utils.zsh/setup_ubuntu` installs with apt. `buildspec.json` has no Linux hashes, and the plugin is built against whatever OBS version the PPA carries. The `.deb` requires that OBS's major.minor version or later, and configure warns when the OBS is not in `buildspec.json`'s `dependencies.obs-studio.linuxSupported` list, because `ClipWriter` mirrors that version's `ffmpeg-mux`.
+- FFmpeg (avformat, avcodec, avutil) comes from the prebuilt obs-deps archive on Windows and macOS, and from Ubuntu's own packages on Linux (FFmpeg 6.1 on 24.04 and 8.0 on 26.04, the build OBS from the PPA links).
+- libcurl (update check) is the macOS SDK's on macOS, obs-deps' on Windows and the system's on Linux, the same library OBS links.
+- CMake modules live in `cmake/common/` (cross-platform), `cmake/windows/` (MSVC-specific), `cmake/macos/` (Xcode/macOS-specific) and `cmake/linux/` (GCC flags, install rules, CPack; copied from the template).
 - Windows DLL embeds VERSIONINFO via `cmake/windows/resources/resource.rc.in`.
 - macOS builds produce a `.plugin` bundle; packaging uses `pkgbuild`/`productbuild` to produce a `.pkg` installer.
-- Post-build rundir at `build_x64/rundir/<config>/` (Windows) or `build_macos/rundir/<config>/` (macOS) for quick testing.
+- Linux builds produce `replay-buffer-pro.so`, installed to `lib/x86_64-linux-gnu/obs-plugins/` with data in `share/obs/obs-plugins/replay-buffer-pro/`. CPack (`cmake/linux/defaults.cmake`) packages a `.deb` per Ubuntu release (24.04 and 26.04), its `-dbgsym.ddeb` and a source `.tar.xz` through `.github/scripts/package-ubuntu --package`. The `.deb` only works with OBS installed from apt; Flatpak OBS can't load it, so Flatpak OBS gets the plugin as a Flatpak extension, shipped as a `.flatpak` bundle built from that source `.tar.xz` (`tools/flatpak/`).
+- Post-build rundir at `build_x64/rundir/<config>/` (Windows), `build_macos/rundir/<config>/` (macOS) or `build_x86_64/rundir/<config>/` (Linux) for quick testing.
 - `prepare_release` custom CMake target creates a Windows zip package (Windows only; macOS packaging is handled by the CI `package-macos` script).
-- GitHub Actions CI: builds on push/PR for Windows and macOS, creates draft releases on semver tag push. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**`, `.agents/**`, `.claude/**` or `skills-lock.json` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
+- GitHub Actions CI: builds on push/PR for Windows, macOS and Ubuntu 24.04 and 26.04 x86_64, creates draft releases on semver tag push with the Windows `.zip`, macOS `.pkg`, Ubuntu 24.04 and 26.04 `.deb`s and their `-dbgsym.ddeb`s, the `.flatpak` bundle, and the source `.tar.xz`. The Ubuntu jobs cache ccache in `.ccache/`, and the `flatpak-build` job builds the bundle from the 26.04 Ubuntu job's source `.tar.xz` artifact. Pushes and PRs that only change the website (`site/**`, `pages.yaml`, `site-check.yaml`), Markdown files, `docs/**`, `.agents/**`, `.claude/**`, `skills-lock.json` or the test desktop in `tools/linux-desktop/**` skip the build (`paths-ignore` in `push.yaml` and `pr-pull.yaml`); tag pushes always build, because GitHub ignores path filters for tags.
 - Releases: the `release` skill (`.agents/skills/release/`, `/release`) cuts one end to end from a develop commit: a `release/X.Y.Z` PR into `main`, a tag on the merge commit, a back-merge into `develop`, and notes on the draft release CI creates. Its `references/writing-style.md` is the house style for release notes and changelog entries.
+- Flatpak: `tools/flatpak/build-bundle.sh` builds `replay-buffer-pro-X.Y.Z-x86_64.flatpak` from a source `.tar.xz` (never a git checkout) with flatpak-builder and `flatpak build-bundle --runtime`; users install it with `flatpak install --user`. The extension builds against Flatpak OBS's own libobs, Qt and FFmpeg (and the SDK's libcurl) with the `ubuntu-x86_64` preset and `-DCMAKE_INSTALL_LIBDIR=lib`, under `org.freedesktop.Sdk` matching Flatpak OBS's runtime (and the CI image's `freedesktop-XX.08` tag). The manifest is also ready for a later Flathub submission (`tools/flatpak/README.md`).
 - macOS CI uses Xcode's built-in compilation cache (CAS), not ccache — a ccache compiler-wrapper triggers a "conflicting deployment targets" error under Xcode 26.
 - Locale strings in `data/locale/en-US.ini` accessed with `obs_module_text(...)`.
 - C++ source code is fully cross-platform — no platform `#ifdef` guards required; all OS interactions go through OBS APIs and FFmpeg.
@@ -122,6 +126,18 @@ cmake --preset macos                 # Configure (downloads deps on first run; r
 cmake --build --preset macos         # Build
 cmake --install build_macos --config RelWithDebInfo  # Install to ~/Library/Application Support/obs-studio/plugins/
 ```
+
+### Build commands (Linux)
+```bash
+.github/scripts/build-ubuntu        # Install apt dependencies (sudo), configure, build, stage into release/<config>/
+.github/scripts/package-ubuntu --package  # .deb, -dbgsym.ddeb and source .tar.xz in release/
+cmake --preset ubuntu-x86_64        # Or configure directly once dependencies are installed
+cmake --build --preset ubuntu-x86_64
+sudo cmake --install build_x86_64
+```
+Without a Linux machine, `tools/linux-desktop/run.sh deb` builds the `.deb` in Docker and `run.sh up` runs it in OBS on an Ubuntu desktop opened in the browser (`tools/linux-desktop/README.md`); `UBUNTU=24.04` selects the 24.04 desktop. Its OBS settings, logs and recordings are in `build_linux-desktop-<release>/`.
+
+`tools/flatpak/run.sh tarball` makes the source `.tar.xz` from `HEAD` as CI does, `run.sh build [tarball]` builds the `.flatpak` from it in Docker, and `run.sh up` installs that bundle into Flatpak OBS on a desktop in the browser (settings, logs and recordings in `build_flatpak/`). See `tools/flatpak/README.md`.
 
 ### Website build
 `site/` is a separate Node project (Astro, Node 24 per `site/.nvmrc`). CMake, packaging and the plugin CI never read it; `.github/workflows/pages.yaml` builds and deploys it from `main`, and `site-check.yaml` builds it on pull requests.

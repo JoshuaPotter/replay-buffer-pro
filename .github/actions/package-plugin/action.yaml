@@ -69,6 +69,24 @@ runs:
 
         .github/scripts/package-macos ${package_args}
 
+    - name: Run Ubuntu Packaging
+      if: runner.os == 'Linux'
+      shell: zsh --no-rcs --errexit --pipefail {0}
+      working-directory: ${{ inputs.workingDirectory }}
+      run: |
+        : Run Ubuntu Packaging
+        # The build step already checked and installed the dependencies
+        package_args=(
+          --target ubuntu-${{ inputs.target }}
+          --config ${{ inputs.config }}
+          --skip-deps
+        )
+        if (( ${+RUNNER_DEBUG} )) package_args+=(--debug)
+
+        if [[ '${{ inputs.package }}' == 'true' ]] package_args+=(--package)
+
+        .github/scripts/package-ubuntu ${package_args}
+
     - name: Run Windows Packaging
       if: runner.os == 'Windows'
       shell: pwsh
