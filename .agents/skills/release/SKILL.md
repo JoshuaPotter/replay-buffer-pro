@@ -89,7 +89,7 @@ gh pr create --base main --head release/X.Y.Z --title "Release X.Y.Z" --body-fil
 gh pr checks <pr> --watch --fail-fast
 ```
 
-If it says no checks are reported, wait a few seconds and run it again. Expect Build Project (macOS, Ubuntu and Windows), plus Site Check because the changelog changed. If a check fails, stop and don't merge. Show the user the failing job (`gh run view <run-id> --log-failed | tail -80`). Fixes belong on `develop` through a normal PR, so let the user choose how to continue.
+If it says no checks are reported, wait a few seconds and run it again. Expect Build Project (macOS, Ubuntu 24.04 and 26.04, Flatpak OBS and Windows), plus Site Check because the changelog changed. If a check fails, stop and don't merge. Show the user the failing job (`gh run view <run-id> --log-failed | tail -80`). Fixes belong on `develop` through a normal PR, so let the user choose how to continue.
 
 ## 6. Gate 1: merge and tag
 
@@ -147,7 +147,7 @@ If the build failed, look at `gh run view <run-id> --log-failed`. A runner or ne
 
 ## 9. Gate 2: publish
 
-Show the draft's URL, its six assets with sizes, and the full final body. Ask "Publish release X.Y.Z?". When they say yes:
+Show the draft's URL, its eight assets with sizes, and the full final body. Ask "Publish release X.Y.Z?". When they say yes:
 
 ```bash
 gh release edit X.Y.Z --draft=false --latest
