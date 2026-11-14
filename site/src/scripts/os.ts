@@ -3,14 +3,18 @@ export type Platform = OS | 'other';
 
 // Best-effort detection of the visitor's platform. Phones, tablets and ChromeOS
 // can't run a build, so they are 'other'. Android reports Linux, so it is ruled
-// out first. iPadOS reports itself as a Mac, so a Mac with a touch screen counts
-// as 'other' too.
+// out first. The Linux builds are x86_64 only, so ARM Linux (navigator.platform
+// still names the CPU there, as does the user agent outside Chrome) is 'other'
+// too. iPadOS reports itself as a Mac, so a Mac with a touch screen counts as
+// 'other' as well.
 export function detectPlatform(): Platform {
   const nav = navigator as Navigator & { userAgentData?: { platform?: string; mobile?: boolean } };
   const platform = nav.userAgentData?.platform || navigator.platform || '';
   const ua = navigator.userAgent || '';
   if (nav.userAgentData?.mobile || /Android|iPhone|iPad|iPod|CrOS/i.test(`${platform} ${ua}`)) return 'other';
-  if (/linux/i.test(platform) || /Linux/.test(ua)) return 'linux';
+  if (/linux/i.test(platform) || /Linux/.test(ua)) {
+    return /\b(aarch64|arm64|armv\d+l?)\b/i.test(`${navigator.platform || ''} ${ua}`) ? 'other' : 'linux';
+  }
   if (/mac/i.test(platform) || /Mac OS X|Macintosh/i.test(ua)) return navigator.maxTouchPoints > 1 ? 'other' : 'macos';
   if (/win/i.test(platform) || /Windows/i.test(ua)) return 'windows';
   return 'other';
