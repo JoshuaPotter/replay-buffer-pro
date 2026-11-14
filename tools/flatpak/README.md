@@ -39,14 +39,14 @@ Requires Docker. On Apple Silicon, turn on Docker Desktop's Rosetta emulation, a
 
 ```bash
 tools/flatpak/run.sh tarball   # build_flatpak/replay-buffer-pro-<version>-source.tar.xz from HEAD, as CI makes it
-tools/flatpak/run.sh build     # build_flatpak/replay-buffer-pro-<version>-x86_64.flatpak from the newest tarball
+tools/flatpak/run.sh build     # build_flatpak/replay-buffer-pro-<version>-x86_64.flatpak from the latest tarball
 tools/flatpak/run.sh up        # Flatpak OBS with that bundle installed, at http://localhost:6081
 ```
 
 | Command | What it does |
 |---|---|
 | `run.sh tarball` | Exports `HEAD` with `git archive` (a clean tree, like CI's checkout), configures it with the `ubuntu-x86_64` preset in the Linux test desktop's image, and runs CPack's `package_source`. Commit first: uncommitted changes aren't in it. |
-| `run.sh build [tarball]` | Runs `build-bundle.sh` on the tarball (default: the newest in `build_flatpak/` or `release/`; pass any, such as one downloaded from a release). The log is `build_flatpak/build.log`. |
+| `run.sh build [tarball]` | Runs `build-bundle.sh` on the tarball (default: the most recently made in `build_flatpak/` or `release/`; pass any, such as one downloaded from a release). The log is `build_flatpak/build.log`. |
 | `run.sh up` | Starts Flatpak OBS on a desktop in the browser, after installing the newest `build_flatpak/*.flatpak` with `flatpak install --user` as a user would. obs-websocket is on `localhost:4456`. The ports differ from the Linux test desktop's, so both can run at once. Settings and logs are in `build_flatpak/config/`, recordings in `build_flatpak/recordings/`. A fresh config gets the Linux test desktop's starting settings. Closing OBS restarts it. |
 | `run.sh manifest VERSION`, `run.sh lint` | Write and lint Flathub submission files for a published release (see below). |
 | `run.sh shell`, `run.sh down`, `run.sh image` | A shell in the running desktop, stop it, rebuild the image. |

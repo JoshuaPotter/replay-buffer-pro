@@ -4,7 +4,7 @@
 # Usage: tools/flatpak/run.sh <command> [argument]
 #   tarball           Make the source tarball from HEAD the way CI does, in build_flatpak/
 #   build [tarball]   Build build_flatpak/replay-buffer-pro-<version>-x86_64.flatpak from a source
-#                     tarball (default: the newest one in build_flatpak/ or release/)
+#                     tarball (default: the most recently made in build_flatpak/ or release/)
 #   up                Start a desktop running Flatpak OBS with the newest .flatpak installed, open it
 #   manifest VERSION  Write the files for flathub/flathub, filled in from that published release
 #   lint              Run Flathub's linter on those files
@@ -60,7 +60,8 @@ case "${1:-}" in
     ;;
   build)
     ensure_image
-    tarball="${2:-$(ls "${state}"/replay-buffer-pro-*-source.tar.xz "${root}"/release/replay-buffer-pro-*-source.tar.xz 2>/dev/null | sort -V | tail -n 1 || true)}"
+    # The most recently made, wherever it is: sorting the paths would always pick release/
+    tarball="${2:-$(ls -t "${state}"/replay-buffer-pro-*-source.tar.xz "${root}"/release/replay-buffer-pro-*-source.tar.xz 2>/dev/null | head -n 1 || true)}"
     if [[ ! -f "${tarball}" ]]; then
       echo "No source tarball. Make one with: tools/flatpak/run.sh tarball" >&2
       exit 1
