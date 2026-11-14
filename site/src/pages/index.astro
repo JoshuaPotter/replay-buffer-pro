@@ -462,6 +462,8 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
   }
   .hero-inner,
   .hero-facts { position: relative; z-index: 1; }
+  /* Above the fact strip, so the download menu opens over it. */
+  .hero-inner { z-index: 2; }
   .hero-inner {
     display: grid;
     grid-template-columns: 1fr;
