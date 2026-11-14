@@ -180,7 +180,7 @@ There is no local one-command release target for macOS. Packaging (codesigning, 
 .github/scripts/build-ubuntu
 .github/scripts/package-ubuntu --package
 ```
-This creates `release/replay-buffer-pro-<version>-x86_64-ubuntu<release>-linux-gnu.deb` (the Ubuntu release is the host's, e.g. `ubuntu24.04` or `ubuntu26.04`), its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
+This creates `release/replay-buffer-pro-<version>-x86_64-ubuntu<release>-linux-gnu.deb` (the Ubuntu release is the host's, e.g. `ubuntu24.04` or `ubuntu26.04`; on other distributions, Ubuntu derivatives such as Mint and Pop!_OS included, the name has none: `-x86_64-linux-gnu.deb`), its `-dbgsym.ddeb` debug symbols, and `release/replay-buffer-pro-<version>-source.tar.xz`. `tools/flatpak/build-bundle.sh` builds the `.flatpak` bundle from that source tarball; `tools/flatpak/run.sh` does it in Docker on any machine (see [`tools/flatpak/`](tools/flatpak/README.md)).
 
 ### CI / GitHub Actions
 

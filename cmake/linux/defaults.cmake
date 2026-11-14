@@ -18,12 +18,26 @@ set(CPACK_PACKAGE_VERSION "${CMAKE_PROJECT_VERSION}")
 # releases build against different OBS and FFmpeg majors, so name the .deb and .ddeb
 # with the release: 24.04 and 26.04 packages must not be installed on the other. The
 # package name stays the same, so `apt remove replay-buffer-pro` keeps working.
-file(STRINGS "/etc/os-release" _os_release REGEX "^VERSION_ID=")
-string(REGEX REPLACE "^VERSION_ID=\"?([0-9]+\\.[0-9]+)\"?$" "\\1" _ubuntu_release "${_os_release}")
-if(_ubuntu_release)
-  string(REPLACE "-linux-" "-ubuntu${_ubuntu_release}-linux-" _deb_arch "${CMAKE_C_LIBRARY_ARCHITECTURE}")
-else()
-  set(_deb_arch "${CMAKE_C_LIBRARY_ARCHITECTURE}")
+# Only Ubuntu itself gets the release in the name; derivatives such as Mint and Pop!_OS
+# number their releases differently, and other distributions name no Ubuntu release.
+set(_os_id "")
+set(_os_version "")
+if(EXISTS "/etc/os-release")
+  file(STRINGS "/etc/os-release" _os_release REGEX "^(ID|VERSION_ID)=")
+  foreach(_os_line IN LISTS _os_release)
+    if(_os_line MATCHES "^ID=\"?([^\"]*)\"?$")
+      set(_os_id "${CMAKE_MATCH_1}")
+    elseif(_os_line MATCHES "^VERSION_ID=\"?([0-9]+\\.[0-9]+)\"?$")
+      set(_os_version "${CMAKE_MATCH_1}")
+    endif()
+  endforeach()
+endif()
+set(_deb_arch "${CMAKE_C_LIBRARY_ARCHITECTURE}")
+if(NOT _deb_arch)
+  set(_deb_arch "${CMAKE_SYSTEM_PROCESSOR}-linux-gnu")
+endif()
+if(_os_id STREQUAL "ubuntu" AND _os_version)
+  string(REPLACE "-linux-" "-ubuntu${_os_version}-linux-" _deb_arch "${_deb_arch}")
 endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${_deb_arch}")
 
