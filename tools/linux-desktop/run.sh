@@ -26,10 +26,14 @@ case "${1:-up}" in
     ;;
   deb)
     ensure_image
-    # Your user, not root, so build_x86_64/ and release/ stay yours on Linux hosts.
+    # Each release builds in its own folder, not the preset's build_x86_64/: Ninja would see
+    # the other release's headers and libraries as older than its objects and rebuild
+    # nothing, and a native Linux build in build_x86_64/ stays untouched.
+    # Your user, not root, so the build folder and release/ stay yours on Linux hosts.
+    build_dir="build_linux-desktop-${ubuntu}/build"
     docker run --rm --platform linux/amd64 --user "$(id -u):$(id -g)" -e HOME=/tmp \
       --entrypoint bash -v "${root}:/src" -w /src "${image}" -c \
-      '.github/scripts/build-ubuntu --target ubuntu-x86_64 --skip-deps && cmake --build build_x86_64 --config RelWithDebInfo -t package'
+      "cmake --preset ubuntu-x86_64 -B '${build_dir}' && cmake --build '${build_dir}' -t package"
     ;;
   up)
     ensure_image

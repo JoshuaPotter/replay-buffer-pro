@@ -111,7 +111,7 @@ The Ubuntu presets install to `/usr`, next to OBS from apt. `build-ubuntu` picks
 
 `tools/linux-desktop/` builds and runs the Linux plugin on any machine with Docker, including Apple Silicon Macs. Its image is Ubuntu 24.04 or 26.04 x86_64 (default 26.04) with OBS Studio from the PPA, the packages `build-ubuntu` needs, and a desktop served to the browser by Xvfb, Openbox, x11vnc and noVNC.
 
-- `run.sh deb` runs `build-ubuntu --skip-deps` and CPack's `package` target in the image for the image's Ubuntu release, writing the `.deb` to `release/`.
+- `run.sh deb` configures with the `ubuntu-x86_64` preset and runs CPack's `package` target in the image for the image's Ubuntu release, writing the `.deb` to `release/`. Each release builds in its own `build_linux-desktop-<release>/build/`, not the preset's `build_x86_64/`: Ninja doesn't notice another release's older headers and libraries, so a shared folder would package the wrong release's binary.
 - `run.sh up` starts the desktop on `localhost:6080` (obs-websocket on `4455`). The entrypoint installs the newest matching `release/*.deb` with `dpkg -i` on every start, and OBS restarts when it quits.
 - OBS settings and logs persist in `build_linux-desktop-<release>/config/` and recordings in `build_linux-desktop-<release>/recordings/`. A fresh config is seeded from `tools/linux-desktop/obs-config/`: no first-run wizard, 720p30, Advanced output with x264 `ultrafast` and 2-second keyframes, MKV to `/recordings`, Replay Buffer on at 60 seconds, and a scene of FFmpeg `lavfi` test sources (`testsrc2` video with a timecode, a `sine` tone).
 
