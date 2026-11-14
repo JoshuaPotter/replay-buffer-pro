@@ -98,7 +98,10 @@ endif()
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/release")
 
 set(CPACK_SOURCE_GENERATOR "TXZ")
-# The ignore rules are regular expressions, so escape the checkout path first
+# The ignore rules are regular expressions, so escape the checkout path first.
+# CI packs a clean checkout; a local working tree also holds the untracked folders
+# below (build output, downloaded dependencies, the website's packages and output,
+# editor and agent settings), which must not reach the tarball.
 string(REGEX REPLACE "([][+.*()^$?|])" "\\\\\\1" _source_dir_regex "${CMAKE_CURRENT_SOURCE_DIR}")
 set(
   CPACK_SOURCE_IGNORE_FILES
@@ -108,8 +111,18 @@ set(
   \\.gitignore
   \\.ccache/
   "^${_source_dir_regex}/build_"
+  "^${_source_dir_regex}/build/"
+  "^${_source_dir_regex}/\\.deps/"
   cmake/\\.CMakeBuildNumber
   "^${_source_dir_regex}/release/"
+  "^${_source_dir_regex}/site/node_modules/"
+  "^${_source_dir_regex}/site/dist/"
+  "^${_source_dir_regex}/site/\\.astro/"
+  \\.vs/
+  \\.vscode/
+  \\.idea/
+  "^${_source_dir_regex}/\\.claude/settings\\.local\\.json$"
+  \\.DS_Store$
 )
 
 set(CPACK_VERBATIM_VARIABLES YES)

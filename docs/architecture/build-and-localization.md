@@ -166,7 +166,7 @@ Codesigning and notarization are supported via `--codesign` and `--notarize` fla
 
 The `.deb` installs next to OBS from apt. The Flatpak build of OBS can't load it; it gets the `.flatpak` bundle built from the source `.tar.xz` instead (see [Flatpak bundle](#flatpak-bundle)).
 
-The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_*` and `release/`, and builds with nothing else: the presets, `cmake/`, `buildspec.json` and `data/` are inside, and nothing reads git at configure or build time.
+The source `.tar.xz` holds the whole checkout minus `.git/`, `.github/`, `build_*` and `release/`, plus the untracked folders a local working tree may hold (`build/`, `.deps/`, `site/node_modules/`, `site/dist/`, `site/.astro/`, editor folders and `.claude/settings.local.json`), and builds with nothing else: the presets, `cmake/`, `buildspec.json` and `data/` are inside, and nothing reads git at configure or build time.
 
 ### CI / GitHub Actions
 
