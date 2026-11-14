@@ -12,7 +12,7 @@ Replay Buffer Pro is a free, open-source plugin for OBS Studio that expands upon
 
 - **Type**: OBS Studio Dock Plugin
 - **Platform**: Windows 10/11 (64-bit), macOS 13.0+, Linux x86_64 (Flatpak OBS Studio from Flathub, or Ubuntu 24.04 or 26.04 with OBS Studio from its PPA)
-- **Requirements**: OBS Studio 33.0.1+
+- **Requirements**: OBS Studio 33.0.1+ (32.2+ on Ubuntu 24.04, whose PPA stays at OBS 32.2)
 - **Programming Language**: C++ with Qt6
 - **Video Processing**: libavformat with stream copy (no re-encoding)
 - **License**: GPL v2 or later (Open Source)

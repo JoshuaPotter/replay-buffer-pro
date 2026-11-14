@@ -215,7 +215,7 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
           <ButtonLink variant="secondary" size="lg" href="#how-it-works">See how it works</ButtonLink>
         </div>
 
-        <p class="hero-meta">Free and open source · Requires OBS Studio 33.0.1+</p>
+        <p class="hero-meta">Free and open source · Requires OBS Studio 33.0.1+ (32.2+ on Ubuntu 24.04)</p>
       </div>
 
       <div class="hero-media">
@@ -324,7 +324,10 @@ const hotkeys = clipButtons.slice(0, 5).map(({ label }, i) => ({ label: `Save ${
     <dl class="spec-list">
       <div class="spec-row">
         <dt>OBS Studio</dt>
-        <dd>33.0.1+</dd>
+        <dd>
+          <span class="spec-line">33.0.1+</span>
+          <span class="spec-line">32.2+ on Ubuntu 24.04, whose PPA stays at OBS 32.2</span>
+        </dd>
       </div>
       <div class="spec-row">
         <dt>Operating System</dt>
