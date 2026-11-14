@@ -15,6 +15,7 @@ RUN apt-get update \
 
 COPY entrypoint.sh session.sh bwrap-no-seccomp /opt/rbp/
 COPY --from=linux-desktop obs-config /opt/rbp/obs-config
+COPY --from=linux-desktop start-display.sh /opt/rbp/
 
 EXPOSE 6080 4455
 ENTRYPOINT ["/opt/rbp/entrypoint.sh"]

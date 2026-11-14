@@ -10,7 +10,8 @@
 #   lint              Run Flathub's linter on those files
 #   down              Stop and remove the desktop
 #   shell             Open a shell in the running desktop as the "ubuntu" user
-#   image             Rebuild the Docker image (after editing this folder)
+#   image             Rebuild the Docker image (after editing this folder, or the Linux test
+#                     desktop's start-display.sh or obs-config/, which the image copies)
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -22,6 +23,7 @@ volume=rbp-flatpak
 state="${root}/build_flatpak"
 # Not the Linux test desktop's 6080 and 4455, so both can run at once
 url='http://localhost:6081/vnc.html?autoconnect=1&resize=scale'
+. "${root}/tools/linux-desktop/wait-for-desktop.sh"
 
 build_image() {
   docker buildx build --platform linux/amd64 --build-context "linux-desktop=${root}/tools/linux-desktop" \
@@ -107,15 +109,7 @@ case "${1:-}" in
       -v "${state}/config:/home/ubuntu/.var/app/com.obsproject.Studio/config/obs-studio" \
       -v "${state}/recordings:/recordings" \
       "${image}" >/dev/null
-    waited=0
-    until curl -fs -o /dev/null http://localhost:6081/vnc.html; do
-      if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null)" != true ]] || (( ++waited > 120 )); then
-        docker logs "${name}" >&2 || true
-        echo "The desktop didn't start; its log is above." >&2
-        exit 1
-      fi
-      sleep 1
-    done
+    wait_for_desktop "${name}" 6081
     echo "Desktop: ${url}"
     echo "Recordings: ${state}/recordings"
     echo "OBS settings and logs: ${state}/config"

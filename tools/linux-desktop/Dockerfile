@@ -26,7 +26,7 @@ RUN apt-get update \
 RUN echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu \
   && git config --system --add safe.directory /src
 
-COPY entrypoint.sh session.sh /opt/rbp/
+COPY entrypoint.sh session.sh start-display.sh /opt/rbp/
 COPY obs-config /opt/rbp/obs-config
 
 EXPOSE 6080 4455

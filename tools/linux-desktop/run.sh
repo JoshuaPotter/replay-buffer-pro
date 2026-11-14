@@ -6,7 +6,8 @@
 #   deb    Build the .deb for the image's Ubuntu release inside the image
 #   down   Stop and remove the desktop container
 #   shell  Open a shell in the running desktop as the "ubuntu" user
-#   image  Rebuild the Docker image (after editing this folder)
+#   image  Rebuild the Docker image (after editing this folder; tools/flatpak/run.sh image
+#          too after editing start-display.sh, which the Flatpak desktop's image copies)
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -16,6 +17,7 @@ image="replay-buffer-pro-linux-desktop-${ubuntu}"
 name="rbp-linux-desktop-${ubuntu}"
 state="${root}/build_linux-desktop-${ubuntu}"
 url='http://localhost:6080/vnc.html?autoconnect=1&resize=scale'
+. "${here}/wait-for-desktop.sh"
 
 build_image() { docker build --platform linux/amd64 --build-arg UBUNTU="${ubuntu}" -t "${image}" "${here}"; }
 ensure_image() { docker image inspect "${image}" >/dev/null 2>&1 || build_image; }
@@ -45,15 +47,7 @@ case "${1:-up}" in
       -v "${state}/config:/home/ubuntu/.config/obs-studio" \
       -v "${state}/recordings:/recordings" \
       "${image}" >/dev/null
-    waited=0
-    until curl -fs -o /dev/null http://localhost:6080/vnc.html; do
-      if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null)" != true ]] || (( ++waited > 120 )); then
-        docker logs "${name}" >&2 || true
-        echo "The desktop didn't start; its log is above." >&2
-        exit 1
-      fi
-      sleep 1
-    done
+    wait_for_desktop "${name}" 6080
     echo "Desktop: ${url}"
     echo "Recordings: ${state}/recordings"
     echo "OBS settings and logs: ${state}/config"
@@ -66,7 +60,7 @@ case "${1:-up}" in
     docker exec -it -u ubuntu -e DISPLAY=:1 -w /home/ubuntu "${name}" bash
     ;;
   *)
-    sed -n '4,9p' "$0" >&2
+    sed -n '4,10p' "$0" >&2
     exit 2
     ;;
 esac

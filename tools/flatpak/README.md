@@ -19,7 +19,7 @@ A bundle has no update source, so users install each new release's bundle the sa
 | `fill-manifest.sh` | Fills the manifest's and metainfo's placeholders, with the release's tarball URL or a local tarball as the source. `build-bundle.sh` and `release-manifest.sh` both run it |
 | `release-manifest.sh` | Writes the Flathub submission files for a published release, from its source tarball's URL, digest and date. `run.sh manifest` runs it |
 | `flathub.json` | Flathub build options, for a later Flathub submission: x86_64 only, as Flatpak OBS is |
-| `run.sh`, `Dockerfile`, `entrypoint.sh`, `session.sh`, `bwrap-no-seccomp` | The Docker build and test desktop |
+| `run.sh`, `Dockerfile`, `entrypoint.sh`, `session.sh`, `bwrap-no-seccomp` | The Docker build and test desktop. It shares the Linux test desktop's `start-display.sh` (X display and noVNC), `wait-for-desktop.sh` and starting OBS settings from `tools/linux-desktop/` |
 
 ## How it builds
 
@@ -49,7 +49,7 @@ tools/flatpak/run.sh up        # Flatpak OBS with that bundle installed, at http
 | `run.sh build [tarball]` | Runs `build-bundle.sh` on the tarball (default: the most recently made in `build_flatpak/` or `release/`; pass any, such as one downloaded from a release). The log is `build_flatpak/build.log`. |
 | `run.sh up` | Starts Flatpak OBS on a desktop in the browser, after installing the newest `build_flatpak/*.flatpak` with `flatpak install --user` as a user would. obs-websocket is on `localhost:4456`. The ports differ from the Linux test desktop's, so both can run at once. Settings and logs are in `build_flatpak/config/`, recordings in `build_flatpak/recordings/`. A fresh config gets the Linux test desktop's starting settings. Closing OBS restarts it. |
 | `run.sh manifest VERSION`, `run.sh lint` | Write and lint Flathub submission files for a published release (see below). |
-| `run.sh shell`, `run.sh down`, `run.sh image` | A shell in the running desktop, stop it, rebuild the image. |
+| `run.sh shell`, `run.sh down`, `run.sh image` | A shell in the running desktop, stop it, rebuild the image. Run `image` after editing this folder or the Linux test desktop's `start-display.sh` or `obs-config/`, which the image copies; an existing image isn't rebuilt on its own. |
 
 Flatpak, the freedesktop SDK and Flatpak OBS live in the Docker volume `rbp-flatpak`, about 1.5 GB on the first run (`docker volume rm rbp-flatpak` to reclaim it). The container runs privileged for bubblewrap. On an ARM host it runs bubblewrap through `bwrap-no-seccomp`, which drops its seccomp filter, because an ARM kernel rejects the x86_64 filter. CI and x86_64 Linux hosts use bubblewrap as is.
 

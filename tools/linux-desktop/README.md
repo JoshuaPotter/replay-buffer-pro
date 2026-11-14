@@ -35,7 +35,7 @@ The desktop is at <http://localhost:6080/vnc.html?autoconnect=1&resize=scale>. O
 | `run.sh deb` | Build the `.deb` and its `-dbgsym.ddeb` into `release/`, inside the image with the `ubuntu-x86_64` preset and CPack. Each release builds in its own `build_linux-desktop-<release>/build/`, so switching `UBUNTU` keeps both builds and leaves a native `build_x86_64/` alone. |
 | `run.sh shell` | A shell in the running desktop as the `ubuntu` user, who has passwordless `sudo`. |
 | `run.sh down` | Stop and remove the desktop. |
-| `run.sh image` | Rebuild the image after changing this folder. |
+| `run.sh image` | Rebuild the image after changing this folder. The Flatpak test desktop's image copies `start-display.sh` and `obs-config/` too, so run `tools/flatpak/run.sh image` after changing those. |
 
 ## What's where
 
