@@ -235,12 +235,15 @@ jobs:
           echo "pluginName=${product_name}" >> $GITHUB_OUTPUT
           echo "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
+      # Cache entries can't be overwritten, so each commit saves its own and restores the
+      # newest earlier one by prefix. A fixed key would keep the first build's cache forever.
       - uses: actions/cache/restore@v4
         id: ccache-cache
         with:
           path: ${{ github.workspace }}/.ccache
-          key: ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}
+          key: ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}-
             ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-
 
       - name: Build Plugin 🧱
@@ -281,7 +284,7 @@ jobs:
         if: github.event_name != 'pull_request' && steps.ccache-cache.outputs.cache-hit != 'true'
         with:
           path: ${{ github.workspace }}/.ccache
-          key: ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}
+          key: ${{ runner.os }}-${{ matrix.os }}-ccache-x86_64-${{ needs.check-event.outputs.config }}-${{ github.sha }}
 
   flatpak-build:
     name: Build for Flatpak OBS 📦

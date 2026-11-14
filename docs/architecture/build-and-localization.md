@@ -192,7 +192,7 @@ Instead, the `macos-ci` preset enables Xcode's built-in compilation cache
 (`CMAKE_XCODE_ATTRIBUTE_COMPILATION_CACHE_ENABLE_CACHING` / `_CAS_PATH`), and the CI workflow caches
 the CAS directory (`~/Library/Developer/Xcode/DerivedData/CompilationCache.noindex`, passed via the
 `XCODE_CAS_PATH` env var) across runs instead of `.ccache`. The Ubuntu job does use ccache: the
-`ubuntu-ci-x86_64` preset sets `ENABLE_CCACHE`, and the workflow caches `.ccache/` per build configuration.
+`ubuntu-ci-x86_64` preset sets `ENABLE_CCACHE`, and the workflow caches `.ccache/` per Ubuntu release and build configuration, saving one entry per commit and restoring the newest earlier one.
 
 Workflow files:
 - `.github/workflows/push.yaml` — push and tag triggers
