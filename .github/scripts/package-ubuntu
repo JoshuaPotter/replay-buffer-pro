@@ -48,6 +48,7 @@ package() {
     return 2
   }
 
+  # log_debug reads this through zsh's dynamic scope, so it must exist under NO_UNSET
   local -i debug=0
   local -i verbosity=1
   local -r _version='2.0.0'
@@ -57,8 +58,6 @@ package() {
   local target
   local config='RelWithDebInfo'
   local -r -a _valid_configs=(Debug RelWithDebInfo Release MinSizeRel)
-  local -i codesign=0
-  local -i notarize=0
   local -i package=0
   local -i skip_deps=0
 
@@ -71,6 +70,7 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
  -----------------------------------------------------------------------------
   %B-t | --target%b                     Specify target
   %B-c | --config%b                     Build configuration
+  %B-p | --package%b                    Build the .deb and -dbgsym.ddeb (default: a binary .tar.xz)
   %B--skip-deps%b                       Skip checking for dependencies
 
 %F{yellow} Output options%f
@@ -82,8 +82,7 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
 %F{yellow} General options%f
  -----------------------------------------------------------------------------
   %B-h | --help%b                       Print this usage help
-  %B-V | --version%b                    Print script version information
-${_usage_host:-}"
+  %B-V | --version%b                    Print script version information"
 
   local -a args
   while (( # )) {
@@ -120,15 +119,13 @@ ${_usage_host:-}"
         config=${2}
         shift 2
         ;;
-      -s|--codesign) typeset -g codesign=1; shift ;;
-      -n|--notarize) typeset -g notarize=1; typeset -g codesign=1; shift ;;
       -p|--package) typeset -g package=1; shift ;;
       --skip-deps) typeset -g skip_deps=1; shift ;;
       -q|--quiet) (( verbosity -= 1 )) || true; shift ;;
       -v|--verbose) (( verbosity += 1 )); shift ;;
       -h|--help) log_output ${_usage}; exit 0 ;;
       -V|--version) print -Pr "${_version}"; exit 0 ;;
-      --debug) verbosity=3; shift ;;
+      --debug) verbosity=3; debug=1; shift ;;
       *) log_error "Unknown option: %B${1}%b"; log_output ${_usage}; exit 2 ;;
     }
   }

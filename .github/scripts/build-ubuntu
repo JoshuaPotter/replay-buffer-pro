@@ -40,7 +40,7 @@ build() {
   local buildspec_file=${project_root}/buildspec.json
 
   fpath=("${SCRIPT_HOME}/utils.zsh" ${fpath})
-  autoload -Uz log_group log_info log_error log_output set_loglevel check_ubuntu setup_ccache
+  autoload -Uz log_group log_info log_error log_warning log_output set_loglevel check_ubuntu
 
   if [[ ! -r ${buildspec_file} ]] {
     log_error \
@@ -48,6 +48,7 @@ build() {
     return 2
   }
 
+  # log_debug reads this through zsh's dynamic scope, so it must exist under NO_UNSET
   local -i debug=0
   typeset -g -a skips=()
   local -i verbosity=1
@@ -58,7 +59,6 @@ build() {
   local target
   local config='RelWithDebInfo'
   local -r -a _valid_configs=(Debug RelWithDebInfo Release MinSizeRel)
-  local -i codesign=0
 
   local -r -a _valid_generators=(Ninja 'Unix Makefiles')
   local generator='Ninja'
@@ -70,7 +70,6 @@ build() {
                                       - Ninja
                                       - Unix Makefiles"
 
-  local -i print_config=0
   local -r _usage="
 Usage: %B${functrace[1]%:*}%b <option> [<options>]
 
@@ -129,12 +128,11 @@ ${_usage_host:-}"
         config=${2}
         shift 2
         ;;
-      -s|--codesign) codesign=1; shift ;;
       -q|--quiet) (( verbosity -= 1 )) || true; shift ;;
       -v|--verbose) (( verbosity += 1 )); shift ;;
       -h|--help) log_output ${_usage}; exit 0 ;;
       -V|--version) print -Pr "${_version}"; exit 0 ;;
-      --debug) verbosity=3; shift ;;
+      --debug) verbosity=3; debug=1; shift ;;
       --generator)
         if (( ! ${_valid_generators[(Ie)${2}]} )) {
           log_error "Invalid value %B${2}%b for option %B${1}%b"
@@ -144,7 +142,6 @@ ${_usage_host:-}"
         generator=${2}
         shift 2
         ;;
-      --print-config) print_config=1; skips+=(deps); shift ;;
       --skip-*)
         local -r _skip="${${(s:-:)1}[-1]}"
         local -r -a _check=(all build deps)
@@ -183,7 +180,7 @@ ${_usage_host:-}"
     local -a cmake_install_args=(--install)
 
     case ${_loglevel} {
-      0) cmake_args+=(-Wno_deprecated -Wno-dev --log-level=ERROR) ;;
+      0) cmake_args+=(-Wno-deprecated -Wno-dev --log-level=ERROR) ;;
       1) ;;
       2) cmake_build_args+=(--verbose) ;;
       *) cmake_args+=(--debug-output) ;;
@@ -199,9 +196,6 @@ ${_usage_host:-}"
           -DCMAKE_BUILD_TYPE=${config}
           -DCMAKE_INSTALL_PREFIX=/usr
         )
-
-        local cmake_version
-        read -r _ _ cmake_version <<< "$(cmake --version)"
 
         cmake_build_args+=(--preset ${_preset}-${target##*-} --config ${config})
         if [[ ${generator} == 'Unix Makefiles' ]] {
