@@ -160,6 +160,20 @@ namespace ReplayBufferPro
         &query);
     }
 
+    // Appends every non-empty binding in a saved array (obs_hotkey_save(...)'s format);
+    // a null array appends nothing
+    void appendDecodedBindings(obs_data_array_t *array, std::vector<obs_key_combination_t> &bindings)
+    {
+      for (size_t i = 0; array && i < obs_data_array_count(array); i++)
+      {
+        obs_data_t *item = obs_data_array_item(array, i);
+        obs_key_combination_t combination = decodeBinding(item);
+        if (!obs_key_combination_is_empty(combination))
+          bindings.push_back(combination);
+        obs_data_release(item);
+      }
+    }
+
     // Writes the hotkey bindings to the profile config, where OBS Settings saves
     // them (SaveHotkeySettings) and OBS reads them
     void saveProfileHotkey(const char *key, obs_data_t *hotkeys)
@@ -325,17 +339,7 @@ namespace ReplayBufferPro
           continue;
 
         obs_data_array_t *array = obs_data_get_array(saved.get(), bindingsKey(target).c_str());
-        if (!array)
-          continue;
-
-        for (size_t i = 0; i < obs_data_array_count(array); i++)
-        {
-          obs_data_t *item = obs_data_array_item(array, i);
-          obs_key_combination_t combination = decodeBinding(item);
-          if (!obs_key_combination_is_empty(combination))
-            all[target].push_back(combination);
-          obs_data_release(item);
-        }
+        appendDecodedBindings(array, all[target]);
         obs_data_array_release(array);
         continue;
       }
@@ -355,14 +359,7 @@ namespace ReplayBufferPro
     if (replayHotkeys.isValid())
     {
       obs_data_array_t *array = obs_data_get_array(replayHotkeys.get(), kReplayHotkeyName);
-      for (size_t i = 0; array && i < obs_data_array_count(array); i++)
-      {
-        obs_data_t *item = obs_data_array_item(array, i);
-        obs_key_combination_t combination = decodeBinding(item);
-        if (!obs_key_combination_is_empty(combination))
-          all[FULL_BUFFER].push_back(combination);
-        obs_data_release(item);
-      }
+      appendDecodedBindings(array, all[FULL_BUFFER]);
       obs_data_array_release(array);
     }
 
