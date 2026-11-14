@@ -75,9 +75,11 @@ runs:
       working-directory: ${{ inputs.workingDirectory }}
       run: |
         : Run Ubuntu Packaging
+        # The build step already checked and installed the dependencies
         package_args=(
           --target ubuntu-${{ inputs.target }}
           --config ${{ inputs.config }}
+          --skip-deps
         )
         if (( ${+RUNNER_DEBUG} )) package_args+=(--debug)
 

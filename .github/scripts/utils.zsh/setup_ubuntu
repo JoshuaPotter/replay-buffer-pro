@@ -32,6 +32,8 @@ if (( ! (${skips[(Ie)all]} + ${skips[(Ie)deps]}) )) {
 
     suffix=":${arch_mappings[${target##*-}]}"
 
+    # check_ubuntu refreshes the package lists only when it installs something
+    sudo apt-get update -qq
     sudo apt-get install ${apt_args} gcc-${${target##*-}//_/-}-linux-gnu g++-${${target##*-}//_/-}-linux-gnu
   }
 

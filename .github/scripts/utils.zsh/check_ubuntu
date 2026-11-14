@@ -28,8 +28,6 @@ local -a dependencies=("${(fA)$(<${SCRIPT_HOME}/.Aptfile)}")
 local -a install_list
 local binary
 
-sudo apt-get update -qq
-
 for dependency (${dependencies}) {
   local -a tokens=(${=dependency//(,|:|\')/})
 
@@ -54,6 +52,9 @@ if (( ${#install_list} )) {
   )
   if (( _loglevel == 0 )) apt_args+=(--quiet)
 
+  # Refresh the package lists only when something is missing; setup_ubuntu refreshes
+  # them again anyway once it has added the OBS PPA
+  sudo apt-get update -qq
   sudo apt-get ${apt_args} install ${install_list}
 }
 
